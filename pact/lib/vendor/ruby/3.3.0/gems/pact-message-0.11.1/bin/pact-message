@@ -1,3 +1,0 @@
-#!/usr/bin/env ruby
-require 'pact/message/cli'
-Pact::Message::CLI.start
