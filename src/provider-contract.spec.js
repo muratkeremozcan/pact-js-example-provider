@@ -23,6 +23,7 @@ const app = server.listen(port, () =>
 
 importData()
 
+// improve this with the pact setup at https://github.com/pactflow/example-provider/blob/master/src/product/product.consumerChange.pact.test.js
 // 2) Setup the provider verifier options
 const options = {
   provider: 'MoviesAPI',
