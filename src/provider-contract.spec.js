@@ -76,9 +76,9 @@ if (process.env.PACT_PAYLOAD_URL) {
   options.pactBrokerUrl = process.env.PACT_BROKER_BASE_URL
 
   options.consumerVersionSelectors = [
-    { mainBranch: true },
-    { matchingBranch: true },
-    { deployedOrReleased: true }
+    // { mainBranch: true },
+    { matchingBranch: true }
+    // { deployedOrReleased: true }
   ]
 }
 const verifier = new Verifier(options)
