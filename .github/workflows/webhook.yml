@@ -1,9 +1,16 @@
+# A webhook that runs when the consumer side publishes a pact
+# and here on the provider side we trigger the provider tests
+
 name: contract_requiring_verification_published
 
 on:
   repository_dispatch:
     types:
       - contract_requiring_verification_published
+
+concurrency:
+  group: ${{ github.ref }} && ${{ github.workflow }}
+  cancel-in-progress: true
 
 env:
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
