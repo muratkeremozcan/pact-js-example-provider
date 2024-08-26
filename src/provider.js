@@ -27,7 +27,7 @@ const importData = () => {
 // delegating business logic to the Movies class (Separation of Concerns)
 
 server.get('/movies', (req, res) => {
-  return res.send(movies.getMovies())
+  return res.status(201).send(movies.getMovies())
 })
 
 server.get('/movie/:id', (req, res) => {

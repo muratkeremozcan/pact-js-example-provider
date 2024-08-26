@@ -8,6 +8,7 @@ on:
     types:
       - contract_requiring_verification_published
 
+# if this branch is pushed back to back, cancel the older branch's workflow
 concurrency:
   group: ${{ github.ref }} && ${{ github.workflow }}
   cancel-in-progress: true
