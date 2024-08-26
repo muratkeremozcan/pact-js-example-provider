@@ -19,28 +19,12 @@ jobs:
       - name: Install dependencies
         run: npm i
 
-      # Happens at Consumer side
-      # - name: Run consumer contract tests
-      #   run: npm run test:consumer
-
-      # - name: Publish contract to Pactflow
-      #   run: npm run publish:pact
-
       - name: Run provider contract tests
         run: npm run test:provider
 
       - name: Can I deploy provider?
         run: npm run can:i:deploy:provider
 
-      # Happens at Consumer side
-      # - name: Can I deploy consumer?
-      #   run: npm run can:i:deploy:consumer
-
-      # - name: Record web consumer deployment
-      #   if: github.ref == 'refs/heads/main'
-      #   run: npm run record:consumer:deployment
-
-      # Happens at Provider side
       - name: Record provider deployment
         if: github.ref == 'refs/heads/main'
         run: npm run record:provider:deployment

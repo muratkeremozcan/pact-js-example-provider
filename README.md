@@ -10,21 +10,75 @@ The biggest selling point of Consumer Driven Contract Testing (CDCT) in simple t
 npm i
 ```
 
-We are using [Pactflow](https://pactflow.io/) as our broker. To use Pactflow, register for their free developer plan. 
+We are using [Pactflow](https://pactflow.io/) as our broker. To use Pactflow, register for their free developer plan.
 
 Use the sample `.env.example` file to create a `.env` file of your own. These values will also have to exist in your CI secrets.
 
 ```bash
-# create a free pact broker at 
+# create a free pact broker at
 # https://pactflow.io/try-for-free/
 PACT_BROKER_TOKEN=***********
 PACT_BROKER_BASE_URL=https://yourownorg.pactflow.io
 ```
 
-### Consumer flow
+### Webhook setup
+
+1. [Create a GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with the public_repo access granted.
+
+   You can test your GitHub token like so (change your repo url):
+
+   ```bash
+   curl -X POST https://api.github.com/repos/muratkeremozcan/pact-js-example-provider/issues \
+       -H "Accept: application/vnd.github.v3+json" \
+       -H "Authorization: Bearer your github token" \
+       -d '{"title": "Test issue", "body": "This is a test issue created via API."}'
+   ```
+
+2. Add the GitHub token to PactFlow (Settings>Secrets>Add Secret, name it `githubToken`).
+
+3. Create the Pact web hook (Settings>Webhooks>Add Webhook).
+
+   > There are no values under Authentication section.
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/be9ywm042qtxj9i5h6nu.png)
+
+Alternatively, use the CLI to add the webhook.
+First [install pact broker](https://github.com/pact-foundation/pact-ruby-standalone/releases), run the below while setting your PACT_BROKER_TOKEN (.env file) and your Github token (Github UI).
 
 ```bash
-npm run test:consumer # (1) 
+PACT_BROKER_BASE_URL=https://ozcan.pactflow.io \
+PACT_BROKER_TOKEN=yourPactFlowToken \
+
+pact-broker create-webhook https://api.github.com/repos/muratkeremozcan/pact-js-example-provider/dispatches \
+        --request=POST \
+        --header 'Content-Type: application/json' \
+        --header 'Accept: application/vnd.github.everest-preview+json' \
+        --header 'Authorization: Bearer yourGithubToken' \
+        --data '{
+            "event_type": "contract_requiring_verification_published",
+            "client_payload": {
+                "pact_url": "${pactbroker.pactUrl}",
+                "sha": "${pactbroker.providerVersionNumber}",
+                "branch": "${pactbroker.providerVersionBranch}",
+                "message": "Verify changed pact for ${pactbroker.consumerName} version ${pactbroker.consumerVersionNumber} branch ${pactbroker.consumerVersionBranch} by ${pactbroker.providerVersionNumber} (${pactbroker.providerVersionDescriptions})"
+            }
+        }'  \
+        --broker-base-url=$PACT_BROKER_BASE_URL \
+        --broker-token=$PACT_BROKER_TOKEN \
+        --consumer=WebConsumer \
+        --provider=MoviesAPI \
+        --description 'Webhook for MoviesAPI provider' \
+        --contract-requiring-verification-published
+```
+
+### Consumer flow
+
+The numbers indicate the order the commands should occur when running them locally.
+
+> For CI, check out the Webhooks section below.
+
+```bash
+npm run test:consumer # (1)
 npm run publish:pact  # (2)
 npm run can:i:deploy:consumer # (4)
 # only on main
@@ -42,13 +96,11 @@ npm run can:i:deploy:provider # (5)
 npm run record:provider:deployment # (5)
 ```
 
-
-
 ## Consumer Tests
 
 The consumer can be any client that makes API calls. Can be an API service, can be a web app (using Axios for example); it does not make a difference.
 
-The purpose of consumer tests is to define and validate the interactions that the consumer expects from the provider. 
+The purpose of consumer tests is to define and validate the interactions that the consumer expects from the provider.
 
 Here is how it works:
 
@@ -58,7 +110,7 @@ Here is how it works:
 
    The contract specifies how to provider should respond upon receiving requests from the consumer.
 
-3. Once the contract is created, from then on the Pact  `mockProvider` takes over as if we are locally serving the provider API and executing the tests against that.
+3. Once the contract is created, from then on the Pact `mockProvider` takes over as if we are locally serving the provider API and executing the tests against that.
    That means, there is no need to serve the client api or the provider api at the moment, the consumer tests and `mockProvider` cover that interaction.
 
 4. The consumer test can only fail at the `executeTest` portion, if / when the assertions do not match the specifications. Any changes to the `provider` section makes updates to the contract
@@ -73,9 +125,9 @@ it('...', () => {
     // specifications about how the provider
     // should behave upon receving requests
     // this part is what really configures the contract
-  
+
   await provider.executeTest(async(mockProvider) => {
-    
+
     // assertions against the mockProvider/contract
   })
 })
@@ -84,7 +136,7 @@ it('...', () => {
 Run the consumer tests:
 
 ```bash
-npm run test:consumer 
+npm run test:consumer
 ```
 
 The pact gets recorded, the consumer tests (`executeTest`) are verified against the contract.
@@ -125,12 +177,12 @@ By using `GITHUB_SHA` and `GITHUB_BRANCH` in your CI/CD workflows, you ensure th
 
 Example matrix:
 
-| **Consumer Version (SHA)** | **Provider Version (SHA)** | **Branch**  | **Environment** | **Verification Status** | **Comments**                                                 |
-| -------------------------- | -------------------------- | ----------- | --------------- | ----------------------- | ------------------------------------------------------------ |
-| `abc123`                   | `xyz789`                   | `main`      | `production`    | Passed                  | The consumer and provider are both verified and deployed in production. |
-| `def456`                   | `xyz789`                   | `main`      | `staging`       | Passed                  | The same provider version is compatible with a newer consumer version in staging. |
+| **Consumer Version (SHA)** | **Provider Version (SHA)** | **Branch**  | **Environment** | **Verification Status** | **Comments**                                                                                             |
+| -------------------------- | -------------------------- | ----------- | --------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
+| `abc123`                   | `xyz789`                   | `main`      | `production`    | Passed                  | The consumer and provider are both verified and deployed in production.                                  |
+| `def456`                   | `xyz789`                   | `main`      | `staging`       | Passed                  | The same provider version is compatible with a newer consumer version in staging.                        |
 | `ghi789`                   | `xyz789`                   | `feature-x` | `development`   | Failed                  | The consumer from a feature branch failed verification with the provider in the development environment. |
-| `jkl012`                   | `uvw345`                   | `main`      | `production`    | Pending                 | A new provider version is pending verification against the consumer in production. |
+| `jkl012`                   | `uvw345`                   | `main`      | `production`    | Pending                 | A new provider version is pending verification against the consumer in production.                       |
 
 ## Provider Tests
 
@@ -170,7 +222,7 @@ npm run start:provider
 Run the consumer tests:
 
 ```bash
-npm run test:consumer 
+npm run test:consumer
 ```
 
 ### Can I Deploy?
@@ -193,7 +245,7 @@ npm run can:i:deploy:consumer
 
 ### Record Deployments
 
-This is akin to releasing; used to record the deployment in the Pact Broker to show the deployed version in an environment. Usually this is `main` being deployed on `dev` environment. 
+This is akin to releasing; used to record the deployment in the Pact Broker to show the deployed version in an environment. Usually this is `main` being deployed on `dev` environment.
 
 You can also run them locally but they will only execute on `main` branch. These scripts are designed to only record deployments when on the `main` branch, ensuring that only final production-ready versions are tracked.
 
@@ -211,13 +263,13 @@ npm run record:consumer:deployment
 
 ## Webhooks
 
-Recall the consumer and provider flow. 
+Recall the consumer and provider flow.
 
-The key is that, when there are multiple repos, the provider has to run `test:provider` `(#3)` after the consumer runs  `publish:pact` `(#2)` but before the consumer can run `can:i:deploy:consumer` `(#4)` . The trigger to run `test:provider` `(#3)` has to happen automatically, webhooks handle this.
+The key is that, when there are multiple repos, the provider has to run `test:provider` `(#3)` after the consumer runs `publish:pact` `(#2)` but before the consumer can run `can:i:deploy:consumer` `(#4)` . The trigger to run `test:provider` `(#3)` has to happen automatically, webhooks handle this.
 
 ```bash
 # Consumer
-npm run test:consumer # (1) 
+npm run test:consumer # (1)
 npm run publish:pact  # (2)
 npm run can:i:deploy:consumer # (4)
 # only on main
@@ -229,6 +281,3 @@ npm run can:i:deploy:provider # (4)
 # only on main
 npm run record:consumer:deployment # (5)
 ```
-
-
-
