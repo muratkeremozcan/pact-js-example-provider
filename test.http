@@ -1,0 +1,47 @@
+@baseUrl = http://localhost:3001
+
+###
+# @name getAllMovies
+GET {{baseUrl}}/movies
+
+###
+# @name getMovieById
+GET {{baseUrl}}/movie/1
+
+###
+# @name addMovie
+POST {{baseUrl}}/movies
+Content-Type: application/json
+
+{
+    "name": "Inception",
+    "year": 2010
+}
+
+###
+# @name addDuplicateMovie
+POST {{baseUrl}}/movies/
+Content-Type: application/json
+
+{
+    "name": "Inception",
+    "year": 2010
+}
+
+###
+# @name addMovieInvalidYear
+POST {{baseUrl}}/movies
+Content-Type: application/json
+
+{
+    "name": "Invalid Year Movie",
+    "year": 1800
+}
+
+###
+# @name deleteMovie
+DELETE {{baseUrl}}/movie/1
+
+###
+# @name getNonExistentMovie
+GET {{baseUrl}}/movie/999
