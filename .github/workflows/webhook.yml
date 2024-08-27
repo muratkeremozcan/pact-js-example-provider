@@ -4,7 +4,7 @@
 name: contract_requiring_verification_published
 
 on:
-  repository_dispatch:
+  repository_dispatch: # A repository_dispatch in GitHub is a HTTP request to your GitHub project instructing GitHub to start any action or webhook
     types:
       - contract_requiring_verification_published
 
@@ -13,8 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }} # PACT_BROKER_BASE_URL is missing and replaced with PACT_PAYLOAD_URL. This is because we want to verify the newly published contract from the consumer that caused the contract_requiring_verification_published event to be triggered
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-  PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }}
   GITHUB_SHA: ${{ github.event.client_payload.sha }}
   GITHUB_BRANCH: ${{ github.event.client_payload.branch }}
 

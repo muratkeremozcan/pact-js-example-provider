@@ -74,7 +74,7 @@ if (process.env.PACT_PAYLOAD_URL) {
   options.consumerVersionSelectors = [
     { mainBranch: true }, // tests against consumer's main branch
     { matchingBranch: true }, // used for coordinated development between consumer and provider teams using matching feature branch names
-    { deployedOrReleased: true } // tests against consumer's currently deployed and currently released versions
+    { deployedOrReleased: true } // tests against consumer's currently deployed version
   ]
 }
 const verifier = new Verifier(options)
