@@ -117,7 +117,7 @@ Here is how it works:
 3. Once the contract is created, from then on the Pact `mockProvider` takes over as if we are locally serving the provider API and executing the tests against that.
    That means, there is no need to serve the client api or the provider api at the moment, the consumer tests and `mockProvider` cover that interaction.
 
-4. The consumer test can only fail at the `executeTest` portion, if / when the assertions do not match the specifications. Any changes to the `provider` section makes updates to the contract
+4. The consumer test can only fail at the `executeTest` portion, if / when the assertions do not match the specifications. Any changes to the `provider` section makes updates to the contract.
 
 Here's how a test generally looks:
 
@@ -153,41 +153,6 @@ Publish the contract to your Pact Broker:
 npm run publish:pact
 ```
 
-### Nuances of the env vars & scripts
-
-To streamline our scripts, we've centralized the setup of environment variables in a script:
-
-```bash
-./scripts/env-setup.sh
-```
-
-This script initializes critical environment variables like `GITHUB_SHA` and `GITHUB_BRANCH` and values at the `.env` file `PACT_BROKER_TOKEN` and `PACT_BROKER_BASE_URL`, which are used across multiple scripts to ensure consistency.
-
-Using `GITHUB_SHA` and `GITHUB_BRANCH` in your scripts is essential for ensuring traceability and consistency across different environments and CI/CD workflows. Here's why:
-
-#### Why `GITHUB_SHA` and `GITHUB_BRANCH`?
-
-- **`GITHUB_SHA`**: This variable represents the unique commit ID (SHA) in Git. By using the commit ID as the version identifier when publishing the contract or running tests, you can precisely trace which version of your code generated a specific contract. This traceability is crucial in understanding which code changes correspond to which contract versions, allowing teams to pinpoint when and where an issue was introduced.
-- **`GITHUB_BRANCH`**: This variable indicates the branch name from which the code is being executed. Including the branch name ensures that contracts and deployments are correctly associated with their respective branches, supporting scenarios where different branches represent different environments or features under development. This separation helps prevent conflicts or mismatches in contracts when multiple teams or features are being developed simultaneously.
-
-#### What is the Pact Matrix?
-
-The Pact Matrix is a feature within Pactflow (or other Pact brokers) that visualizes the relationships between consumer and provider versions and their verification status across different environments. The matrix shows:
-
-- Which versions of consumers are compatible with which versions of providers.
-- The verification results of these interactions across various environments (e.g., dev, stage, prod).
-
-By using `GITHUB_SHA` and `GITHUB_BRANCH` in your CI/CD workflows, you ensure that the matrix accurately reflects the state of your contracts and their verifications. This makes it easier to determine if a particular consumer or provider version is safe to deploy in a specific environment, ultimately enabling seamless integration and deployment processes.
-
-Example matrix:
-
-| **Consumer Version (SHA)** | **Provider Version (SHA)** | **Branch**  | **Environment** | **Verification Status** | **Comments**                                                                                             |
-| -------------------------- | -------------------------- | ----------- | --------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
-| `abc123`                   | `xyz789`                   | `main`      | `production`    | Passed                  | The consumer and provider are both verified and deployed in production.                                  |
-| `def456`                   | `xyz789`                   | `main`      | `staging`       | Passed                  | The same provider version is compatible with a newer consumer version in staging.                        |
-| `ghi789`                   | `xyz789`                   | `feature-x` | `development`   | Failed                  | The consumer from a feature branch failed verification with the provider in the development environment. |
-| `jkl012`                   | `uvw345`                   | `main`      | `production`    | Pending                 | A new provider version is pending verification against the consumer in production.                       |
-
 ## Provider Tests
 
 The main goal is to verify that the provider API can fulfill the contract expectations defined by the consumer(s). This ensures that any changes made to the provider won't break existing consumer integrations.
@@ -195,14 +160,14 @@ The main goal is to verify that the provider API can fulfill the contract expect
 Here is how it works
 
 1. The consumer already generated the contract and published it.
-2. The provider has one test per consumer to ensure all is satisfactory. Most of the file is about setting up the options
+2. The provider has one test per consumer to ensure all is satisfactory. Most of the file is about setting up the options.
 3. We ensure that the provider api is running locally.
-4. The consumer tests execute against the provider api, as if they are normal client running locally.
+4. The consumer tests execute against the provider api, as if they are a regular API client running locally.
 
 Here is how the test generally looks:
 
 ```js
-const options = {..} // most the work is here
+const options = {..} // most the work is here (ex: provider states)
 const verifier = new Verifier(options)
 
 it('should validate the expectations..', () => {
@@ -223,15 +188,20 @@ npm run start:provider
 
 > The provider API has to be running locally for the provider tests to be executed.
 
-Run the consumer tests:
+Run the provider test:
 
 ```bash
-npm run test:consumer
+npm run test:provider
 ```
+
+**Provider States**:  We can simulate certain states of the api (like an empty or non-empty db) in order to cover different scenarios
+
+- Provider states help maintain the correct data setup before verification.
+- State handlers must match the provider states defined in consumer tests.
 
 ### Can I Deploy?
 
-Before deploying to an environment, it is crucial to verify if the consumer and provider versions are compatible using the `can-i-deploy` tool. This step ensures that any changes made to the consumer or provider do not break existing integrations and that the application remains stable across different environments.
+Before deploying to an environment, we verify if the consumer and provider versions are compatible using the `can-i-deploy` tool. This step ensures that any changes made to the consumer or provider do not break existing integrations across environments.
 
 In the current setup, the provider is tested against the consumer's main branch and currently deployed versions (`dev`).
 
@@ -285,3 +255,41 @@ npm run can:i:deploy:provider # (4)
 # only on main
 npm run record:consumer:deployment # (5)
 ```
+
+## Nuances of the env vars & scripts
+
+To streamline our scripts, we've centralized the setup of environment variables in a script:
+
+```bash
+./scripts/env-setup.sh
+```
+
+This script initializes critical environment variables like `GITHUB_SHA` and `GITHUB_BRANCH` and values at the `.env` file `PACT_BROKER_TOKEN` and `PACT_BROKER_BASE_URL`, which are used across multiple scripts to ensure consistency.
+
+Using `GITHUB_SHA` and `GITHUB_BRANCH` in your scripts is essential for ensuring traceability and consistency across different environments and CI/CD workflows. Here's why:
+
+#### Why `GITHUB_SHA` and `GITHUB_BRANCH`?
+
+- **`GITHUB_SHA`**: This variable represents the unique commit ID (SHA) in Git. By using the commit ID as the version identifier when publishing the contract or running tests, you can precisely trace which version of your code generated a specific contract. This traceability is crucial in understanding which code changes correspond to which contract versions, allowing teams to pinpoint when and where an issue was introduced.
+
+- **`GITHUB_BRANCH`**: Including the branch name ensures that contracts and deployments are correctly associated with their respective branches, supporting scenarios where different branches represent different environments or features under development. It helps prevent conflicts or mismatches in contracts when multiple teams or features are being developed simultaneously.
+
+  TL,DR; best practice, do it this way.
+
+#### What is the Pact Matrix?
+
+The Pact Matrix is a feature within Pactflow (or other Pact brokers) that visualizes the relationships between consumer and provider versions and their verification status across different environments. The matrix shows:
+
+- Which versions of consumers are compatible with which versions of providers.
+- The verification results of these interactions across various environments (e.g., dev, stage, prod).
+
+By using `GITHUB_SHA` and `GITHUB_BRANCH` in your CI/CD workflows, you ensure that the matrix accurately reflects the state of your contracts and their verifications. This makes it easier to determine if a particular consumer or provider version is safe to deploy in a specific environment, ultimately enabling seamless integration and deployment processes.
+
+Example matrix:
+
+| **Consumer Version (SHA)** | **Provider Version (SHA)** | **Branch**  | **Environment** | **Verification Status** | **Comments**                                                                                             |
+| -------------------------- | -------------------------- | ----------- | --------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
+| `abc123`                   | `xyz789`                   | `main`      | `production`    | Passed                  | The consumer and provider are both verified and deployed in production.                                  |
+| `def456`                   | `xyz789`                   | `main`      | `staging`       | Passed                  | The same provider version is compatible with a newer consumer version in staging.                        |
+| `ghi789`                   | `xyz789`                   | `feature-x` | `development`   | Failed                  | The consumer from a feature branch failed verification with the provider in the development environment. |
+| `jkl012`                   | `uvw345`                   | `main`      | `production`    | Pending                 | A new provider version is pending verification against the consumer in production.                       |
