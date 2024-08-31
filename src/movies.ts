@@ -1,35 +1,45 @@
-const Joi = require('joi')
-
+import Joi from 'joi'
 // the class encapsulates all business logic related to movie management
 // this allows for clear separation from the HTTP layer (Encapsulation, Single Responsibility Principle)
 
-class Movie {
-  constructor() {
-    this.movies = []
-  }
+// Define the structure of a Movie using an interface
+export type MovieType = {
+  id: number
+  name: string
+  year: number
+}
 
-  getMovies() {
+export default class Movie {
+  private movies: MovieType[] = []
+
+  // Get all movies
+  getMovies(): MovieType[] {
     return this.movies
   }
 
-  getMovieById(id) {
-    return this.movies.find((movie) => parseInt(id) === movie.id)
+  // Get a movie by its ID
+  getMovieById(id: number): MovieType | undefined {
+    return this.movies.find((movie) => id === movie.id)
   }
 
-  getMovieByName(name) {
+  // Get a movie by its name
+  getMovieByName(name: string): MovieType | undefined {
     return this.movies.find((movie) => movie.name === name)
   }
 
-  insertMovie(movie) {
+  // Insert a new movie
+  insertMovie(movie: MovieType): void {
     this.movies.push(movie)
   }
 
-  getFirstMovie() {
+  // Get the first movie in the list
+  getFirstMovie(): MovieType | undefined {
     return this.movies[0]
   }
 
-  deleteMovieById(id) {
-    const index = this.movies.findIndex((movie) => movie.id === parseInt(id))
+  // Delete a movie by its ID
+  deleteMovieById(id: number): boolean {
+    const index = this.movies.findIndex((movie) => movie.id === id)
     if (index === -1) return false
 
     this.movies.splice(index, 1)
@@ -61,7 +71,13 @@ class Movie {
   //   this.insertMovie(movie)
   //   return { status: 200, data: movie }
   // }
-  addMovie(data) {
+
+  // Add a new movie, including validation
+  addMovie(data: Omit<MovieType, 'id'>): {
+    status: number
+    error?: string
+    movie?: MovieType
+  } {
     const schema = Joi.object({
       name: Joi.string().required(),
       year: Joi.number().integer().min(1900).max(2023).required()
@@ -78,7 +94,7 @@ class Movie {
 
     const lastMovie = this.movies[this.movies.length - 1]
 
-    const movie = {
+    const movie: MovieType = {
       id: lastMovie ? lastMovie.id + 1 : 1,
       name: data.name,
       year: data.year
@@ -88,5 +104,3 @@ class Movie {
     return { status: 200, movie }
   }
 }
-
-module.exports = Movie

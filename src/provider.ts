@@ -1,17 +1,22 @@
-const express = require('express')
-const Movies = require('./movies')
+import type { Request, Response } from 'express'
+import express from 'express'
+import type { MovieType } from './movies'
+import Movie from './movies'
+import data from '../data/movies.json'
 
+// Initialize Express server
 const server = express()
 // without express.json() middleware, you would need to manually parse using JSON.parse(req.body)
 server.use(express.json())
 
-const movies = new Movies()
+const movies = new Movie()
 
 // Load default data into the Movies class
-const importData = () => {
-  const data = require('../data/movies.json')
-  data.forEach((movie) => movies.insertMovie(movie))
+const importData = (): void => {
+  const movieData = data as MovieType[]
+  movieData.forEach((movie) => movies.insertMovie(movie))
 }
+
 // why set movies.id for each item? It's already in the data
 // keeping this around in case future information gives clarification
 // const importData = () => {
@@ -26,18 +31,18 @@ const importData = () => {
 // Routes are focused on handling HTTP requests and responses,
 // delegating business logic to the Movies class (Separation of Concerns)
 
-server.get('/movies', (req, res) => {
+server.get('/movies', (req: Request, res: Response): Response => {
   return res.send(movies.getMovies())
 })
 
-server.get('/movie/:id', (req, res) => {
-  const movie = movies.getMovieById(req.params.id)
+server.get('/movie/:id', (req: Request, res: Response): Response => {
+  const movie = movies.getMovieById(parseInt(req.params.id))
 
   if (!movie) return res.status(404).send('Movie not found')
   else return res.send(movie)
 })
 
-server.post('/movies', (req, res) => {
+server.post('/movies', (req: Request, res: Response): Response => {
   const { movie, status, error } = movies.addMovie(req.body)
 
   if (error) {
@@ -50,8 +55,8 @@ server.post('/movies', (req, res) => {
   }
 })
 
-server.delete('/movie/:id', (req, res) => {
-  const movieDeleted = movies.deleteMovieById(req.params.id)
+server.delete('/movie/:id', (req: Request, res: Response): Response => {
+  const movieDeleted = movies.deleteMovieById(parseInt(req.params.id))
 
   if (!movieDeleted) {
     return res.status(404).json({ error: `Movie ${req.params.id} not found` })
@@ -62,8 +67,4 @@ server.delete('/movie/:id', (req, res) => {
   }
 })
 
-module.exports = {
-  server,
-  importData,
-  movies
-}
+export { server, importData, movies }

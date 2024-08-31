@@ -1,4 +1,5 @@
-const { server, importData } = require('./provider')
+import { server, importData } from './provider'
+
 const port = process.env.PORT || 3000
 
 importData()
