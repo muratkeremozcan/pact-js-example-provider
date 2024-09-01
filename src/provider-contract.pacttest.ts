@@ -3,7 +3,6 @@
 import type { VerifierOptions } from '@pact-foundation/pact'
 import { Verifier } from '@pact-foundation/pact'
 import { movies, server, importData } from './provider'
-
 // 1) Run the provider service
 // 2) Setup the provider verifier options
 // 3) Write & execute the provider contract test
@@ -38,15 +37,20 @@ importData()
 // }
 const stateHandlers = {
   'Has a movie with a specific ID': (params) => {
-    movies.getFirstMovie().id = params.id
+    const movieId = Number(params.id) // Convert the ID back to a number
+    movies.getFirstMovie().id = movieId
     return Promise.resolve({
-      description: `Movie with ID ${params.id} added!`
+      description: `Movie with ID ${movieId} added!`
     })
   },
   'An existing movie exists': (params) => {
-    movies.addMovie(params)
+    const movie = {
+      ...params,
+      year: Number(params.year) // Convert the year back to a number
+    }
+    movies.addMovie(movie)
     return Promise.resolve({
-      description: `Movie with ID ${params.id} added!`
+      description: `Movie with name ${params.name} added!`
     })
   }
 }
@@ -88,9 +92,9 @@ if (process.env.PACT_PAYLOAD_URL) {
 
   // https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors#properties
   options.consumerVersionSelectors = [
-    { mainBranch: true }, // tests against consumer's main branch
-    { matchingBranch: true }, // used for coordinated development between consumer and provider teams using matching feature branch names
-    { deployedOrReleased: true } // tests against consumer's currently deployed version
+    // { mainBranch: true }, // tests against consumer's main branch
+    { matchingBranch: true } // used for coordinated development between consumer and provider teams using matching feature branch names
+    // { deployedOrReleased: true } // tests against consumer's currently deployed version
   ]
 }
 
