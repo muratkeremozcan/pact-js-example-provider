@@ -2,7 +2,7 @@ import type { JestConfigWithTsJest } from 'ts-jest'
 
 export const config: JestConfigWithTsJest = {
   clearMocks: true,
-  testTimeout: 20000,
+  testTimeout: 10000,
   collectCoverageFrom: [
     'src/**/*.ts',
     '!**/*.json',
