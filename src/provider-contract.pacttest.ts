@@ -1,8 +1,12 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-import type { VerifierOptions } from '@pact-foundation/pact'
+import type {
+  MessageStateHandlers,
+  VerifierOptions
+} from '@pact-foundation/pact'
 import { Verifier } from '@pact-foundation/pact'
 import { movies, server, importData } from './provider'
+import type { StateHandlers } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
+import type { AnyJson } from '@pact-foundation/pact/src/common/jsonTypes'
 // 1) Run the provider service
 // 2) Setup the provider verifier options
 // 3) Write & execute the provider contract test
@@ -25,32 +29,31 @@ const app = server.listen(port, () =>
 
 importData()
 
-// TODO: find out the best way to convert it to TS,
-// the consumer will have to change state it is passing, I think
-// it may have to be like the below:
-// based on node_modules/@pact-foundation/pact/src/dsl/message.d.ts
-// export interface ProviderState {
-//   name: string;
-//   params?: {
-//       [name: string]: string;
-//   };
-// }
-const stateHandlers = {
-  'Has a movie with a specific ID': (params) => {
-    const movieId = Number(params.id) // Convert the ID back to a number
-    movies.getFirstMovie().id = movieId
+type HasMovieWithSpecificIDParams = { id: string }
+type ExistingMovieParams = { name: string; year: number }
+
+const stateHandlers: StateHandlers & MessageStateHandlers = {
+  'Has a movie with a specific ID': (params: AnyJson) => {
+    const { id } = params as HasMovieWithSpecificIDParams
+    const movieId = Number(id)
+    const movie = movies.getFirstMovie()
+
+    if (!movie) {
+      return Promise.reject(new Error('No movie found to update'))
+    }
+
+    movie.id = movieId
     return Promise.resolve({
       description: `Movie with ID ${movieId} added!`
     })
   },
-  'An existing movie exists': (params) => {
-    const movie = {
-      ...params,
-      year: Number(params.year) // Convert the year back to a number
-    }
+  'An existing movie exists': (params: AnyJson) => {
+    const { name, year } = params as ExistingMovieParams
+    const movie = { name, year }
+
     movies.addMovie(movie)
     return Promise.resolve({
-      description: `Movie with name ${params.name} added!`
+      description: `Movie with name ${movie.name} added!`
     })
   }
 }
