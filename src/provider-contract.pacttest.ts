@@ -29,7 +29,8 @@ const app = server.listen(port, () =>
 
 importData()
 
-type HasMovieWithSpecificIDParams = { id: string }
+// define the shape of the params passed in from the consumer
+type HasMovieWithSpecificIDParams = { id: number }
 type ExistingMovieParams = { name: string; year: number }
 
 const stateHandlers: StateHandlers & MessageStateHandlers = {
