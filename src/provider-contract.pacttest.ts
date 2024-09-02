@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 import type {
   MessageStateHandlers,
   VerifierOptions
@@ -7,6 +6,7 @@ import { Verifier } from '@pact-foundation/pact'
 import { movies, server, importData } from './provider'
 import type { StateHandlers } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
 import type { AnyJson } from '@pact-foundation/pact/src/common/jsonTypes'
+import type { MovieType } from './movies'
 // 1) Run the provider service
 // 2) Setup the provider verifier options
 // 3) Write & execute the provider contract test
@@ -30,8 +30,8 @@ const app = server.listen(port, () =>
 importData()
 
 // define the shape of the params passed in from the consumer
-type HasMovieWithSpecificIDParams = { id: number }
-type ExistingMovieParams = { name: string; year: number }
+type HasMovieWithSpecificIDParams = Omit<MovieType, 'name' | 'year'>
+type ExistingMovieParams = Omit<MovieType, 'id'>
 
 const stateHandlers: StateHandlers & MessageStateHandlers = {
   'Has a movie with a specific ID': (params: AnyJson) => {
