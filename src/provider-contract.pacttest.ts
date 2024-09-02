@@ -36,16 +36,15 @@ type ExistingMovieParams = Omit<MovieType, 'id'>
 const stateHandlers: StateHandlers & MessageStateHandlers = {
   'Has a movie with a specific ID': (params: AnyJson) => {
     const { id } = params as HasMovieWithSpecificIDParams
-    const movieId = Number(id)
     const movie = movies.getFirstMovie()
 
     if (!movie) {
       return Promise.reject(new Error('No movie found to update'))
     }
 
-    movie.id = movieId
+    movie.id = id
     return Promise.resolve({
-      description: `Movie with ID ${movieId} added!`
+      description: `Movie with ID ${id} added!`
     })
   },
   'An existing movie exists': (params: AnyJson) => {
