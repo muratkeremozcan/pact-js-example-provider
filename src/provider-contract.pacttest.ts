@@ -96,9 +96,9 @@ if (process.env.PACT_PAYLOAD_URL) {
 
   // https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors#properties
   options.consumerVersionSelectors = [
-    // { mainBranch: true }, // tests against consumer's main branch
-    { matchingBranch: true } // used for coordinated development between consumer and provider teams using matching feature branch names
-    // { deployedOrReleased: true } // tests against consumer's currently deployed version
+    { mainBranch: true }, // tests against consumer's main branch
+    { matchingBranch: true }, // used for coordinated development between consumer and provider teams using matching feature branch names
+    { deployedOrReleased: true } // tests against consumer's currently deployed version
   ]
 }
 
