@@ -17,6 +17,7 @@ env:
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
   GITHUB_SHA: ${{ github.event.client_payload.sha }}
   GITHUB_BRANCH: ${{ github.event.client_payload.branch }}
+  DATABASE_URL: 'file:./dev.db'
 
 jobs:
   contract-verification-via-webhook:

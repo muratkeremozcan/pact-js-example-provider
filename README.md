@@ -23,6 +23,8 @@ Use the sample `.env.example` file to create a `.env` file of your own. These va
 # https://pactflow.io/try-for-free/
 PACT_BROKER_TOKEN=***********
 PACT_BROKER_BASE_URL=https://yourownorg.pactflow.io
+# need this for Prisma
+DATABASE_URL="file:./dev.db"
 ```
 
 ### Webhook setup
@@ -194,7 +196,7 @@ Run the provider test:
 npm run test:provider
 ```
 
-**Provider States**:  We can simulate certain states of the api (like an empty or non-empty db) in order to cover different scenarios
+**Provider States**: We can simulate certain states of the api (like an empty or non-empty db) in order to cover different scenarios
 
 - Provider states help maintain the correct data setup before verification.
 - State handlers must match the provider states defined in consumer tests.
