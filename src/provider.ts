@@ -9,17 +9,6 @@ server.use(express.json())
 // Initialize the Movie class instance
 const movieService = new Movie()
 
-// why set movies.id for each item? It's already in the data
-// keeping this around in case future information gives clarification
-// const importData = () => {
-//   const data = require('../data/movies.json')
-//   data.reduce((acc, movie) => {
-//     movies.id = acc
-//     movies.insertMovie(movie)
-//     return acc + 1
-//   }, 1)
-// }
-
 // Routes are focused on handling HTTP requests and responses,
 // delegating business logic to the Movies class (Separation of Concerns)
 
