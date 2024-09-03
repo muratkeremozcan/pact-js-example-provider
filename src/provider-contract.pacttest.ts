@@ -1,27 +1,14 @@
-import type {
-  MessageStateHandlers,
-  VerifierOptions
-} from '@pact-foundation/pact'
+import type { VerifierOptions } from '@pact-foundation/pact'
 import { Verifier } from '@pact-foundation/pact'
-import type { AnyJson } from '@pact-foundation/pact/src/common/jsonTypes'
-import type { StateHandlers } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
-import { PrismaClient, type Movie as MovieType } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import { server } from './provider'
-import Movie from './movies'
+import { stateHandlers } from './test-helpers/state-handlers'
 
 // 1) Run the provider service
 // 2) Setup the provider verifier options
 // 3) Write & execute the provider contract test
 
-// TODO: Address the current limitation with data initialization.
-// The current setup requires starting the server and importing the data within the test itself,
-// ensuring that the stateHandlers can access the necessary state.
-// This approach is not ideal because it tightly couples data setup with test execution,
-// leading to potential issues with test isolation and parallelism.
-
 // Future improvements:
-// - Separate the data layer, possibly using SQLite, to manage state independently
-// - Add a service client to interact with the service / database (refashion movies.js?)
 // - Enhance the workflow by starting and stopping the server via package.json scripts, decoupling it from the test file.
 
 const prisma = new PrismaClient()
@@ -29,50 +16,6 @@ const port = '3001'
 const app = server.listen(port, () =>
   console.log(`Listening on port ${port}...`)
 )
-
-// define the shape of the params passed in from the consumer
-type HasMovieWithSpecificIDParams = Omit<MovieType, 'name' | 'year'>
-type ExistingMovieParams = Omit<MovieType, 'id'>
-
-const stateHandlers: StateHandlers & MessageStateHandlers = {
-  'Has a movie with a specific ID': async (params: AnyJson) => {
-    const { id } = params as HasMovieWithSpecificIDParams
-
-    const movieService = new Movie()
-
-    // Check if the movie with the given id already exists
-    const existingMovie = await movieService.getMovieById(id)
-
-    if (!existingMovie) {
-      // If the movie doesn't exist, create it
-      const movieData: Omit<MovieType, 'id'> = {
-        name: `Movie Title ${Math.random().toString(36).substring(7)}`,
-        year: 2022
-      }
-
-      await movieService.addMovie(movieData, id)
-      console.log(`Movie with ID ${id} successfully created.`)
-    } else {
-      console.log(`Movie with ID ${id} already exists, skipping creation.`)
-    }
-
-    return {
-      description: `Movie with ID ${id} is set up.`
-    }
-  },
-  'An existing movie exists': async (params: AnyJson) => {
-    const { name, year } = params as ExistingMovieParams
-    const movie = { name, year }
-
-    const movieService = new Movie()
-    // Insert the movie
-    await movieService.addMovie(movie)
-
-    return {
-      description: `Movie with name ${movie.name} added!`
-    }
-  }
-}
 
 describe('Pact Verification', () => {
   let verifier: Verifier
