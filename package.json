@@ -11,7 +11,7 @@
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|ts|json)\"",
     "fix:format": "npm run prettier -- --write",
     "validate": "npm-run-all --parallel typecheck lint fix:format",
-    "test:provider": ". ./scripts/env-setup.sh && jest --testMatch '**/*.pacttest.(ts)' --testTimeout=20000",
+    "test:provider": ". ./scripts/env-setup.sh && npm run reset:db && jest --testMatch '**/*.pacttest.(ts)' --testTimeout=20000",
     "can:i:deploy:provider": ". ./scripts/env-setup.sh && pact-broker can-i-deploy --pacticipant MoviesAPI --version=$GITHUB_SHA --to-environment dev --broker-base-url=$PACT_BROKER_BASE_URL",
     "record:provider:deployment": ". ./scripts/env-setup.sh && if [ \"$GITHUB_BRANCH\" = \"main\" ]; then pact-broker record-deployment --pacticipant MoviesAPI --version $GITHUB_SHA --environment dev; fi",
     "typecheck": "tsc --noEmit",
