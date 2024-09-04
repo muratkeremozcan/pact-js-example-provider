@@ -3,7 +3,7 @@ import type { MovieRepository } from './movie-repository'
 import type { Movie } from '@prisma/client'
 
 // because we use ports & adapters / hex pattern,
-// the data layer (MovieRepository) a external dependency we can mock
+// the data layer (MovieRepository) is a dependency we can mock
 // this ensures we're testing only the business logic and not the database.
 
 // In this test suite, we are focusing on the Service, which encapsulates the business logic.

@@ -1,7 +1,7 @@
 import type { VerifierOptions } from '@pact-foundation/pact'
 import { Verifier } from '@pact-foundation/pact'
 import { PrismaClient } from '@prisma/client'
-import { server } from './provider'
+import { server } from './server'
 import { stateHandlers } from './test-helpers/state-handlers'
 
 // 1) Run the provider service
