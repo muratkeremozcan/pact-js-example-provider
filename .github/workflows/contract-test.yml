@@ -12,6 +12,7 @@ env:
   GITHUB_SHA: ${{ github.sha }}
   GITHUB_BRANCH: ${{ github.ref_name }}
   DATABASE_URL: 'file:./dev.db'
+  PORT: 3001
 
 jobs:
   contract-test:

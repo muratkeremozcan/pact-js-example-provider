@@ -7,7 +7,7 @@
   "license": "ISC",
   "scripts": {
     "reset:db": "npx prisma migrate reset --force --skip-seed --skip-generate",
-    "start": "npm run reset:db && cross-env PORT=3001 ts-node --project tsconfig.json src/server-listen.ts",
+    "start": ". ./scripts/env-setup.sh && npm run reset:db && cross-env ts-node --project tsconfig.json src/server-listen.ts",
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|ts|json)\"",
     "fix:format": "npm run prettier -- --write",
     "validate": "npm-run-all --parallel typecheck lint fix:format",
@@ -31,6 +31,7 @@
     "@types/node": "18.19.47",
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "@typescript-eslint/parser": "7.18.0",
+    "cross-env": "^7.0.3",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-import-resolver-typescript": "3.6.1",

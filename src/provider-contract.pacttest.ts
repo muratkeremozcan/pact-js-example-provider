@@ -11,7 +11,7 @@ import { stateHandlers } from './test-helpers/state-handlers'
 // Future improvements:
 // - Enhance the workflow by starting and stopping the server via package.json scripts, decoupling it from the test file.
 
-const port = '3001'
+const port = process.env.PORT
 
 describe('Pact Verification', () => {
   let verifier: Verifier

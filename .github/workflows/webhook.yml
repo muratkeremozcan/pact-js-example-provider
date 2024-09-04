@@ -18,6 +18,7 @@ env:
   GITHUB_SHA: ${{ github.event.client_payload.sha }}
   GITHUB_BRANCH: ${{ github.event.client_payload.branch }}
   DATABASE_URL: 'file:./dev.db'
+  PORT: 3001
 
 jobs:
   contract-verification-via-webhook:
