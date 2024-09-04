@@ -7,7 +7,7 @@
   "license": "ISC",
   "scripts": {
     "reset:db": "npx prisma migrate reset --force --skip-seed --skip-generate",
-    "start:provider": "npm run reset:db && cross-env PORT=3001 ts-node --project tsconfig.json src/provider-service.ts",
+    "start:provider": "npm run reset:db && cross-env PORT=3001 ts-node --project tsconfig.json src/server-listen.ts",
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|ts|json)\"",
     "fix:format": "npm run prettier -- --write",
     "validate": "npm-run-all --parallel typecheck lint fix:format",
