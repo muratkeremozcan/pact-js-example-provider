@@ -1,17 +1,21 @@
 import type { MessageStateHandlers } from '@pact-foundation/pact'
 import type { AnyJson } from '@pact-foundation/pact/src/common/jsonTypes'
 import type { StateHandlers } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
-import { type Movie as MovieType } from '@prisma/client'
-import Movie from '../movies'
+import { PrismaClient, type Movie as MovieType } from '@prisma/client'
+import { MovieService } from '../movie-service'
+import { MovieAdapter } from '../movie-adapter'
 
 // define the shape of the params passed in from the consumer
 type HasMovieWithSpecificIDParams = Omit<MovieType, 'name' | 'year'>
 type ExistingMovieParams = Omit<MovieType, 'id'>
 
+const prisma = new PrismaClient()
+const movieAdapter = new MovieAdapter(prisma)
+const movieService = new MovieService(movieAdapter)
+
 export const stateHandlers: StateHandlers & MessageStateHandlers = {
   'Has a movie with a specific ID': async (params: AnyJson) => {
     const { id } = params as HasMovieWithSpecificIDParams
-    const movieService = new Movie()
 
     // Check if the movie with the given id already exists
     const existingMovie = await movieService.getMovieById(id)
@@ -35,7 +39,6 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
   },
   'An existing movie exists': async (params: AnyJson) => {
     const { name, year } = params as ExistingMovieParams
-    const movieService = new Movie()
 
     // Check if the movie already exists by name
     const existingMovie = await movieService.getMovieByName(name)
