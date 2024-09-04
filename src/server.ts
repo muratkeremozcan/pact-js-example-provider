@@ -18,6 +18,12 @@ const movieService = new MovieService(movieAdapter)
 // delegating business logic to the Movies class (Separation of Concerns)
 
 server.get(
+  '/',
+  (req: Request, res: Response): Response =>
+    res.status(200).json({ message: 'Server is running' })
+)
+
+server.get(
   '/movies',
   async (req: Request, res: Response): Promise<Response> => {
     const allMovies = await movieService.getMovies()

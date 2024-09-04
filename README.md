@@ -94,9 +94,10 @@ npm run record:consumer:deployment # (5)
 ### Provider flow
 
 ```bash
-# start the provider service
-# npm run start:provider # Todo: use start-server instead of starting the app in the test, then enable this instruction
-npm run test:provider # (3)
+# start the provider service and run the tests
+# npm run start #
+# npm run test:provider #
+npm run test:provider:ci # (3) # starts the provider service and runs the tests
 npm run can:i:deploy:provider # (5)
 # only on main
 npm run record:provider:deployment # (5)
@@ -185,7 +186,7 @@ it('should validate the expectations..', () => {
 Run the Movies API:
 
 ```bash
-npm run start:provider
+npm run start
 ```
 
 > The provider API has to be running locally for the provider tests to be executed.
@@ -194,6 +195,12 @@ Run the provider test:
 
 ```bash
 npm run test:provider
+```
+
+Two in one:
+
+```bash
+npm run test:provider:ci
 ```
 
 **Provider States**: We can simulate certain states of the api (like an empty or non-empty db) in order to cover different scenarios
@@ -241,7 +248,7 @@ npm run record:consumer:deployment
 
 Recall the consumer and provider flow.
 
-The key is that, when there are multiple repos, the provider has to run `test:provider` `(#3)` after the consumer runs `publish:pact` `(#2)` but before the consumer can run `can:i:deploy:consumer` `(#4)` . The trigger to run `test:provider` `(#3)` has to happen automatically, webhooks handle this.
+The key is that, when there are multiple repos, the provider has to run `test:provider:ci` `(#3)` after the consumer runs `publish:pact` `(#2)` but before the consumer can run `can:i:deploy:consumer` `(#4)` . The trigger to run `test:provider:ci` `(#3)` has to happen automatically, webhooks handle this.
 
 ```bash
 # Consumer
@@ -252,7 +259,7 @@ npm run can:i:deploy:consumer # (4)
 npm run record:consumer:deployment # (5)
 
 # Provider
-npm run test:provider # (3) triggered by webhooks
+npm run test:provider:ci # (3) triggered by webhooks
 npm run can:i:deploy:provider # (4)
 # only on main
 npm run record:consumer:deployment # (5)

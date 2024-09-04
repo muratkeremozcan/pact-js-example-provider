@@ -1,6 +1,10 @@
 @baseUrl = http://localhost:3001
 
 ###
+# @name heartbeat
+GET {{baseUrl}}
+
+###
 # @name getAllMovies
 GET {{baseUrl}}/movies
 

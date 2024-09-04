@@ -1,7 +1,7 @@
 import type { VerifierOptions } from '@pact-foundation/pact'
 import { Verifier } from '@pact-foundation/pact'
-import { PrismaClient } from '@prisma/client'
-import { server } from './server'
+// import { PrismaClient } from '@prisma/client'
+// import { server } from './server'
 import { stateHandlers } from './test-helpers/state-handlers'
 
 // 1) Run the provider service
@@ -11,11 +11,7 @@ import { stateHandlers } from './test-helpers/state-handlers'
 // Future improvements:
 // - Enhance the workflow by starting and stopping the server via package.json scripts, decoupling it from the test file.
 
-const prisma = new PrismaClient()
 const port = '3001'
-const app = server.listen(port, () =>
-  console.log(`Listening on port ${port}...`)
-)
 
 describe('Pact Verification', () => {
   let verifier: Verifier
@@ -65,11 +61,6 @@ describe('Pact Verification', () => {
       ]
     }
     verifier = new Verifier(options)
-  })
-
-  afterAll(async () => {
-    await prisma.$disconnect()
-    app.close()
   })
 
   it('should validate the expectations of movie-consumer', async () => {
