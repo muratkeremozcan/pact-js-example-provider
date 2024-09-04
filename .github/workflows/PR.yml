@@ -31,3 +31,6 @@ jobs:
 
       - name: Run lint
         run: npm run lint
+
+      - name: Run unit tess
+        run: npm run test
