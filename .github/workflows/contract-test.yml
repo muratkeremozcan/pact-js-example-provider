@@ -12,6 +12,7 @@ env:
   GITHUB_SHA: ${{ github.sha }}
   GITHUB_BRANCH: ${{ github.ref_name }}
   DATABASE_URL: 'file:./dev.db'
+  PORT: 3001
 
 jobs:
   contract-test:
@@ -25,7 +26,7 @@ jobs:
         run: npm ci
 
       - name: Run provider contract tests
-        run: npm run test:provider
+        run: npm run test:provider:ci
 
       - name: Can I deploy provider?
         run: npm run can:i:deploy:provider
