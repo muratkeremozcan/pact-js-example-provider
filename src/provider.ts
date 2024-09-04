@@ -1,13 +1,18 @@
 import type { Request, Response } from 'express'
 import express from 'express'
-import Movie from './movies'
+import { PrismaClient } from '@prisma/client'
+import { MovieAdapter } from './movie-adapter'
+import { MovieService } from './movie-service'
 
 // Initialize Express server
 const server = express()
 server.use(express.json())
 
-// Initialize the Movie class instance
-const movieService = new Movie()
+// Initialize PrismaClient
+const prisma = new PrismaClient()
+// Create the MovieAdapter and inject it into MovieService
+const movieAdapter = new MovieAdapter(prisma)
+const movieService = new MovieService(movieAdapter)
 
 // Routes are focused on handling HTTP requests and responses,
 // delegating business logic to the Movies class (Separation of Concerns)
@@ -81,4 +86,4 @@ server.delete(
 //   }
 // )
 
-export { movieService, server }
+export { server }
