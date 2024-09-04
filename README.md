@@ -25,6 +25,8 @@ PACT_BROKER_TOKEN=***********
 PACT_BROKER_BASE_URL=https://yourownorg.pactflow.io
 # need this for Prisma
 DATABASE_URL="file:./dev.db"
+# the port the local server will run on. If you want to change it, just modify the .env file, and the yml files
+PORT=3001
 ```
 
 ### Webhook setup

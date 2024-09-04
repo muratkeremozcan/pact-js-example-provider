@@ -1,15 +1,10 @@
 import type { VerifierOptions } from '@pact-foundation/pact'
 import { Verifier } from '@pact-foundation/pact'
-// import { PrismaClient } from '@prisma/client'
-// import { server } from './server'
 import { stateHandlers } from './test-helpers/state-handlers'
 
 // 1) Run the provider service
 // 2) Setup the provider verifier options
 // 3) Write & execute the provider contract test
-
-// Future improvements:
-// - Enhance the workflow by starting and stopping the server via package.json scripts, decoupling it from the test file.
 
 const port = process.env.PORT
 
