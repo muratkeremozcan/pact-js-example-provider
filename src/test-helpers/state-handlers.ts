@@ -1,13 +1,13 @@
 import type { MessageStateHandlers } from '@pact-foundation/pact'
 import type { AnyJson } from '@pact-foundation/pact/src/common/jsonTypes'
 import type { StateHandlers } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
-import { PrismaClient, type Movie as MovieType } from '@prisma/client'
+import { PrismaClient, type Movie } from '@prisma/client'
 import { MovieService } from '../movie-service'
 import { MovieAdapter } from '../movie-adapter'
 
 // define the shape of the params passed in from the consumer
-type HasMovieWithSpecificIDParams = Omit<MovieType, 'name' | 'year'>
-type ExistingMovieParams = Omit<MovieType, 'id'>
+type HasMovieWithSpecificIDParams = Omit<Movie, 'name' | 'year'>
+type ExistingMovieParams = Omit<Movie, 'id'>
 
 const prisma = new PrismaClient()
 const movieAdapter = new MovieAdapter(prisma)
@@ -22,7 +22,7 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
 
     if (!existingMovie) {
       // If the movie doesn't exist, create it
-      const movieData: Omit<MovieType, 'id'> = {
+      const movieData: Omit<Movie, 'id'> = {
         name: `Movie Title ${Math.random().toString(36).substring(7)}`,
         year: 2022
       }

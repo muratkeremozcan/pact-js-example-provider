@@ -1,8 +1,4 @@
-import {
-  Prisma,
-  type Movie as MovieType,
-  type PrismaClient
-} from '@prisma/client'
+import { Prisma, type Movie, type PrismaClient } from '@prisma/client'
 import type { MovieRepository } from './movie-repository'
 import Joi from 'joi'
 
@@ -60,7 +56,7 @@ export class MovieAdapter implements MovieRepository {
   }
 
   // Get all movies
-  async getMovies(): Promise<MovieType[]> {
+  async getMovies(): Promise<Movie[]> {
     try {
       const movies = await this.prisma.movie.findMany()
       return movies.length > 0 ? movies : []
@@ -71,7 +67,7 @@ export class MovieAdapter implements MovieRepository {
   }
 
   // Get a movie by its ID
-  async getMovieById(id: number): Promise<MovieType | null> {
+  async getMovieById(id: number): Promise<Movie | null> {
     try {
       return await this.prisma.movie.findUnique({ where: { id } })
     } catch (error) {
@@ -81,7 +77,7 @@ export class MovieAdapter implements MovieRepository {
   }
 
   // Get a movie by its name
-  async getMovieByName(name: string): Promise<MovieType | null> {
+  async getMovieByName(name: string): Promise<Movie | null> {
     try {
       return await this.prisma.movie.findFirst({ where: { name } })
     } catch (error) {
@@ -112,12 +108,12 @@ export class MovieAdapter implements MovieRepository {
 
   // Add a new movie with validation
   async addMovie(
-    data: Omit<MovieType, 'id'>,
+    data: Omit<Movie, 'id'>,
     id?: number
   ): Promise<{
     status: number
     error?: string
-    movie?: MovieType
+    movie?: Movie
   }> {
     try {
       const schema = Joi.object({

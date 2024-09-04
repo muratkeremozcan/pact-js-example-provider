@@ -3,13 +3,19 @@ import type { JestConfigWithTsJest } from 'ts-jest'
 export const config: JestConfigWithTsJest = {
   clearMocks: true,
   testTimeout: 10000,
+  collectCoverage: true,
   collectCoverageFrom: [
-    'src/**/*.ts',
+    'src/**/*.ts*', // Include all source TypeScript files
+    '!src/provider.ts', // routes are tested via e2e
+    '!src/provider-service.ts', // Exclude provider-service
+    '!src/**/*.pacttest.ts', // Exclude pacttest files
+    '!**/test-helpers/**', // Exclude test helpers
     '!**/*.json',
     '!?(**)/?(*.|*-)types.ts',
     '!**/models/*',
     '!**/__snapshots__/*',
-    '!**/scripts/*'
+    '!**/scripts/*',
+    '!**/node_modules/**'
   ],
   coverageDirectory: './coverage',
   coverageReporters: [
@@ -23,15 +29,15 @@ export const config: JestConfigWithTsJest = {
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest'
   },
-  testMatch: ['**/*.test.(ts)', '**/*.pacttest.(ts)'],
+  testMatch: ['**/*.test.ts'],
   testEnvironment: 'node',
   modulePathIgnorePatterns: ['dist'],
   coverageThreshold: {
     global: {
-      statements: 0,
-      branches: 0,
-      lines: 0,
-      functions: 0
+      statements: 50,
+      branches: 50,
+      lines: 50,
+      functions: 50
     }
   }
 }
