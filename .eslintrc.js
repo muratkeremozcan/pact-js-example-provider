@@ -8,6 +8,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:import/typescript',
     'plugin:import/recommended',
+    'plugin:cypress/recommended',
     'plugin:prettier/recommended'
   ],
   parser: '@typescript-eslint/parser',
