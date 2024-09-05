@@ -11,7 +11,6 @@ export const baseConfig: Cypress.ConfigOptions = {
       esbuildPreprocessor(on)
       tasks(on)
       return plugins(on, config)
-    },
-    baseUrl: 'https://test-api.k6.io'
+    }
   }
 }
