@@ -33,7 +33,7 @@ jobs:
       - name: Run lint
         run: npm run lint
 
-      - name: Run unit tess
+      - name: Run unit test
         run: npm run test
 
       - name: Cypress e2e tests 🧪
