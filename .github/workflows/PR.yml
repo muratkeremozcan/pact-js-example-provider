@@ -12,7 +12,7 @@ env:
   DATABASE_URL: 'file:./dev.db'
   PORT: 3001
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#   # CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+  CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
 
 jobs:
   validate:
@@ -41,6 +41,6 @@ jobs:
         with:
           start: npm run start
           config-file: cypress/config/local.config.ts
-          # record: true
-          # group: local
-          # tag: local
+          record: true
+          group: local
+          tag: local
