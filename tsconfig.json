@@ -3,7 +3,8 @@
     "src",
     "./jest.config.ts",
     "./.eslintrc.js",
-    "./cypress/cypress.d.ts",
+    "cypress",
+    "./cypress/index.d.ts",
     "prisma"
   ],
   "exclude": ["node_modules", "cdk", "dist"],
