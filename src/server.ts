@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express'
-import express from 'express'
+import express, { json } from 'express'
 import { PrismaClient } from '@prisma/client'
 import { MovieAdapter } from './movie-adapter'
 import { MovieService } from './movie-service'
 
 // Initialize Express server
 const server = express()
-server.use(express.json())
+server.use(json())
 
 // Initialize PrismaClient
 const prisma = new PrismaClient()
