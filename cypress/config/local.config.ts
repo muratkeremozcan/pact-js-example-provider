@@ -9,7 +9,6 @@ require('dotenv').config({
 })
 
 const config = {
-  projectId: 'tmfkwa',
   e2e: {
     env: {
       ENVIRONMENT: 'local'
