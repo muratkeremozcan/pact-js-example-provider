@@ -122,7 +122,7 @@ export class MovieAdapter implements MovieRepository {
       })
 
       const result = schema.validate(data)
-      if (result.error) {
+      if (result.error && result.error.details.length > 0) {
         return { status: 400, error: result.error.details[0].message }
       }
 
