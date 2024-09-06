@@ -34,7 +34,7 @@ server.get(
 server.get(
   '/movie/:id',
   async (req: Request, res: Response): Promise<Response> => {
-    const movie = await movieService.getMovieById(parseInt(req.params.id))
+    const movie = await movieService.getMovieById(parseInt(req.params.id!))
 
     if (!movie) return res.status(404).send('Movie not found')
     else return res.send(movie)
@@ -61,7 +61,7 @@ server.delete(
   '/movie/:id',
   async (req: Request, res: Response): Promise<Response> => {
     const movieDeleted = await movieService.deleteMovieById(
-      parseInt(req.params.id)
+      parseInt(req.params.id!)
     )
 
     if (!movieDeleted) {
