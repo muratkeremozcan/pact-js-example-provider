@@ -28,7 +28,7 @@ export const config: JestConfigWithTsJest = {
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }]
   },
-  testMatch: ['**/*.test.(ts)'],
+  testMatch: ['**/*.test.ts'],
   testEnvironment: 'node',
   modulePathIgnorePatterns: ['dist'],
   coverageThreshold: {
