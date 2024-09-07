@@ -8,9 +8,10 @@
   "scripts": {
     "cy:open-local": "cypress open --e2e --browser chrome --config-file cypress/config/local.config.ts",
     "cy:run-local": "cypress run --e2e --browser chrome --config-file cypress/config/local.config.ts",
-    "reset:db-full": "npx prisma migrate reset --force --skip-seed --skip-generate && npm run reset:db",
+    "migrate": "npx prisma migrate reset --force --skip-seed --skip-generate",
+    "migrate:prod": "npx prisma migrate deploy",
     "reset:db": "node ./scripts/global-setup.js",
-    "start": ". ./scripts/env-setup.sh && npm run reset:db && cross-env ts-node --project tsconfig.json src/server-listen.ts",
+    "start": "if [ \"$NODE_ENV\" = \"production\" ]; then npm run migrate:prod; else npm run migrate && cross-env ts-node --project tsconfig.json src/server-listen.ts; fi",
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|ts|json)\"",
     "fix:format": "npm run prettier -- --write",
     "validate": "npm-run-all --parallel typecheck lint fix:format",
