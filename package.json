@@ -8,7 +8,7 @@
   "scripts": {
     "cy:open-local": "cypress open --e2e --browser chrome --config-file cypress/config/local.config.ts",
     "cy:run-local": "cypress run --e2e --browser chrome --config-file cypress/config/local.config.ts",
-    "reset:db": "rm -f prisma/dev.db prisma/dev.db-journal && npx prisma migrate reset --force --skip-seed --skip-generate",
+    "reset:db": "rm -f prisma/dev.db && npx prisma migrate reset --force --skip-seed --skip-generate && node ./scripts/truncateTables.js",
     "start": ". ./scripts/env-setup.sh && npm run reset:db && cross-env ts-node --project tsconfig.json src/server-listen.ts",
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|ts|json)\"",
     "fix:format": "npm run prettier -- --write",
