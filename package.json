@@ -11,7 +11,7 @@
     "migrate": "npx prisma migrate reset --force --skip-seed --skip-generate",
     "migrate:prod": "npx prisma migrate deploy",
     "reset:db": "node ./scripts/global-setup.js",
-    "start": "if [ \"$NODE_ENV\" = \"production\" ]; then npm run migrate:prod; else npm run migrate && cross-env ts-node --project tsconfig.json src/server-listen.ts; fi",
+    "start": "if [ \"$NODE_ENV\" = \"production\" ]; then npm run migrate:prod; else npm run migrate && cross-env tsx src/server-listen.ts; fi",
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|ts|json)\"",
     "fix:format": "npm run prettier -- --write",
     "validate": "npm-run-all --parallel typecheck lint fix:format",
@@ -64,7 +64,7 @@
     "prisma": "5.19.1",
     "start-server-and-test": "2.0.5",
     "ts-jest": "29.2.5",
-    "ts-node": "10.9.2",
+    "tsx": "4.19.0",
     "typescript": "5.5.4"
   }
 }

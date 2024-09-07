@@ -39,8 +39,8 @@ export const config: JestConfigWithTsJest = {
       functions: 50
     }
   },
-  globalSetup: './scripts/global-setup.js',
-  globalTeardown: './scripts/global-teardown.js'
+  globalSetup: './scripts/global-setup.ts',
+  globalTeardown: './scripts/global-teardown.ts'
 }
 
 export default config
