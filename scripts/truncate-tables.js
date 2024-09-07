@@ -15,4 +15,4 @@ async function truncateTables() {
   await prisma.$disconnect()
 }
 
-truncateTables()
+module.exports = { truncateTables }
