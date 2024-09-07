@@ -24,13 +24,6 @@ export const config: JestConfigWithTsJest = {
     ['text', { skipFull: true }],
     'json-summary'
   ],
-  moduleDirectories: ['node_modules', 'src'],
-  transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }]
-  },
-  testMatch: ['**/*.test.ts'],
-  testEnvironment: 'node',
-  modulePathIgnorePatterns: ['dist'],
   coverageThreshold: {
     global: {
       statements: 50,
@@ -39,7 +32,13 @@ export const config: JestConfigWithTsJest = {
       functions: 50
     }
   },
-  globalTeardown: './scripts/global-teardown.ts'
+  moduleDirectories: ['node_modules', 'src'],
+  modulePathIgnorePatterns: ['dist'],
+  transform: {
+    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }]
+  },
+  testMatch: ['**/*.test.ts'],
+  testEnvironment: 'node'
 }
 
 export default config
