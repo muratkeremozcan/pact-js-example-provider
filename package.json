@@ -8,14 +8,16 @@
   "scripts": {
     "cy:open-local": "cypress open --e2e --browser chrome --config-file cypress/config/local.config.ts",
     "cy:run-local": "cypress run --e2e --browser chrome --config-file cypress/config/local.config.ts",
-    "reset:db": "npx prisma migrate reset --force --skip-seed --skip-generate",
-    "start": ". ./scripts/env-setup.sh && npm run reset:db && cross-env ts-node --project tsconfig.json src/server-listen.ts",
+    "db:migrate": "npx prisma migrate reset --force --skip-seed generate",
+    "db:migrate-prod": "npx prisma migrate deploy",
+    "reset:db": "tsx ./scripts/global-setup.ts",
+    "start": "npm run db:migrate && npm run reset:db && cross-env tsx src/server-listen.ts",
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|ts|json)\"",
     "fix:format": "npm run prettier -- --write",
     "validate": "npm-run-all --parallel typecheck lint fix:format",
-    "test": "jest --detectOpenHandles --verbose --coverage --silent --no-cache",
-    "test:watch": "jest --watch --testMatch '**/*.test.(ts)'",
-    "test:provider": ". ./scripts/env-setup.sh && jest --testMatch '**/*.pacttest.(ts)' --testTimeout=20000 --coverage=false",
+    "test": "jest --detectOpenHandles --verbose --coverage --silent --no-cache --config jest.config.ts",
+    "test:watch": "jest --watch --config jest.config.ts",
+    "test:provider": ". ./scripts/env-setup.sh && jest --config jest-pact.config.ts",
     "test:provider:ci": ". ./scripts/env-setup.sh && start-server-and-test start http://localhost:${PORT} test:provider",
     "can:i:deploy:provider": ". ./scripts/env-setup.sh && pact-broker can-i-deploy --pacticipant MoviesAPI --version=$GITHUB_SHA --to-environment dev --broker-base-url=$PACT_BROKER_BASE_URL",
     "record:provider:deployment": ". ./scripts/env-setup.sh && if [ \"$GITHUB_BRANCH\" = \"main\" ]; then pact-broker record-deployment --pacticipant MoviesAPI --version $GITHUB_SHA --environment dev; fi",
@@ -62,7 +64,7 @@
     "prisma": "5.19.1",
     "start-server-and-test": "2.0.5",
     "ts-jest": "29.2.5",
-    "ts-node": "10.9.2",
+    "tsx": "4.19.0",
     "typescript": "5.5.4"
   }
 }

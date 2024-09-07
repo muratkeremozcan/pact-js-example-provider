@@ -20,3 +20,7 @@ npm-debug.log*
 **/screenshots
 **/downloads
 **/cypress.env.json
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
