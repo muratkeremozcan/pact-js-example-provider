@@ -11,7 +11,8 @@ export const config: JestConfigWithTsJest = {
   },
   testMatch: ['**/*.pacttest.ts'], // Pact test file match
   testEnvironment: 'node',
-  globalTeardown: './scripts/global-teardown.ts'
+  globalSetup: './scripts/global-setup.ts', // runs before all tests
+  globalTeardown: './scripts/global-teardown.ts' // runs after all tests
 }
 
 export default config

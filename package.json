@@ -8,7 +8,7 @@
   "scripts": {
     "cy:open-local": "cypress open --e2e --browser chrome --config-file cypress/config/local.config.ts",
     "cy:run-local": "cypress run --e2e --browser chrome --config-file cypress/config/local.config.ts",
-    "db:migrate": "npx prisma migrate reset --force --skip-seed --skip-generate",
+    "db:migrate": "npx prisma migrate reset --force --skip-seed generate",
     "db:migrate-prod": "npx prisma migrate deploy",
     "reset:db": "tsx ./scripts/global-setup.ts",
     "start": "npm run db:migrate && npm run reset:db && cross-env tsx src/server-listen.ts",
