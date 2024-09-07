@@ -15,7 +15,7 @@
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|ts|json)\"",
     "fix:format": "npm run prettier -- --write",
     "validate": "npm-run-all --parallel typecheck lint fix:format",
-    "test": "jest --detectOpenHandles --verbose --coverage --silent --no-cache --config jest.config.ts",
+    "test": "jest --detectOpenHandles --verbose --silent --config jest.config.ts",
     "test:watch": "jest --watch --config jest.config.ts",
     "test:provider": ". ./scripts/env-setup.sh && jest --config jest-pact.config.ts",
     "test:provider:ci": ". ./scripts/env-setup.sh && start-server-and-test start http://localhost:${PORT} test:provider",
