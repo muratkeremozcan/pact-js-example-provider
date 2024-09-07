@@ -6,7 +6,7 @@ export const config: JestConfigWithTsJest = {
   collectCoverage: true,
   collectCoverageFrom: [
     'src/**/*.ts*', // Include all source TypeScript files
-    '!src/server.ts', // routes are tested via e2e
+    '!src/server*.ts', // routes are tested via e2e
     '!src/**/*.pacttest.ts', // Exclude pacttest files
     '!**/test-helpers/**', // Exclude test helpers
     '!**/*.json',
