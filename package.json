@@ -25,9 +25,11 @@
     "lint": "eslint --ext=.js,.ts,.tsx --fix"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^7.1.1",
     "@prisma/client": "5.19.1",
     "express": "4.18.2",
-    "joi": "17.10.2"
+    "joi": "17.10.2",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@bahmutov/cy-api": "2.2.6",

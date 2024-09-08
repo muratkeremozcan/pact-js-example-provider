@@ -1,4 +1,3 @@
-import type { Request, Response } from 'express'
 import express, { json } from 'express'
 import { PrismaClient } from '@prisma/client'
 import { MovieAdapter } from './movie-adapter'

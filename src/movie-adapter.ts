@@ -5,7 +5,7 @@ import type {
   CreateMovieResponse
 } from './@types'
 import type { MovieRepository } from './movie-repository'
-import Joi from 'joi'
+import { CreateMovieSchema } from './@types/schema'
 
 // ports & adapters (hexagonal) pattern refactor:
 // movies.ts (now called movie-service) has been split into two parts,
@@ -117,14 +117,17 @@ export class MovieAdapter implements MovieRepository {
     id?: number
   ): Promise<CreateMovieResponse> {
     try {
-      const schema = Joi.object({
-        name: Joi.string().required(),
-        year: Joi.number().integer().min(1900).max(2023).required()
-      })
+      // Zod Key feature 3: safeParse
+      // Zod note: if you have a frontend, you can use the schema + safeParse there
+      // in order to perform form validation before sending the data to the server
+      const parseResult = CreateMovieSchema.safeParse(data)
+      // handle validation errors
+      if (!parseResult.success) {
+        const errorMessages = parseResult.error.errors
+          .map((err) => err.message)
+          .join(', ')
 
-      const result = schema.validate(data)
-      if (result.error?.details?.length) {
-        return { status: 400, error: result.error?.details[0]?.message }
+        return { status: 400, error: errorMessages }
       }
 
       const existingMovie = await this.getMovieByName(data.name)
