@@ -3,11 +3,12 @@ import path from 'node:path'
 import { stringify } from 'yaml'
 import { openApiDoc } from './openapi-generator' // Your OpenAPI document
 
+// Generate OpenAPI Docs with Zod step 4
+
 // Convert the OpenAPI document to YAML format
 const yamlDoc = stringify(openApiDoc)
 
 const scriptDir = path.resolve(__dirname)
-
 // Write the YAML file
 fs.writeFileSync(`${scriptDir}/openapi.yml`, yamlDoc)
 
