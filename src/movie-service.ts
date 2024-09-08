@@ -1,5 +1,9 @@
 import type { MovieRepository } from './movie-repository'
-import type { Movie } from '@prisma/client'
+import type {
+  GetMovieResponse,
+  CreateMovieRequest,
+  CreateMovieResponse
+} from './@types'
 
 // In the context of the MovieService, what you care about is the contract/interface
 // (i.e., the methods defined by the MovieRepository interface).
@@ -11,15 +15,15 @@ export class MovieService {
     this.movieRepository = movieRepository
   }
 
-  async getMovies(): Promise<Movie[]> {
+  async getMovies(): Promise<GetMovieResponse[]> {
     return this.movieRepository.getMovies()
   }
 
-  async getMovieById(id: number): Promise<Movie | null> {
+  async getMovieById(id: number): Promise<GetMovieResponse> {
     return this.movieRepository.getMovieById(id)
   }
 
-  async getMovieByName(name: string): Promise<Movie | null> {
+  async getMovieByName(name: string): Promise<GetMovieResponse> {
     return this.movieRepository.getMovieByName(name)
   }
 
@@ -28,13 +32,9 @@ export class MovieService {
   }
 
   async addMovie(
-    data: Omit<Movie, 'id'>,
+    data: CreateMovieRequest,
     id?: number
-  ): Promise<{
-    status: number
-    error?: string
-    movie?: Movie
-  }> {
+  ): Promise<CreateMovieResponse> {
     return this.movieRepository.addMovie(data, id)
   }
 }

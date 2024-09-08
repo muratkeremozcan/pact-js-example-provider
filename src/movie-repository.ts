@@ -1,20 +1,17 @@
-import type { Movie } from '@prisma/client'
+import type {
+  GetMovieResponse,
+  CreateMovieRequest,
+  CreateMovieResponse
+} from './@types'
 
 // MovieRepository: this is the interface/contract that defines the methods
 // for interacting with the data layer.
 // It's a port in hexagonal architecture.
 
 export interface MovieRepository {
-  getMovies(): Promise<Movie[]>
-  getMovieById(id: number): Promise<Movie | null>
-  getMovieByName(name: string): Promise<Movie | null>
+  getMovies(): Promise<GetMovieResponse[]>
+  getMovieById(id: number): Promise<GetMovieResponse>
+  getMovieByName(name: string): Promise<GetMovieResponse>
   deleteMovieById(id: number): Promise<boolean>
-  addMovie(
-    data: Omit<Movie, 'id'>,
-    id?: number
-  ): Promise<{
-    status: number
-    error?: string
-    movie?: Movie
-  }>
+  addMovie(data: CreateMovieRequest, id?: number): Promise<CreateMovieResponse>
 }
