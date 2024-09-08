@@ -231,7 +231,8 @@ describe('MovieAdapter', () => {
       expect(result).toEqual(
         expect.objectContaining({
           status: 400,
-          error: '"name" is not allowed to be empty'
+          error:
+            'String must contain at least 1 character(s), Number must be greater than or equal to 1900'
         })
       )
     })
