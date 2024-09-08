@@ -1,12 +1,10 @@
 import { z } from 'zod'
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
 
-// Zod Key feature 1: define the schema with Zod
+// Zod Key feature 1: define the schema with Zod (and expand it with zod-to-openapi)
 
-// OpenAPI Integration: Each field is annotated with OpenAPI-specific metadata
-// such as example and description.
-// Registry and Generator: We're using the OpenAPIRegistry to manage schemas
-// and OpenApiGeneratorV3 to generate the OpenAPI documentation.
+// Generate OpenAPI Docs with Zod 1) Define Schemas: src/@types/schema.ts (with zod)
+// Each field is annotated with OpenAPI-specific metadata such as example and description.
 
 // Extend Zod with OpenAPI support
 extendZodWithOpenApi(z)
@@ -16,6 +14,7 @@ export const CreateMovieSchema = z
     id: z.number().optional().openapi({ example: 1, description: 'Movie ID' }),
     name: z
       .string()
+      .min(1)
       .openapi({ example: 'Inception', description: 'Movie name' }),
     year: z
       .number()

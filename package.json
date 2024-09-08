@@ -22,7 +22,8 @@
     "can:i:deploy:provider": ". ./scripts/env-setup.sh && pact-broker can-i-deploy --pacticipant MoviesAPI --version=$GITHUB_SHA --to-environment dev --broker-base-url=$PACT_BROKER_BASE_URL",
     "record:provider:deployment": ". ./scripts/env-setup.sh && if [ \"$GITHUB_BRANCH\" = \"main\" ]; then pact-broker record-deployment --pacticipant MoviesAPI --version $GITHUB_SHA --environment dev; fi",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.jest.json",
-    "lint": "eslint --ext=.js,.ts,.tsx --fix"
+    "lint": "eslint --ext=.js,.ts,.tsx --fix",
+    "generate:openapi": "tsx src/api-docs/openapi-writer.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.1.1",
