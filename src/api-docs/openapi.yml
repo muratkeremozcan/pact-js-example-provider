@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: Movies API
+  version: 1.0.0
+  description: API for managing movies
+servers:
+  - url: /api
+components:
+  schemas:
+    CreateMovieRequest:
+      type: object
+      properties:
+        id:
+          type: number
+          description: Movie ID
+          example: 1
+        name:
+          type: string
+          minLength: 1
+          description: Movie name
+          example: Inception
+        year:
+          type: integer
+          minimum: 1900
+          maximum: 2024
+          description: Release year
+          example: 2010
+      required:
+        - name
+        - year
+    CreateMovieResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: Response status code
+          example: 200
+        error:
+          type: string
+          description: Error message, if any
+        movie:
+          type:
+            - object
+            - "null"
+          properties:
+            id:
+              type: number
+              description: Movie ID
+              example: 1
+            name:
+              type: string
+              description: Movie name
+              example: Inception
+            year:
+              type: number
+              description: Release year
+              example: 2010
+          required:
+            - id
+            - name
+            - year
+          description: Movie data or null
+      required:
+        - status
+    GetMovieResponse:
+      anyOf:
+        - type: object
+          properties:
+            id:
+              type: number
+            name:
+              type: string
+            year:
+              type: number
+          required:
+            - id
+            - name
+            - year
+        - type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              name:
+                type: string
+              year:
+                type: number
+            required:
+              - id
+              - name
+              - year
+        - type: "null"
+  parameters: {}
+paths: {}
+webhooks: {}
