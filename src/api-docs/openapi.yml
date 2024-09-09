@@ -181,15 +181,46 @@ paths:
         "500":
           description: Unexpected error occurred
   /movie/{id}:
-    delete:
-      summary: Delete a movie by ID
+    get:
+      summary: Get a movie by ID
+      description: Retrieve a single movie by its ID
       parameters:
-        - name: id
+        - &a1
+          name: id
           in: path
           required: true
           schema:
             type: string
           description: Movie ID
+      responses:
+        "200":
+          description: Movie found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMovieResponse"
+        "404":
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: Response status code
+                    example: 404
+                  error:
+                    type: string
+                    description: Error message
+                    example: Movie not found
+                required:
+                  - status
+                  - error
+    delete:
+      summary: Delete a movie by ID
+      parameters:
+        - *a1
       responses:
         "200":
           description: Movie {id} has been deleted
