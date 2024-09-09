@@ -33,14 +33,13 @@ server.get('/movie/:id', async (req, res) => {
 })
 
 server.post('/movies', async (req, res) => {
-  const { movie, status, error } = await movieService.addMovie(req.body)
+  const result = await movieService.addMovie(req.body)
 
-  if (error) {
-    return res.status(status).json({ error })
-  } else if (movie) {
-    return res.status(status).json(movie)
+  if ('error' in result) {
+    return res.status(result.status).json({ error: result.error })
+  } else if ('movie' in result) {
+    return res.status(result.status).json(result.movie)
   } else {
-    // In case neither movie nor error is defined, ensure something is returned
     return res.status(500).json({ error: 'Unexpected error occurred' })
   }
 })

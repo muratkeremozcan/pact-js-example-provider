@@ -2,7 +2,9 @@ import { Prisma, type PrismaClient } from '@prisma/client'
 import type {
   GetMovieResponse,
   CreateMovieRequest,
-  CreateMovieResponse
+  CreateMovieResponse,
+  GetMovieNotFoundResponse,
+  ConflictMovieResponse
 } from './@types'
 import type { MovieRepository } from './movie-repository'
 import { CreateMovieSchema } from './@types/schema'
@@ -72,7 +74,9 @@ export class MovieAdapter implements MovieRepository {
   }
 
   // Get a movie by its ID
-  async getMovieById(id: number): Promise<GetMovieResponse> {
+  async getMovieById(
+    id: number
+  ): Promise<GetMovieResponse | GetMovieNotFoundResponse> {
     try {
       return await this.prisma.movie.findUnique({ where: { id } })
     } catch (error) {
@@ -82,7 +86,9 @@ export class MovieAdapter implements MovieRepository {
   }
 
   // Get a movie by its name
-  async getMovieByName(name: string): Promise<GetMovieResponse> {
+  async getMovieByName(
+    name: string
+  ): Promise<GetMovieResponse | GetMovieNotFoundResponse> {
     try {
       return await this.prisma.movie.findFirst({ where: { name } })
     } catch (error) {
@@ -115,7 +121,7 @@ export class MovieAdapter implements MovieRepository {
   async addMovie(
     data: CreateMovieRequest,
     id?: number
-  ): Promise<CreateMovieResponse> {
+  ): Promise<CreateMovieResponse | ConflictMovieResponse> {
     try {
       // Zod Key feature 3: safeParse
       // Zod note: if you have a frontend, you can use the schema + safeParse there
