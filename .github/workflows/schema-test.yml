@@ -29,4 +29,6 @@ jobs:
 
       - name: verify the schema with Optic, running client tests against the OpenAPI schema
         if: always()
-        run: pnpm optic:verify-ci
+        run: |
+          npm run generate:openapi
+          npm run optic:verify-ci

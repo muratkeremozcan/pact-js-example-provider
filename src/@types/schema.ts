@@ -27,11 +27,23 @@ export const CreateMovieSchema = z
 
 export const CreateMovieResponseSchema = z
   .object({
-    id: z.number().openapi({ example: 16, description: 'Movie ID' }),
-    name: z
+    status: z
+      .number()
+      .int()
+      .openapi({ example: 200, description: 'Response status code' }),
+    movie: z
+      .object({
+        id: z.number().openapi({ example: 1, description: 'Movie ID' }),
+        name: z
+          .string()
+          .openapi({ example: 'Inception', description: 'Movie name' }),
+        year: z.number().openapi({ example: 2010, description: 'Release year' })
+      })
+      .openapi({ description: 'Movie data' }),
+    error: z
       .string()
-      .openapi({ example: 'Inception', description: 'Movie name' }),
-    year: z.number().openapi({ example: 2010, description: 'Release year' })
+      .optional()
+      .openapi({ description: 'Error message, if any' })
   })
   .openapi('CreateMovieResponse')
 

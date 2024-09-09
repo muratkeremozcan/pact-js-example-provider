@@ -14,10 +14,12 @@ describe('CRUD movie', () => {
       .should(
         spok({
           status: 200,
-          body: movieProps
+          body: {
+            movie: movieProps
+          }
         })
       )
-      .its('body.id')
+      .its('body.movie.id')
       .then((id) => {
         cy.getAllMovies()
           .should(

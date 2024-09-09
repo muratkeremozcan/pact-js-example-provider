@@ -1,5 +1,4 @@
 openapi: 3.1.0
-x-optic-path-ignore: /__messages__
 info:
   title: Movies API
   version: 1.0.0
@@ -35,22 +34,36 @@ components:
     CreateMovieResponse:
       type: object
       properties:
-        id:
-          type: number
-          description: Movie ID
-          example: 16
-        name:
+        status:
+          type: integer
+          description: Response status code
+          example: 200
+        movie:
+          type: object
+          properties:
+            id:
+              type: number
+              description: Movie ID
+              example: 1
+            name:
+              type: string
+              description: Movie name
+              example: Inception
+            year:
+              type: number
+              description: Release year
+              example: 2010
+          required:
+            - id
+            - name
+            - year
+          description: Movie data
+        error:
           type: string
-          description: Movie name
-          example: Inception
-        year:
-          type: number
-          description: Release year
-          example: 2010
+          description: Error message, if any
       required:
-        - id
-        - name
-        - year
+        - status
+        - movie
     GetMovieResponse:
       anyOf:
         - type: object
