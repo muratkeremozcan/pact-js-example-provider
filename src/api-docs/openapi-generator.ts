@@ -27,13 +27,23 @@ export const openApiDoc = generator.generateDocument({
     version: '1.0.0',
     description: 'API for managing movies'
   },
-  servers: [{ url: '/api' }]
+  servers: [
+    {
+      url: 'http://localhost:3000',
+      description: 'Local development server'
+    },
+    {
+      url: 'https://api.myapp.com',
+      description: 'Production server'
+    }
+  ]
 })
 
 /*
 Steps to Generate OpenAPI Docs with Zod (For Express, Lambda, or any other framework):
 
-1) Define Schemas: src/@types/schema.ts (with zod)
+1) Define the schemas with Zod + zod-to-openapi.
+(You should also link up the schemas with your types using `z.infer`, and begin to utilize zod's `safeParse`)
 
 2) Register Schemas with the OpenAPI Registry
 
