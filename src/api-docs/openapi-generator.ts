@@ -24,6 +24,15 @@ registry.register('GetMovieResponse', GetMovieResponseUnionSchema)
 registry.register('GetMovieNotFound', GetMovieNotFoundSchema)
 registry.register('DeleteMovieMessage', DeleteMovieResponseSchema)
 
+// Constants to avoid repetition
+const MOVIE_ID_PARAM: ParameterObject = {
+  name: 'id',
+  in: 'path',
+  required: true,
+  schema: { type: 'string' },
+  description: 'Movie ID'
+}
+
 // Register paths
 // health check
 registry.registerPath({
@@ -61,6 +70,25 @@ registry.registerPath({
   }
 })
 
+// Register path for getting a movie by ID
+registry.registerPath({
+  method: 'get',
+  path: '/movie/{id}',
+  summary: 'Get a movie by ID',
+  description: 'Retrieve a single movie by its ID',
+  parameters: [MOVIE_ID_PARAM], // This ensures {id} is documented as a path param
+  responses: {
+    200: {
+      description: 'Movie found',
+      content: { 'application/json': { schema: GetMovieResponseUnionSchema } }
+    },
+    404: {
+      description: 'Movie not found',
+      content: { 'application/json': { schema: GetMovieNotFoundSchema } }
+    }
+  }
+})
+
 // post movie
 registry.registerPath({
   method: 'post',
@@ -89,15 +117,6 @@ registry.registerPath({
     500: { description: 'Unexpected error occurred' }
   }
 })
-
-// Constants to avoid repetition
-const MOVIE_ID_PARAM: ParameterObject = {
-  name: 'id',
-  in: 'path',
-  required: true,
-  schema: { type: 'string' },
-  description: 'Movie ID'
-}
 
 // delete movie
 registry.registerPath({

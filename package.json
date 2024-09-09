@@ -7,7 +7,9 @@
   "license": "ISC",
   "scripts": {
     "cy:open-local": "cypress open --e2e --browser chrome --config-file cypress/config/local.config.ts",
-    "cy:run-local": "cypress run --e2e --browser chrome --config-file cypress/config/local.config.ts",
+    "cy:run-local-base": "cypress run --e2e --browser chrome --config-file cypress/config/local.config.ts",
+    "cy:run-local": "npm run cy:run-local-base",
+    "cy:run-local-fast": "CYPRESS_NO_COMMAND_LOG=1 npm run cy:run-local-base -- --config video=false screenshot=false",
     "db:migrate": "npx prisma migrate reset --force --skip-seed generate",
     "db:migrate-prod": "npx prisma migrate deploy",
     "reset:db": "tsx ./scripts/global-setup.ts",
@@ -25,7 +27,10 @@
     "lint": "eslint --ext=.js,.ts,.tsx --fix",
     "generate:openapi": "tsx src/api-docs/openapi-writer.ts",
     "optic:lint": "optic lint src/api-docs/openapi.yml",
-    "optic:diff": "optic diff src/api-docs/openapi.yml --check --web --base main"
+    "optic:diff": "optic diff src/api-docs/openapi.yml --check --web --base main",
+    "optic:verify": "optic capture src/api-docs/openapi.yml",
+    "optic:update": "optic capture src/api-docs/openapi.yml --update interactive",
+    "optic:verify-ci": ". ./scripts/env-setup.sh && start-server-and-test start http://localhost:${PORT} optic:verify"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.1.1",

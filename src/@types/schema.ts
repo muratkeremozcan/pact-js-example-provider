@@ -27,25 +27,11 @@ export const CreateMovieSchema = z
 
 export const CreateMovieResponseSchema = z
   .object({
-    status: z
-      .number()
-      .int()
-      .openapi({ example: 200, description: 'Response status code' }),
-    error: z
+    id: z.number().openapi({ example: 16, description: 'Movie ID' }),
+    name: z
       .string()
-      .optional()
-      .openapi({ description: 'Error message, if any' }),
-    movie: z
-      .object({
-        id: z.number().openapi({ example: 1, description: 'Movie ID' }),
-        name: z
-          .string()
-          .openapi({ example: 'Inception', description: 'Movie name' }),
-        year: z.number().openapi({ example: 2010, description: 'Release year' })
-      })
-      .nullable() // Movie can be null
-      .optional() // Make movie optional as well
-      .openapi({ description: 'Movie data or null' })
+      .openapi({ example: 'Inception', description: 'Movie name' }),
+    year: z.number().openapi({ example: 2010, description: 'Release year' })
   })
   .openapi('CreateMovieResponse')
 

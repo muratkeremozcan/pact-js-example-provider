@@ -26,3 +26,7 @@ jobs:
 
       - name: Optic diff
         run: npm run optic:diff
+
+      - name: verify the schema with Optic, running client tests against the OpenAPI schema
+        if: always()
+        run: pnpm optic:verify-ci

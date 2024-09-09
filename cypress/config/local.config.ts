@@ -8,12 +8,16 @@ require('dotenv').config({
   path: path.resolve(__dirname, '../../.env')
 })
 
+// for Optic capture: running e2e against openapi spec for api coverage
+const BASE_URL =
+  process.env.OPTIC_PROXY || `http://localhost:${process.env.PORT}`
+
 const config = {
   e2e: {
     env: {
       ENVIRONMENT: 'local'
     },
-    baseUrl: `http://localhost:${process.env.PORT}`
+    baseUrl: BASE_URL
   }
 }
 

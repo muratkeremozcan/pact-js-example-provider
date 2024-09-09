@@ -1,4 +1,5 @@
 openapi: 3.1.0
+x-optic-path-ignore: /__messages__
 info:
   title: Movies API
   version: 1.0.0
@@ -34,37 +35,22 @@ components:
     CreateMovieResponse:
       type: object
       properties:
-        status:
-          type: integer
-          description: Response status code
-          example: 200
-        error:
+        id:
+          type: number
+          description: Movie ID
+          example: 16
+        name:
           type: string
-          description: Error message, if any
-        movie:
-          type:
-            - object
-            - "null"
-          properties:
-            id:
-              type: number
-              description: Movie ID
-              example: 1
-            name:
-              type: string
-              description: Movie name
-              example: Inception
-            year:
-              type: number
-              description: Release year
-              example: 2010
-          required:
-            - id
-            - name
-            - year
-          description: Movie data or null
+          description: Movie name
+          example: Inception
+        year:
+          type: number
+          description: Release year
+          example: 2010
       required:
-        - status
+        - id
+        - name
+        - year
     GetMovieResponse:
       anyOf:
         - type: object
@@ -181,15 +167,46 @@ paths:
         "500":
           description: Unexpected error occurred
   /movie/{id}:
-    delete:
-      summary: Delete a movie by ID
+    get:
+      summary: Get a movie by ID
+      description: Retrieve a single movie by its ID
       parameters:
-        - name: id
+        - &a1
+          name: id
           in: path
           required: true
           schema:
             type: string
           description: Movie ID
+      responses:
+        "200":
+          description: Movie found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMovieResponse"
+        "404":
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: Response status code
+                    example: 404
+                  error:
+                    type: string
+                    description: Error message
+                    example: Movie not found
+                required:
+                  - status
+                  - error
+    delete:
+      summary: Delete a movie by ID
+      parameters:
+        - *a1
       responses:
         "200":
           description: Movie {id} has been deleted
