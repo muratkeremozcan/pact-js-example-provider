@@ -38,13 +38,8 @@ components:
           type: integer
           description: Response status code
           example: 200
-        error:
-          type: string
-          description: Error message, if any
         movie:
-          type:
-            - object
-            - "null"
+          type: object
           properties:
             id:
               type: number
@@ -62,9 +57,13 @@ components:
             - id
             - name
             - year
-          description: Movie data or null
+          description: Movie data
+        error:
+          type: string
+          description: Error message, if any
       required:
         - status
+        - movie
     GetMovieResponse:
       anyOf:
         - type: object
