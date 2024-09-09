@@ -3,10 +3,14 @@ import {
   OpenApiGeneratorV31
 } from '@asteasolutions/zod-to-openapi'
 import {
-  CreateMovieSchema,
+  ConflictMovieResponseSchema,
   CreateMovieResponseSchema,
+  CreateMovieSchema,
+  DeleteMovieResponseSchema,
+  GetMovieNotFoundSchema,
   GetMovieResponseUnionSchema
 } from '../@types/schema'
+import type { ParameterObject } from 'openapi3-ts/oas31'
 
 // this file registers the schemas and generates the OpenAPI document.
 // it’s the logic responsible for creating the OpenAPI structure
@@ -17,6 +21,103 @@ const registry = new OpenAPIRegistry()
 registry.register('CreateMovieRequest', CreateMovieSchema)
 registry.register('CreateMovieResponse', CreateMovieResponseSchema)
 registry.register('GetMovieResponse', GetMovieResponseUnionSchema)
+registry.register('GetMovieNotFound', GetMovieNotFoundSchema)
+registry.register('DeleteMovieMessage', DeleteMovieResponseSchema)
+
+// Register paths
+// health check
+registry.registerPath({
+  method: 'get',
+  path: '/',
+  summary: 'Health check',
+  responses: {
+    200: {
+      description: 'Server is running',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              message: { type: 'string', example: 'Server is running' }
+            }
+          }
+        }
+      }
+    }
+  }
+})
+
+// get movies
+registry.registerPath({
+  method: 'get',
+  path: '/movies',
+  summary: 'Get all movies',
+  description: 'Retrieve a list of all movies',
+  responses: {
+    200: {
+      description: 'List of movies',
+      content: { 'application/json': { schema: GetMovieResponseUnionSchema } }
+    }
+  }
+})
+
+// post movie
+registry.registerPath({
+  method: 'post',
+  path: '/movies',
+  summary: 'Create a new movie',
+  description: 'Create a new movie in the system',
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: CreateMovieSchema }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Movie created successfully',
+      content: { 'application/json': { schema: CreateMovieResponseSchema } }
+    },
+    400: { description: 'Invalid request body or validation error' },
+    409: {
+      description: 'Movie already exists',
+      content: {
+        'application/json': { schema: ConflictMovieResponseSchema }
+      }
+    },
+    500: { description: 'Unexpected error occurred' }
+  }
+})
+
+// Constants to avoid repetition
+const MOVIE_ID_PARAM: ParameterObject = {
+  name: 'id',
+  in: 'path',
+  required: true,
+  schema: { type: 'string' },
+  description: 'Movie ID'
+}
+
+// delete movie
+registry.registerPath({
+  method: 'delete',
+  path: '/movie/{id}',
+  summary: 'Delete a movie by ID',
+  parameters: [MOVIE_ID_PARAM],
+  responses: {
+    200: {
+      description: 'Movie {id} has been deleted',
+      content: {
+        'application/json': { schema: DeleteMovieResponseSchema }
+      }
+    },
+    404: {
+      description: 'Movie not found',
+      content: { 'application/json': { schema: GetMovieNotFoundSchema } }
+    }
+  }
+})
 
 // 3) Generate OpenAPI document
 const generator = new OpenApiGeneratorV31(registry.definitions)

@@ -49,6 +49,16 @@ export const CreateMovieResponseSchema = z
   })
   .openapi('CreateMovieResponse')
 
+export const ConflictMovieResponseSchema = z.object({
+  status: z
+    .number()
+    .int()
+    .openapi({ example: 409, description: 'Conflict status code' }),
+  error: z
+    .string()
+    .openapi({ example: 'Movie already exists', description: 'Error message' })
+})
+
 const movieObj = {
   id: z.number(),
   name: z.string(),
@@ -61,3 +71,19 @@ export const GetMovieResponseUnionSchema = z
     z.array(z.object(movieObj))
   ])
   .openapi('GetMovieResponse')
+
+export const GetMovieNotFoundSchema = z.object({
+  status: z
+    .number()
+    .int()
+    .openapi({ example: 404, description: 'Response status code' }),
+  error: z
+    .string()
+    .openapi({ example: 'Movie not found', description: 'Error message' })
+})
+
+export const DeleteMovieResponseSchema = z
+  .object({
+    message: z.string().openapi({ example: 'Movie {id} has been deleted' })
+  })
+  .openapi('DeleteMovieMessage')

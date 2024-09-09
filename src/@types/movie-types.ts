@@ -2,7 +2,10 @@ import type { z } from 'zod'
 import type {
   CreateMovieResponseSchema,
   CreateMovieSchema,
-  GetMovieResponseUnionSchema
+  GetMovieResponseUnionSchema,
+  GetMovieNotFoundSchema,
+  DeleteMovieResponseSchema,
+  ConflictMovieResponseSchema
 } from './schema'
 // import type { Movie } from '@prisma/client'
 
@@ -18,5 +21,11 @@ export type CreateMovieResponse = z.infer<typeof CreateMovieResponseSchema>
 //   movie?: Movie
 // }
 
+export type ConflictMovieResponse = z.infer<typeof ConflictMovieResponseSchema>
+
 export type GetMovieResponse = z.infer<typeof GetMovieResponseUnionSchema>
 // export type GetMovieResponse = Movie | null
+
+export type GetMovieNotFoundResponse = z.infer<typeof GetMovieNotFoundSchema>
+
+export type DeleteMovieResponse = z.infer<typeof DeleteMovieResponseSchema>

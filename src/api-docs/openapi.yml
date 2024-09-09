@@ -4,7 +4,10 @@ info:
   version: 1.0.0
   description: API for managing movies
 servers:
-  - url: /api
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://api.myapp.com
+    description: Production server
 components:
   schemas:
     CreateMovieRequest:
@@ -91,6 +94,125 @@ components:
               - name
               - year
         - type: "null"
+    GetMovieNotFound:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: Response status code
+          example: 404
+        error:
+          type: string
+          description: Error message
+          example: Movie not found
+      required:
+        - status
+        - error
+    DeleteMovieMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Movie {id} has been deleted
+      required:
+        - message
   parameters: {}
-paths: {}
+paths:
+  /:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Server is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server is running
+  /movies:
+    get:
+      summary: Get all movies
+      description: Retrieve a list of all movies
+      responses:
+        "200":
+          description: List of movies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMovieResponse"
+    post:
+      summary: Create a new movie
+      description: Create a new movie in the system
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMovieRequest"
+      responses:
+        "200":
+          description: Movie created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateMovieResponse"
+        "400":
+          description: Invalid request body or validation error
+        "409":
+          description: Movie already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: Conflict status code
+                    example: 409
+                  error:
+                    type: string
+                    description: Error message
+                    example: Movie already exists
+                required:
+                  - status
+                  - error
+        "500":
+          description: Unexpected error occurred
+  /movie/{id}:
+    delete:
+      summary: Delete a movie by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Movie ID
+      responses:
+        "200":
+          description: Movie {id} has been deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteMovieMessage"
+        "404":
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: Response status code
+                    example: 404
+                  error:
+                    type: string
+                    description: Error message
+                    example: Movie not found
+                required:
+                  - status
+                  - error
 webhooks: {}

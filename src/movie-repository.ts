@@ -1,7 +1,9 @@
 import type {
   GetMovieResponse,
   CreateMovieRequest,
-  CreateMovieResponse
+  CreateMovieResponse,
+  GetMovieNotFoundResponse,
+  ConflictMovieResponse
 } from './@types'
 
 // MovieRepository: this is the interface/contract that defines the methods
@@ -10,8 +12,13 @@ import type {
 
 export interface MovieRepository {
   getMovies(): Promise<GetMovieResponse[]>
-  getMovieById(id: number): Promise<GetMovieResponse>
-  getMovieByName(name: string): Promise<GetMovieResponse>
-  deleteMovieById(id: number): Promise<boolean>
-  addMovie(data: CreateMovieRequest, id?: number): Promise<CreateMovieResponse>
+  getMovieById(id: number): Promise<GetMovieResponse | GetMovieNotFoundResponse>
+  getMovieByName(
+    name: string
+  ): Promise<GetMovieResponse | GetMovieNotFoundResponse>
+  deleteMovieById(id: number): Promise<boolean> // TODO: update the return type to match DeleteMovieResponseSchema
+  addMovie(
+    data: CreateMovieRequest,
+    id?: number
+  ): Promise<CreateMovieResponse | ConflictMovieResponse>
 }
