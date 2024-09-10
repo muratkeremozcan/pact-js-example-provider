@@ -17,4 +17,4 @@ jobs:
 
       - name: Replace branch name in README
         run: |
-          sed -i "s|{{BRANCH_NAME}}|${GITHUB_HEAD_REF}|g" PULL_REQUEST_TEMPLATE.md
+          sed -i "s|{{BRANCH_NAME}}|${GITHUB_HEAD_REF}|g" PULL_REQUEST_TEMPLATE
