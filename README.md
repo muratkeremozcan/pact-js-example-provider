@@ -111,6 +111,48 @@ npm run can:i:deploy:provider # (5)
 npm run record:provider:deployment # (5)
 ```
 
+### Other scripts on both sides:
+
+```bash
+npm run lint
+npm run typecheck
+npm run fix:format
+npm run validate # all the above in parallel
+
+npm run test # unit tests
+npm run test:watch # watch mode
+
+npm run cy:open-local # open mode 
+npm run cy:run-local  # run mode
+npm run cy:run-local-fast  # no video or screen shots
+```
+
+#### Consumer specific scripts
+
+To exercise the e2e of the consumer side, we need a running backend.
+If using the real backend, we can set the PORT at `.env` to the backend port (3001).
+If using a back backend, we use `Mockoon` which runs on PORT 3000.
+
+```bash
+npm run mock:server # starts the mock backend/provider server
+```
+
+#### Provider specific scripts
+
+```bash
+# these 2 run as a part of start, and reset the db
+# you usually don't have to use them
+npm run db:migrate
+npm run reset:db 
+
+npm run generate:openapi # generates an OpenAPI doc from Zod schemas
+npm run optic:lint # verifies the OpenAPI doc
+npm run optic:diff # compares the OpenAPI on the PR to main, to find breaking changes
+npm run optic:verify # executes the e2e against the OpenAPI doc to gain API coverage and validate it
+npm run optic:update # executes the e2e, and interactively update the OpenAPI doc
+npm run optic:verify-ci # the above, but it also starts the server, in case you're not running it on the side
+```
+
 ## Consumer Tests
 
 The consumer can be any client that makes API calls. Can be an API service, can be a web app (using Axios for example); it does not make a difference.
