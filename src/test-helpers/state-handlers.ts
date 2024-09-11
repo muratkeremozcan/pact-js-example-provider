@@ -4,6 +4,7 @@ import type { StateHandlers } from '@pact-foundation/pact/src/dsl/verifier/proxy
 import { PrismaClient, type Movie } from '@prisma/client'
 import { MovieService } from '../movie-service'
 import { MovieAdapter } from '../movie-adapter'
+import { truncateTables } from '../../scripts/truncate-tables'
 
 // define the shape of the params passed in from the consumer
 type HasMovieWithSpecificIDParams = Omit<Movie, 'name' | 'year'>
@@ -56,5 +57,9 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
     return {
       description: `Movie with name "${name}" is set up.`
     }
+  },
+  'No movies exist': async () => {
+    console.log('Truncating tables...')
+    await truncateTables()
   }
 }
