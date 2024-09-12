@@ -50,21 +50,30 @@ declare global {
        * Validates the response body against the provided schema.
        *
        * @param schema - OpenAPI schema object to validate against.
-       * @param options - Path, endpoint, and method information for the schema.
+       * @param options - Endpoint and method information for the schema, with optional path and status.
        *
        * @example
        * ```js
        * cy.validateSchema(schema, {
-       *   path: '#/components/schemas/CreateMovieResponse',
        *   endpoint: '/movies',
        *   method: 'POST'
        * })
        * ```
-       */
+       *
+       * You can optionally specify `path` and `status`:
+       *
+       * @example
+       * ```js
+       * cy.validateSchema(schema, {
+       *   endpoint: '/movies',
+       *   method: 'POST',
+       *   status: 201 // Defaults to 200 if not provided
+       * })
+       * ``` */
       validateSchema(
         schema: OpenAPIV3.SchemaObject,
         options: {
-          path: string
+          path?: string
           endpoint: string
           method: string
           status?: string | number

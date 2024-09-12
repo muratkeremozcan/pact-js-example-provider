@@ -14,7 +14,6 @@ describe('CRUD movie', () => {
   it('should crud', () => {
     cy.addMovie(movie)
       // .validateSchema(schema, {
-      //   path: '#/components/schemas/CreateMovieResponse',
       //   endpoint: '/movies',
       //   method: 'POST'
       // })
@@ -28,7 +27,6 @@ describe('CRUD movie', () => {
       .then((id) => {
         cy.getAllMovies()
           .validateSchema(schema, {
-            path: '#/components/schemas/GetMovieResponse',
             endpoint: '/movies',
             method: 'GET'
           })
@@ -43,7 +41,6 @@ describe('CRUD movie', () => {
 
         cy.getMovieById(id)
           .validateSchema(schema, {
-            path: '#/components/schemas/GetMovieResponse',
             endpoint: '/movie/{id}',
             method: 'GET'
           })
@@ -59,7 +56,6 @@ describe('CRUD movie', () => {
 
         cy.deleteMovie(id)
           .validateSchema(schema, {
-            path: '#/components/schemas/DeleteMovieMessage',
             endpoint: '/movie/{id}',
             method: 'DELETE'
           })
