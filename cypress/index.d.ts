@@ -1,5 +1,6 @@
 import type { UserData } from './support/register-login-user'
 import type { Movie } from '@prisma/client'
+import { OpenAPIV31 } from 'openapi-types'
 
 export {}
 
@@ -44,6 +45,13 @@ declare global {
         id: number,
         allowedToFail?: boolean
       ): Chainable<Response<Movie> & Messages>
+
+      /** Validates the API response against the given JSON schema
+       * ```js
+       * cy.validateSchema(schema, responseBody)
+       * ```
+       */
+      validateSchema(schema: OpenAPIV3.SchemaObject): Chainable<Subject>
     }
   }
 }
