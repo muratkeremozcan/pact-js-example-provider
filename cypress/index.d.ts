@@ -51,7 +51,10 @@ declare global {
        * cy.validateSchema(schema, responseBody)
        * ```
        */
-      validateSchema(schema: OpenAPIV3.SchemaObject): Chainable<Subject>
+      validateSchema(
+        schema: OpenAPIV3.SchemaObject,
+        path: object
+      ): Chainable<Subject>
     }
   }
 }
