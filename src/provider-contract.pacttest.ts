@@ -32,7 +32,15 @@ describe('Pact Verification', () => {
       // * or through an API provided by the service itself (locally).
       // * This ensures that the provider test runs in a controlled environment where all the necessary data
       // and conditions are met, allowing for accurate verification of the consumer's expectations.
-      stateHandlers
+      stateHandlers,
+      beforeEach: () => {
+        console.log('I run before everything else (in options)...')
+        return Promise.resolve()
+      },
+      afterEach: () => {
+        console.log('I run before everything else (in options)...')
+        return Promise.resolve()
+      }
     }
 
     // When the CI triggers the provider tests, we need to use the PACT_PAYLOAD_URL
