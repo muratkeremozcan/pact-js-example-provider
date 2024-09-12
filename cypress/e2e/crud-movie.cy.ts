@@ -47,7 +47,7 @@ describe('CRUD movie', () => {
           // how do we deal with dynamic data?
           .validateSchema(schema, {
             path: '#/components/schemas/GetMovieResponse',
-            endpoint: `/movie/${id}`,
+            endpoint: '/movie/{id}',
             method: 'GET'
           })
           .should(
@@ -60,11 +60,18 @@ describe('CRUD movie', () => {
             })
           )
 
-        cy.deleteMovie(id).validateSchema(schema, {
-          path: '#/components/schemas/DeleteMovieMessage',
-          endpoint: `/movie/${id}`,
-          method: 'DELETE'
-        })
+        cy.deleteMovie(id)
+          .validateSchema(schema, {
+            path: '#/components/schemas/DeleteMovieMessage',
+            endpoint: '/movie/{id}',
+            method: 'DELETE'
+          })
+          .should(
+            spok({
+              status: 200,
+              body: { message: spok.string }
+            })
+          )
 
         cy.getAllMovies()
           .its('body')
