@@ -34,11 +34,11 @@ describe('Pact Verification', () => {
       // and conditions are met, allowing for accurate verification of the consumer's expectations.
       stateHandlers,
       beforeEach: () => {
-        console.log('I run before everything else (in options)...')
+        console.log('I run before each test coming from the consumer...')
         return Promise.resolve()
       },
       afterEach: () => {
-        console.log('I run before everything else (in options)...')
+        console.log('I run after each test coming from the consumer...')
         return Promise.resolve()
       }
     }
