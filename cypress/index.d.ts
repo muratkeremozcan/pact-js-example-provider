@@ -66,7 +66,7 @@ declare global {
         options: {
           path: string
           endpoint: string
-          method?: string
+          method: string
           status?: string | number
         }
       ): Chainable<Subject>

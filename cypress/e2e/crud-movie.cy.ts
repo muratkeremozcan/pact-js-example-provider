@@ -12,9 +12,7 @@ describe('CRUD movie', () => {
   }
 
   it('should crud', () => {
-    // Add movie
     cy.addMovie(movie)
-      // TODO: fix my schema vs server responses
       // .validateSchema(schema, {
       //   path: '#/components/schemas/CreateMovieResponse',
       //   endpoint: '/movies',
@@ -44,7 +42,6 @@ describe('CRUD movie', () => {
           .findOne({ name: movie.name })
 
         cy.getMovieById(id)
-          // how do we deal with dynamic data?
           .validateSchema(schema, {
             path: '#/components/schemas/GetMovieResponse',
             endpoint: '/movie/{id}',
@@ -66,10 +63,13 @@ describe('CRUD movie', () => {
             endpoint: '/movie/{id}',
             method: 'DELETE'
           })
+
           .should(
             spok({
               status: 200,
-              body: { message: spok.string }
+              body: {
+                message: spok.string
+              }
             })
           )
 
