@@ -25,7 +25,9 @@ jobs:
           node-version: 18
 
       - name: Generate OpenAPI docs from code
-        run: npm run generate:openapi
+        run: |
+          npm install -D tsx
+          npm run generate:openapi
 
       - name: Cypress e2e tests 🧪
         uses: cypress-io/github-action@v6.6.1
