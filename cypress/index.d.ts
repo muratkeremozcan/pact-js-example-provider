@@ -1,5 +1,6 @@
 import type { UserData } from './support/register-login-user'
 import type { Movie } from '@prisma/client'
+import type { OpenAPIV31 } from 'openapi-types'
 
 export {}
 
@@ -44,6 +45,31 @@ declare global {
         id: number,
         allowedToFail?: boolean
       ): Chainable<Response<Movie> & Messages>
+
+      /**
+       * Validates the response body against the provided schema.
+       *
+       * @param schema - OpenAPI schema object to validate against.
+       * @param options - Path, endpoint, and method information for the schema.
+       *
+       * @example
+       * ```js
+       * cy.validateSchema(schema, {
+       *   path: '#/components/schemas/CreateMovieResponse',
+       *   endpoint: '/movies',
+       *   method: 'POST'
+       * })
+       * ```
+       */
+      validateSchema(
+        schema: OpenAPIV3.SchemaObject,
+        options: {
+          path: string
+          endpoint: string
+          method: string
+          status?: string | number
+        }
+      ): Chainable<Subject>
     }
   }
 }
