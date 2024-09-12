@@ -46,14 +46,28 @@ declare global {
         allowedToFail?: boolean
       ): Chainable<Response<Movie> & Messages>
 
-      /** Validates the API response against the given JSON schema
+      /**
+       * Validates the response body against the provided schema.
+       *
+       * @param schema - OpenAPI schema object to validate against.
+       * @param options - Path, endpoint, and method information for the schema.
+       *
+       * @example
        * ```js
-       * cy.validateSchema(schema, responseBody)
+       * cy.validateSchema(schema, {
+       *   path: '#/components/schemas/CreateMovieResponse',
+       *   endpoint: '/movies',
+       *   method: 'POST'
+       * })
        * ```
        */
       validateSchema(
         schema: OpenAPIV3.SchemaObject,
-        path: object
+        options: {
+          path: string
+          endpoint: string
+          method: string
+        }
       ): Chainable<Subject>
     }
   }
