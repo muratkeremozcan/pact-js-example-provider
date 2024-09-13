@@ -1,5 +1,6 @@
 {
   "openapi": "3.1.0",
+  "x-optic-path-ignore": "/__messages__",
   "info": {
     "title": "Movies API",
     "version": "1.0.0",
