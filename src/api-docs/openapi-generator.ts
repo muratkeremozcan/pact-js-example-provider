@@ -142,6 +142,7 @@ registry.registerPath({
 const generator = new OpenApiGeneratorV31(registry.definitions)
 export const openApiDoc = generator.generateDocument({
   openapi: '3.1.0',
+  'x-optic-path-ignore': '/__messages__', // these are tool specific paths, we don't need in api coverage
   info: {
     title: 'Movies API',
     version: '1.0.0',

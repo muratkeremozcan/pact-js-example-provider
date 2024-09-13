@@ -61,9 +61,16 @@ components:
         error:
           type: string
           description: Error message, if any
+        id:
+          type: number
+        name:
+          type: string
+        year:
+          type: number
       required:
-        - status
-        - movie
+        - id
+        - name
+        - year
     GetMovieResponse:
       anyOf:
         - type: object
@@ -115,7 +122,8 @@ components:
           example: Movie {id} has been deleted
       required:
         - message
-  parameters: {}
+  parameters:
+    {}
 paths:
   /:
     get:
@@ -245,4 +253,5 @@ paths:
                 required:
                   - status
                   - error
-webhooks: {}
+webhooks:
+  {}
