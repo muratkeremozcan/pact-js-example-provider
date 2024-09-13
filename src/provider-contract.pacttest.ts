@@ -20,6 +20,7 @@ describe('Pact Verification', () => {
       pactBrokerToken: process.env.PACT_BROKER_TOKEN as string,
       providerVersion: process.env.GITHUB_SHA as string,
       providerVersionBranch: process.env.GITHUB_BRANCH as string, // represents which contracts the provider should verify against
+      // logLevel: 'debug',
 
       // PROVIDER STATES: we can simulate certain states of the API (like an empty or non-empty DB)
       // in order to cover different scenarios
@@ -73,3 +74,25 @@ describe('Pact Verification', () => {
     console.log('Result:', output)
   })
 })
+
+// Selective testing note: If you prefix your test command (e.g. npm t) with the following environment variables,
+//  you can selectively run a specific interaction during provider verification.
+// https://docs.pact.io/implementation_guides/javascript/docs/troubleshooting
+// PACT_DESCRIPTION:   	   select all tests that contain this string in its description(from the test output, or the pact file)
+// PACT_PROVIDER_STATE:	   select all tests that contain this string in on of its providerState
+// PACT_PROVIDER_NO_STATE: set to TRUE to select all tests what don't have any providerState
+/*
+
+examples:
+
+PACT_DESCRIPTION="a request to get all movies" npm run test:provider
+PACT_DESCRIPTION="a request to get all movies" PACT_PROVIDER_STATE="An existing movie exists" npm run test:provider
+
+PACT_PROVIDER_STATE="Has a movie with a specific ID" npm run test:provider
+PACT_DESCRIPTION="a request to a specific movie" PACT_PROVIDER_STATE="Has a movie with a specific ID" npm run test:provider
+
+PACT_DESCRIPTION="a request to delete a movie that exists" PACT_PROVIDER_STATE="Has a movie with a specific ID" npm run test:provider
+
+PACT_PROVIDER_NO_STATE=true npm run test:provider
+
+*/
