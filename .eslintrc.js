@@ -37,7 +37,6 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     'filenames/match-regex': ['error', '^[a-z0-9-._\\[\\]]+$', true],
     complexity: ['warn', 15],
-    indent: ['error', 2, { SwitchCase: 1 }],
     'object-curly-spacing': ['error', 'always'],
     'linebreak-style': ['error', 'unix'],
     quotes: ['error', 'single'],

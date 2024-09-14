@@ -20,7 +20,7 @@ describe('Pact Verification', () => {
       pactBrokerToken: process.env.PACT_BROKER_TOKEN as string,
       providerVersion: process.env.GITHUB_SHA as string,
       providerVersionBranch: process.env.GITHUB_BRANCH as string, // represents which contracts the provider should verify against
-      // logLevel: 'debug',
+      // logLevel: 'debug', // can be useful!
 
       // PROVIDER STATES: we can simulate certain states of the API (like an empty or non-empty DB)
       // in order to cover different scenarios
@@ -57,12 +57,23 @@ describe('Pact Verification', () => {
 
       options.pactBrokerUrl = process.env.PACT_BROKER_BASE_URL as string
 
-      // https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors#properties
-      options.consumerVersionSelectors = [
-        { mainBranch: true }, // tests against consumer's main branch
-        { matchingBranch: true }, // used for coordinated development between consumer and provider teams using matching feature branch names
-        { deployedOrReleased: true } // tests against consumer's currently deployed version
-      ]
+      if (process.env.CONSUMER) {
+        console.log(
+          `Running verification for consumer: ${process.env.CONSUMER}`
+        )
+        options.consumerVersionSelectors = [
+          { consumer: process.env.CONSUMER, mainBranch: true },
+          { consumer: process.env.CONSUMER, matchingBranch: true },
+          { consumer: process.env.CONSUMER, deployedOrReleased: true }
+        ]
+      } else {
+        console.log('Running verification for all consumers')
+        options.consumerVersionSelectors = [
+          { mainBranch: true }, // tests against consumer's main branch
+          { matchingBranch: true }, // used for coordinated development between consumer and provider teams using matching feature branch names
+          { deployedOrReleased: true } // tests against consumer's currently deployed version
+        ]
+      }
     }
     verifier = new Verifier(options)
   })
@@ -77,9 +88,10 @@ describe('Pact Verification', () => {
 
 // Selective testing note: If you prefix your test command (e.g. npm t) with the following environment variables,
 //  you can selectively run a specific interaction during provider verification.
+// You can also filter tests to a certain consumer.
 // https://docs.pact.io/implementation_guides/javascript/docs/troubleshooting
 // PACT_DESCRIPTION:   	   select all tests that contain this string in its description(from the test output, or the pact file)
-// PACT_PROVIDER_STATE:	   select all tests that contain this string in on of its providerState
+// PACT_PROVIDER_STATE:	   select all tests that contain this string in one of its providerState
 // PACT_PROVIDER_NO_STATE: set to TRUE to select all tests what don't have any providerState
 /*
 
@@ -95,4 +107,6 @@ PACT_DESCRIPTION="a request to delete a movie that exists" PACT_PROVIDER_STATE="
 
 PACT_PROVIDER_NO_STATE=true npm run test:provider
 
+# to run tests from a certain consumer
+CONSUMER="MoviesAPI" npm run test:provider
 */
