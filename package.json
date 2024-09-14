@@ -46,7 +46,7 @@
     "@faker-js/faker": "8.4.1",
     "@pact-foundation/pact": "13.1.3",
     "@pact-foundation/pact-cli": "16.0.0",
-    "@types/jest": "29.5.12",
+    "@types/jest": "29.5.13",
     "@types/lodash": "4.17.7",
     "@types/node": "18.19.47",
     "@typescript-eslint/eslint-plugin": "7.18.0",
