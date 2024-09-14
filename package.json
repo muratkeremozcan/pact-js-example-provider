@@ -48,7 +48,7 @@
     "@pact-foundation/pact-cli": "16.0.0",
     "@types/jest": "29.5.13",
     "@types/lodash": "4.17.7",
-    "@types/node": "18.19.50",
+    "@types/node": "20.16.5",
     "@typescript-eslint/eslint-plugin": "8.5.0",
     "@typescript-eslint/parser": "8.5.0",
     "@useoptic/optic": "^1.0.3",
