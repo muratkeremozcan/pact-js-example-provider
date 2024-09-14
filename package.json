@@ -54,7 +54,7 @@
     "@useoptic/optic": "^1.0.3",
     "cross-env": "7.0.3",
     "cy-spok": "1.6.2",
-    "cypress": "13.14.1",
+    "cypress": "13.14.2",
     "cypress-ajv-schema-validator": "^1.1.0",
     "cypress-data-session": "2.8.4",
     "cypress-map": "1.40.0",
