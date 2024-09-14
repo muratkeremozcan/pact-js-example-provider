@@ -105,7 +105,7 @@ npm run record:consumer:deployment # (5)
 # start the provider service and run the tests
 # npm run start #
 # npm run test:provider #
-npm run test:provider:ci # (3) # starts the provider service and runs the tests
+npm run test:provider-ci # (3) # starts the provider service and runs the tests
 npm run can:i:deploy:provider # (5)
 # only on main
 npm run record:provider:deployment # (5)
@@ -122,7 +122,7 @@ npm run validate # all the above in parallel
 npm run test # unit tests
 npm run test:watch # watch mode
 
-npm run cy:open-local # open mode 
+npm run cy:open-local # open mode
 npm run cy:run-local  # run mode
 npm run cy:run-local-fast  # no video or screen shots
 ```
@@ -143,7 +143,7 @@ npm run mock:server # starts the mock backend/provider server
 # these 2 run as a part of start, and reset the db
 # you usually don't have to use them
 npm run db:migrate
-npm run reset:db 
+npm run reset:db
 
 npm run generate:openapi # generates an OpenAPI doc from Zod schemas
 npm run optic:lint # verifies the OpenAPI doc
@@ -250,7 +250,7 @@ npm run test:provider
 Two in one:
 
 ```bash
-npm run test:provider:ci
+npm run test:provider-ci
 ```
 
 **Provider States**: We can simulate certain states of the api (like an empty or non-empty db) in order to cover different scenarios
@@ -298,7 +298,7 @@ npm run record:consumer:deployment
 
 Recall the consumer and provider flow.
 
-The key is that, when there are multiple repos, the provider has to run `test:provider:ci` `(#3)` after the consumer runs `publish:pact` `(#2)` but before the consumer can run `can:i:deploy:consumer` `(#4)` . The trigger to run `test:provider:ci` `(#3)` has to happen automatically, webhooks handle this.
+The key is that, when there are multiple repos, the provider has to run `test:provider-ci` `(#3)` after the consumer runs `publish:pact` `(#2)` but before the consumer can run `can:i:deploy:consumer` `(#4)` . The trigger to run `test:provider-ci` `(#3)` has to happen automatically, webhooks handle this.
 
 ```bash
 # Consumer
@@ -309,7 +309,7 @@ npm run can:i:deploy:consumer # (4)
 npm run record:consumer:deployment # (5)
 
 # Provider
-npm run test:provider:ci # (3) triggered by webhooks
+npm run test:provider-ci # (3) triggered by webhooks
 npm run can:i:deploy:provider # (4)
 # only on main
 npm run record:consumer:deployment # (5)
