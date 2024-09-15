@@ -1,6 +1,8 @@
 name: Run contract tests
 
-on: push
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
 
 concurrency:
   group: ${{ github.ref }} && ${{ github.workflow }}
@@ -27,6 +29,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+
+      - name: Set PACT_BREAKING_CHANGE based on PR description checkbox
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prBody = context.payload.pull_request.body || '';
+
+            // Check if the PR description contains a checked checkbox for Pact breaking change
+            if (prBody.includes('[x] Pact breaking change')) {
+              core.exportVariable('PACT_BREAKING_CHANGE', 'true');
+              console.log('PACT_BREAKING_CHANGE set to true based on PR description checkbox.');
+            } else {
+              core.exportVariable('PACT_BREAKING_CHANGE', 'false');
+              console.log('PACT_BREAKING_CHANGE remains false.');
+            }
 
       - name: Install dependencies
         run: npm ci

@@ -1,6 +1,7 @@
 import type { VerifierOptions } from '@pact-foundation/pact'
 import { Verifier } from '@pact-foundation/pact'
 import { stateHandlers } from './test-helpers/state-handlers'
+import { buildConsumerVersionSelectors } from './test-helpers/pact-utils'
 
 // 1) Run the provider service
 // 2) Setup the provider verifier options
@@ -54,25 +55,31 @@ describe('Pact Verification', () => {
       console.log(
         `Using Pact Broker Base URL: ${process.env.PACT_BROKER_BASE_URL}`
       )
-
       options.pactBrokerUrl = process.env.PACT_BROKER_BASE_URL as string
 
-      if (process.env.CONSUMER) {
-        console.log(
-          `Running verification for consumer: ${process.env.CONSUMER}`
-        )
-        options.consumerVersionSelectors = [
-          { consumer: process.env.CONSUMER, mainBranch: true },
-          { consumer: process.env.CONSUMER, matchingBranch: true },
-          { consumer: process.env.CONSUMER, deployedOrReleased: true }
-        ]
+      // Environment variable to control exclusion of mainBranch and deployedOrReleased
+      const includeMainAndDeployed = process.env.PACT_BREAKING_CHANGE !== 'true'
+
+      const consumer = process.env.PACT_CONSUMER
+      options.consumerVersionSelectors = buildConsumerVersionSelectors(
+        consumer,
+        includeMainAndDeployed
+      )
+
+      if (consumer) {
+        console.log(`Running verification for consumer: ${consumer}`)
       } else {
         console.log('Running verification for all consumers')
-        options.consumerVersionSelectors = [
-          { mainBranch: true }, // tests against consumer's main branch
-          { matchingBranch: true }, // used for coordinated development between consumer and provider teams using matching feature branch names
-          { deployedOrReleased: true } // tests against consumer's currently deployed version
-        ]
+      }
+
+      if (includeMainAndDeployed) {
+        console.log(
+          'Including main branch and deployedOrReleased in the verification'
+        )
+      } else {
+        console.log(
+          'Only running the matching branch, this is useful when introducing breaking changes'
+        )
       }
     }
     verifier = new Verifier(options)
@@ -108,5 +115,8 @@ PACT_DESCRIPTION="a request to delete a movie that exists" PACT_PROVIDER_STATE="
 PACT_PROVIDER_NO_STATE=true npm run test:provider
 
 # to run tests from a certain consumer
-CONSUMER="MoviesAPI" npm run test:provider
+PACT_CONSUMER="MoviesAPI" npm run test:provider
+
+# to relax the can:i:deploy and only check against matching branches
+PACT_BREAKING_CHANGE=true npm run test:provider
 */
