@@ -155,17 +155,15 @@ npm run optic:verify-ci # the above, but it also starts the server, in case you'
 
 #### Provider selective testing
 
-By default, the tests from the consumers execute in their entirety, for all the consumers. That can be hard to diagnose. 
+By default, Pact provider tests run against all consumers and their respective contracts, which can make it difficult to debug specific issues. To narrow down the scope and run selective tests, you can filter by specific consumer or use Pact selectors to focus on certain interactions or states.
 
-We can filter that by a specific consumer, and with pact selectors.
+Refer to the [Pact JS Troubleshooting Guide](https://docs.pact.io/implementation_guides/javascript/docs/troubleshooting) for more details.
 
-https://docs.pact.io/implementation_guides/javascript/docs/troubleshooting
+You can use the following environment variables to select specific interactions or states:
 
-`PACT_DESCRIPTION`: select all tests that contain this string in its description (from the test output, or the pact file).
-
-`PACT_PROVIDER_STATE`:  select all tests that contain this string in one of its providerStates.
-
-`PACT_PROVIDER_NO_STATE`: set to TRUE to select all tests what don't have any providerStates.
+- `PACT_DESCRIPTION`: Selects all tests containing this string in their description (from the test output or the pact file).
+- `PACT_PROVIDER_STATE`: Selects all tests containing this string in one of their provider states.
+- `PACT_PROVIDER_NO_STATE`: Set to `TRUE` to select all tests without provider states.
 
 ```bash
 PACT_DESCRIPTION="a request to get all movies" npm run test:provider
@@ -187,26 +185,23 @@ To run tests from a certain consumer:
 PACT_CONSUMER="MoviesAPI" npm run test:provider
 ```
 
-#### Dealing with breaking changes on the Provider side
+#### Handling Breaking Changes
 
-When verifying consumer tests, we have default settings for:
+When verifying consumer tests, we use the following default settings:
 
-* `matchingBranch` *used for coordinated development between consumer and provider teams using matching feature branch names*
+- `matchingBranch`: Tests against the consumer branch that matches the provider's branch.
+- `mainBranch`: Tests against the consumer's main branch.
+- `deployedOrReleased`: Tests against the consumer's currently deployed or released versions.
 
-* `mainBranch` *tests against consumer's main branch*
+For **breaking changes** introduced on the provider side, you may want to verify only against matching branches, avoiding failures caused by incompatible versions in `mainBranch` or `deployedOrReleased`.
 
-* `deployedOrReleased` *tests against consumer's currently deployed or released versions*
-
-   
-
-When introducing breaking changes, we may want to to relax verifications and check against `matchingBranches`.
-For that We use `PACT_BREAKING_CHANGE` environment variable.
+To handle this scenario, use the `PACT_BREAKING_CHANGE` environment variable:
 
 ```bash
 PACT_BREAKING_CHANGE=true npm run test:provider
 ```
 
-For CI, in the PR description we include a string and check the box. If it is unchecked or not included in the PR description, the env var is off.
+In CI, you can enable this behavior by including a checkbox in the PR description. If the box is unchecked or not included, the `PACT_BREAKING_CHANGE` variable is set to `false`.
 
 ```readme
 - [x] Pact breaking change 
