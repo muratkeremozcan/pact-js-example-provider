@@ -20,9 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Read Node version from .nvmrc
+        id: node_version
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Generate OpenAPI docs from code
         run: |
@@ -30,7 +34,7 @@ jobs:
           npm run generate:openapi
 
       - name: Cypress e2e tests 🧪
-        uses: cypress-io/github-action@v6.7.6
+        uses: cypress-io/github-action@v6.6.1
         with:
           start: npm run start
           config-file: cypress/config/local.config.ts
