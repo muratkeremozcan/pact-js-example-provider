@@ -55,24 +55,54 @@ describe('Pact Verification', () => {
         `Using Pact Broker Base URL: ${process.env.PACT_BROKER_BASE_URL}`
       )
 
+      // environment variable to control inclusion of mainBranch and deployedOrReleased
+      const excludeMainAndDeployed =
+        process.env.EXCLUDE_MAIN_AND_DEPLOYED === 'true'
+
       options.pactBrokerUrl = process.env.PACT_BROKER_BASE_URL as string
 
       if (process.env.CONSUMER) {
         console.log(
           `Running verification for consumer: ${process.env.CONSUMER}`
         )
+
+        // always include matchingBranch
         options.consumerVersionSelectors = [
-          { consumer: process.env.CONSUMER, mainBranch: true },
-          { consumer: process.env.CONSUMER, matchingBranch: true },
-          { consumer: process.env.CONSUMER, deployedOrReleased: true }
+          { consumer: process.env.CONSUMER, matchingBranch: true }, // used for coordinated development between consumer and provider teams using matching feature branch names
+          { consumer: process.env.CONSUMER, mainBranch: true }, // tests against consumer's main branch
+          { consumer: process.env.CONSUMER, deployedOrReleased: true } // tests against consumer's currently deployed version
         ]
+
+        // include main branch and deployedOrReleased if the environment variable is set
+        if (excludeMainAndDeployed) {
+          console.log(
+            'Excluding main branch and deployedOrReleased in the verification'
+          )
+          options.consumerVersionSelectors = [
+            { consumer: process.env.CONSUMER, matchingBranch: true },
+            { consumer: process.env.CONSUMER, mainBranch: false },
+            { consumer: process.env.CONSUMER, deployedOrReleased: false }
+          ]
+        }
       } else {
         console.log('Running verification for all consumers')
         options.consumerVersionSelectors = [
-          { mainBranch: true }, // tests against consumer's main branch
-          { matchingBranch: true }, // used for coordinated development between consumer and provider teams using matching feature branch names
-          { deployedOrReleased: true } // tests against consumer's currently deployed version
+          { matchingBranch: true },
+          { mainBranch: true },
+          { deployedOrReleased: true }
         ]
+
+        // include main branch and deployedOrReleased if the environment variable is set
+        if (excludeMainAndDeployed) {
+          console.log(
+            'Excluding main branch and deployedOrReleased in the verification'
+          )
+          options.consumerVersionSelectors = [
+            { matchingBranch: true },
+            { mainBranch: false },
+            { deployedOrReleased: false }
+          ]
+        }
       }
     }
     verifier = new Verifier(options)
