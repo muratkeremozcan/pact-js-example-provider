@@ -42,8 +42,10 @@ jobs:
               excludeFlag = true;
               console.log('EXCLUDE_MAIN_AND_DEPLOYED set to true based on PR description.');
             } else {
+              const octokit = github.getOctokit(core.getInput('github-token'));
+              
               // Fetch commit messages
-              const { data: commits } = await github.repos.listCommits({
+              const { data: commits } = await octokit.rest.repos.listCommits({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 sha: context.payload.pull_request.head.sha,
