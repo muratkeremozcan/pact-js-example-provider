@@ -51,7 +51,7 @@ jobs:
             } else {
               console.log('No associated PR found.');
             }
-
+            
       - name: Install dependencies
         run: npm ci
 
