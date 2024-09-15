@@ -8,12 +8,10 @@ import type { ConsumerVersionSelector } from '@pact-foundation/pact-core'
  * which is useful when introducing breaking changes on the provider side.
  *
  * **Default Behavior:**
- *
  * - **Consumers**: If `consumer` is `undefined`, selectors apply to all consumers.
  * - **Selectors**: `includeMainAndDeployed` defaults to `true`, including `mainBranch` and `deployedOrReleased` selectors.
  *
  * **Selectors Included:**
- *
  * - `matchingBranch`: Always included. Selects pacts from consumer branches matching the provider's branch.
  * - `mainBranch`: Included when `includeMainAndDeployed` is `true`. Selects pacts from the consumer's main branch.
  * - `deployedOrReleased`: Included when `includeMainAndDeployed` is `true`. Selects pacts from the consumer's deployed or released versions.
