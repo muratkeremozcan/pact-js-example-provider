@@ -30,28 +30,21 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Set EXCLUDE_MAIN_AND_DEPLOYED based on associated PR labels
+      - name: Set EXCLUDE_MAIN_AND_DEPLOYED based on PR description checkbox
         uses: actions/github-script@v6
         with:
           script: |
-            const pr = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              head: context.payload.ref
-            });
+            const prBody = context.payload.pull_request.body || '';
 
-            if (pr.data.length > 0) {
-              const labels = pr.data[0].labels.map(label => label.name);
-              if (labels.includes('pact-breaking-change')) {
-                core.exportVariable('EXCLUDE_MAIN_AND_DEPLOYED', 'true');
-                console.log('EXCLUDE_MAIN_AND_DEPLOYED set to true based on PR label.');
-              } else {
-                console.log('EXCLUDE_MAIN_AND_DEPLOYED remains false.');
-              }
+            // Check if the PR description contains a checked checkbox for Pact breaking change
+            if (prBody.includes('[x] Pact breaking change')) {
+              core.exportVariable('EXCLUDE_MAIN_AND_DEPLOYED', 'true');
+              console.log('EXCLUDE_MAIN_AND_DEPLOYED set to true based on PR description checkbox.');
             } else {
-              console.log('No associated PR found.');
+              core.exportVariable('EXCLUDE_MAIN_AND_DEPLOYED', 'false');
+              console.log('EXCLUDE_MAIN_AND_DEPLOYED remains false.');
             }
-            
+
       - name: Install dependencies
         run: npm ci
 
