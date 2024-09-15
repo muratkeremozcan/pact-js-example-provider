@@ -1,6 +1,8 @@
 name: Run contract tests
 
-on: push
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
 
 concurrency:
   group: ${{ github.ref }} && ${{ github.workflow }}
