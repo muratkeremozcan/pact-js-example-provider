@@ -55,14 +55,12 @@ describe('Pact Verification', () => {
       console.log(
         `Using Pact Broker Base URL: ${process.env.PACT_BROKER_BASE_URL}`
       )
+      options.pactBrokerUrl = process.env.PACT_BROKER_BASE_URL as string
 
       // Environment variable to control exclusion of mainBranch and deployedOrReleased
       const includeMainAndDeployed = process.env.PACT_BREAKING_CHANGE !== 'true'
 
-      options.pactBrokerUrl = process.env.PACT_BROKER_BASE_URL as string
-
-      // Build the consumerVersionSelectors using a helper function to eliminate duplication
-      const consumer = process.env.CONSUMER
+      const consumer = process.env.PACT_CONSUMER
       options.consumerVersionSelectors = buildConsumerVersionSelectors(
         consumer,
         includeMainAndDeployed
@@ -117,7 +115,7 @@ PACT_DESCRIPTION="a request to delete a movie that exists" PACT_PROVIDER_STATE="
 PACT_PROVIDER_NO_STATE=true npm run test:provider
 
 # to run tests from a certain consumer
-CONSUMER="MoviesAPI" npm run test:provider
+PACT_CONSUMER="MoviesAPI" npm run test:provider
 
 # to relax the can:i:deploy and only check against matching branches
 PACT_BREAKING_CHANGE=true npm run test:provider
