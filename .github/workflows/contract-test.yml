@@ -30,20 +30,30 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Set EXCLUDE_MAIN_AND_DEPLOYED based on PR labels
+      - name: Set EXCLUDE_MAIN_AND_DEPLOYED based on associated PR labels
         uses: actions/github-script@v6
         with:
           script: |
-            const labels = context.payload.pull_request.labels.map(label => label.name);
-            if (labels.includes('pact-breaking-change')) {
-              core.exportVariable('EXCLUDE_MAIN_AND_DEPLOYED', 'true');
-              console.log('EXCLUDE_MAIN_AND_DEPLOYED set to true based on PR label.');
+            const pr = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: context.payload.ref
+            });
+
+            if (pr.data.length > 0) {
+              const labels = pr.data[0].labels.map(label => label.name);
+              if (labels.includes('pact-breaking-change')) {
+                core.exportVariable('EXCLUDE_MAIN_AND_DEPLOYED', 'true');
+                console.log('EXCLUDE_MAIN_AND_DEPLOYED set to true based on PR label.');
+              } else {
+                console.log('EXCLUDE_MAIN_AND_DEPLOYED remains false.');
+              }
             } else {
-              console.log('EXCLUDE_MAIN_AND_DEPLOYED remains false.');
+              console.log('No associated PR found.');
             }
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Run provider contract tests
         run: npm run test:provider-ci
