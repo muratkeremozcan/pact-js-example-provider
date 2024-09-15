@@ -31,38 +31,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Set EXCLUDE_MAIN_AND_DEPLOYED based on PR description or commit messages
+      - name: Set EXCLUDE_MAIN_AND_DEPLOYED based on PR labels
         uses: actions/github-script@v6
         with:
           script: |
-            const prBody = context.payload.pull_request ? context.payload.pull_request.body || '' : '';
-            let excludeFlag = false;
-
-            // Check if the PR description contains the breaking change tag
-            if (prBody.includes('[pact-breaking-change]')) {
-              excludeFlag = true;
-              console.log('EXCLUDE_MAIN_AND_DEPLOYED set to true based on PR description.');
-            } else {
-              // Fetch commit messages using the GitHub API (available via `github` in the context)
-              const { data: commits } = await github.rest.repos.listCommits({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                sha: context.payload.pull_request.head.sha,
-              });
-
-              // Loop through commit messages to check for the breaking change tag
-              for (const commit of commits) {
-                if (commit.commit.message.includes('[pact-breaking-change]')) {
-                  excludeFlag = true;
-                  console.log('EXCLUDE_MAIN_AND_DEPLOYED set to true based on commit message.');
-                  break;
-                }
-              }
-            }
-
-            // Export the environment variable based on the flag
-            if (excludeFlag) {
+            const labels = context.payload.pull_request.labels.map(label => label.name);
+            if (labels.includes('pact-breaking-change')) {
               core.exportVariable('EXCLUDE_MAIN_AND_DEPLOYED', 'true');
+              console.log('EXCLUDE_MAIN_AND_DEPLOYED set to true based on PR label.');
             } else {
               console.log('EXCLUDE_MAIN_AND_DEPLOYED remains false.');
             }
