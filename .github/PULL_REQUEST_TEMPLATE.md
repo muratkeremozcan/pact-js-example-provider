@@ -1,3 +1,3 @@
 ### Pact Breaking Change?
 
-- [ ] Pact breaking change (check if this PR introduces a breaking change, which sets `EXCLUDE_MAIN_AND_DEPLOYED` environment variable to true).
+- [ ] Pact breaking change (check if this PR introduces a breaking change, which relaxes Pact verification to only running the matching branch of the consumer).

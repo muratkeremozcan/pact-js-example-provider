@@ -57,8 +57,7 @@ describe('Pact Verification', () => {
       )
 
       // Environment variable to control exclusion of mainBranch and deployedOrReleased
-      const includeMainAndDeployed =
-        process.env.EXCLUDE_MAIN_AND_DEPLOYED !== 'false'
+      const includeMainAndDeployed = process.env.PACT_BREAKING_CHANGE !== 'true'
 
       options.pactBrokerUrl = process.env.PACT_BROKER_BASE_URL as string
 
@@ -77,7 +76,11 @@ describe('Pact Verification', () => {
 
       if (includeMainAndDeployed) {
         console.log(
-          'Excluding main branch and deployedOrReleased in the verification'
+          'Including main branch and deployedOrReleased in the verification'
+        )
+      } else {
+        console.log(
+          'Only running the matching branch, this is useful when introducing breaking changes'
         )
       }
     }
@@ -117,5 +120,5 @@ PACT_PROVIDER_NO_STATE=true npm run test:provider
 CONSUMER="MoviesAPI" npm run test:provider
 
 # to relax the can:i:deploy and only check against matching branches
-EXCLUDE_MAIN_AND_DEPLOYED=true npm run test:provider-ci
+PACT_BREAKING_CHANGE=true npm run test:provider
 */
