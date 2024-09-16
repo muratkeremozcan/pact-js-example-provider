@@ -6,29 +6,25 @@ import { buildVerifierOptions } from './test-helpers/pact-utils'
 // 2) Setup the provider verifier options
 // 3) Write & execute the provider contract test
 
-const port = process.env.PORT || '3001'
-
 describe('Pact Verification', () => {
-  let verifier: Verifier
-  beforeAll(async () => {
-    // 2) Setup the provider verifier options
-    const options = buildVerifierOptions({
-      provider: 'MoviesAPI',
-      consumer: process.env.PACT_CONSUMER, // filter by the consumer, or run for all if no env var is provided
-      includeMainAndDeployed: process.env.PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
-      port,
-      stateHandlers,
-      beforeEach: () => {
-        console.log('I run before each test coming from the consumer...')
-        return Promise.resolve()
-      },
-      afterEach: () => {
-        console.log('I run after each test coming from the consumer...')
-        return Promise.resolve()
-      }
-    })
-    verifier = new Verifier(options)
+  // 2) Setup the provider verifier options
+  const port = process.env.PORT || '3001'
+  const options = buildVerifierOptions({
+    provider: 'MoviesAPI',
+    consumer: process.env.PACT_CONSUMER, // filter by the consumer, or run for all if no env var is provided
+    includeMainAndDeployed: process.env.PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
+    port,
+    stateHandlers,
+    beforeEach: () => {
+      console.log('I run before each test coming from the consumer...')
+      return Promise.resolve()
+    },
+    afterEach: () => {
+      console.log('I run after each test coming from the consumer...')
+      return Promise.resolve()
+    }
   })
+  const verifier = new Verifier(options)
 
   it('should validate the expectations of movie-consumer', async () => {
     // 3) Write & execute the provider contract test
