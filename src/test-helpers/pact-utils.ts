@@ -1,4 +1,135 @@
 import type { ConsumerVersionSelector } from '@pact-foundation/pact-core'
+import type {
+  MessageStateHandlers,
+  VerifierOptions
+} from '@pact-foundation/pact'
+import type {
+  ProxyOptions,
+  StateHandlers
+} from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
+
+/**
+ * Builds a `VerifierOptions` object for Pact verification, encapsulating
+ * common provider test setup options, including conditional handling for
+ * breaking changes and dynamically generated consumer version selectors.
+ *
+ * This function is designed to modularize the setup of Pact verification for providers
+ * and streamline common configurations, such as state handlers, consumer version selectors,
+ * and pact broker options.
+ *
+ * @param provider - The name of the provider being verified.
+ * @param port - The port on which the provider service runs.
+ * @param logLevel - (Optional) The log level for Pact verification output (`info`, `debug`, etc.).
+ * @param stateHandlers - (Optional) Handlers to simulate provider states based on consumer expectations.
+ * @param beforeEach - (Optional) A hook that runs before each consumer interaction.
+ * @param afterEach - (Optional) A hook that runs after each consumer interaction.
+ * @param includeMainAndDeployed - (Required) Flag indicating whether to include `mainBranch` and `deployedOrReleased` selectors. Should be explicitly controlled.
+ * @param consumer - (Optional) A specific consumer to run verification for. If not provided, all consumers will be verified.
+ * @param publishVerificationResult - (Optional, defaults to `true`) Whether to publish the verification result to the Pact Broker.
+ * @param pactBrokerToken - (Optional) Token for authentication with the Pact Broker, defaults to environment variable.
+ * @param providerVersion - (Optional) The version of the provider, typically tied to a Git commit or build.
+ * @param providerVersionBranch - (Optional) The branch of the provider being verified.
+ * @param pactBrokerUrl - (Optional) URL of the Pact Broker, defaults to an environment variable.
+ * @param pactPayloadUrl - (Optional) Direct URL for Pact payloads, typically used in CI environments.
+ *
+ * @returns A fully configured `VerifierOptions` object for running Pact verification tests.
+ *
+ * @example
+ * // Running verification for all consumers
+ * const options = buildVerifierOptions({
+ *   provider: 'MoviesAPI',
+ *   includeMainAndDeployed: process.env.PACT_BREAKING_CHANGE !== 'true'
+ *   port: '3001',
+ *   stateHandlers,
+ * })
+ *
+ * @example
+ * // Running verification for a specific consumer, with debug logging
+ * const options = buildVerifierOptions({
+ *   provider: 'MoviesAPI',
+ *   consumer: 'WebConsumer'
+ *   includeMainAndDeployed: PACT_BREAKING_CHANGE!=='true'
+ *   port: '3001',
+ *   stateHandlers
+ *   logLevel: 'debug',
+ * })
+ */
+export function buildVerifierOptions({
+  provider,
+  port,
+  logLevel = 'info', // 'debug' is also useful
+  stateHandlers,
+  beforeEach,
+  afterEach,
+  includeMainAndDeployed,
+  consumer,
+  publishVerificationResult = true,
+  pactBrokerToken = process.env.PACT_BROKER_TOKEN,
+  providerVersion = process.env.GITHUB_SHA,
+  providerVersionBranch = process.env.GITHUB_BRANCH,
+  pactBrokerUrl = process.env.PACT_BROKER_BASE_URL,
+  pactPayloadUrl = process.env.PACT_PAYLOAD_URL
+}: {
+  provider: string
+  port: string
+  logLevel?: ProxyOptions['logLevel']
+  stateHandlers?: StateHandlers & MessageStateHandlers
+  beforeEach?: ProxyOptions['beforeEach']
+  afterEach?: ProxyOptions['afterEach']
+  includeMainAndDeployed: boolean
+  consumer?: string
+  publishVerificationResult?: boolean
+  pactBrokerToken?: string
+  providerVersion?: string
+  providerVersionBranch?: string
+  pactBrokerUrl?: string
+  pactPayloadUrl?: string
+}): VerifierOptions {
+  const options: VerifierOptions = {
+    provider,
+    logLevel,
+    stateHandlers,
+    beforeEach,
+    afterEach,
+    providerBaseUrl: `http://localhost:${port}`,
+    publishVerificationResult,
+    pactBrokerToken: pactBrokerToken,
+    providerVersion: providerVersion,
+    providerVersionBranch: providerVersionBranch
+  }
+
+  // When the CI triggers the provider tests, we need to use the PACT_PAYLOAD_URL
+  // To use the PACT_PAYLOAD_URL, we need to update the provider options to use this URL instead.
+  if (pactPayloadUrl) {
+    console.log(`Pact payload URL specified: ${process.env.PACT_PAYLOAD_URL}`)
+    options.pactUrls = [pactPayloadUrl as string]
+  } else {
+    console.log(`Using Pact Broker Base URL: ${pactBrokerUrl}`)
+    options.pactBrokerUrl = pactBrokerUrl
+
+    options.consumerVersionSelectors = buildConsumerVersionSelectors(
+      consumer,
+      includeMainAndDeployed
+    )
+
+    if (consumer) {
+      console.log(`Running verification for consumer: ${consumer}`)
+    } else {
+      console.log('Running verification for all consumers')
+    }
+
+    if (includeMainAndDeployed) {
+      console.log(
+        'Including main branch and deployedOrReleased in the verification'
+      )
+    } else {
+      console.log(
+        'Only running the matching branch, this is useful when introducing breaking changes'
+      )
+    }
+  }
+  return options
+}
 
 /**
  * Builds an array of `ConsumerVersionSelector` objects for Pact verification.
@@ -27,7 +158,7 @@ import type { ConsumerVersionSelector } from '@pact-foundation/pact-core'
  *
  * @example
  * // Run verification for a specific consumer, including all selectors (default behavior)
- * const selectors = buildConsumerVersionSelectors('MoviesAPI');
+ * const selectors = buildConsumerVersionSelectors('MoviesAPI')
  * // Result:
  * // [
  * //   { consumer: 'MoviesAPI', matchingBranch: true },
@@ -37,7 +168,7 @@ import type { ConsumerVersionSelector } from '@pact-foundation/pact-core'
  *
  * @example
  * // Run verification for a specific consumer, excluding mainBranch and deployedOrReleased (e.g., when introducing breaking changes)
- * const selectors = buildConsumerVersionSelectors('MoviesAPI', false);
+ * const selectors = buildConsumerVersionSelectors('MoviesAPI', false)
  * // Result:
  * // [
  * //   { consumer: 'MoviesAPI', matchingBranch: true }
@@ -45,7 +176,7 @@ import type { ConsumerVersionSelector } from '@pact-foundation/pact-core'
  *
  * @example
  * // Run verification for all consumers, including all selectors
- * const selectors = buildConsumerVersionSelectors(undefined);
+ * const selectors = buildConsumerVersionSelectors(undefined)
  * // Result:
  * // [
  * //   { matchingBranch: true },
@@ -55,7 +186,7 @@ import type { ConsumerVersionSelector } from '@pact-foundation/pact-core'
  *
  * @example
  * // Run verification for all consumers, excluding mainBranch and deployedOrReleased
- * const selectors = buildConsumerVersionSelectors(undefined, false);
+ * const selectors = buildConsumerVersionSelectors(undefined, false)
  * // Result:
  * // [
  * //   { matchingBranch: true }
@@ -63,7 +194,7 @@ import type { ConsumerVersionSelector } from '@pact-foundation/pact-core'
  *
  * @see https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors
  */
-export function buildConsumerVersionSelectors(
+function buildConsumerVersionSelectors(
   consumer: string | undefined,
   includeMainAndDeployed = true
 ): ConsumerVersionSelector[] {

@@ -77,13 +77,25 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
   }
 }
 
-// Pact docs mention state setup and teardown
-// https://docs.pact.io/implementation_guides/javascript/docs/provider#provider-state-setup-and-teardown
-
-// but it doesn't work with TS at the moment
-// https://github.com/pact-foundation/pact-js/issues/1164
-
 /*
+ Note about PROVIDER STATES: we can simulate certain states of the API (like an empty or non-empty DB)
+ in order to cover different scenarios
+ The state could have many more variables; it is a good practice to represent it as an object
+ Note that the consumer state name should match the provider side
+
+ * The purpose of the stateHandlers is to ensure that the provider is in the correct state
+ to fulfill the consumer's expectations as defined in the contract tests.
+ * In a real-world scenario, you would typically set up this state by interacting with your service's database
+ * or through an API provided by the service itself (locally).
+ * This ensures that the provider test runs in a controlled environment where all the necessary data
+ and conditions are met, allowing for accurate verification of the consumer's expectations.
+
+Pact docs mention state setup and teardown
+https://docs.pact.io/implementation_guides/javascript/docs/provider#provider-state-setup-and-teardown
+
+but it doesn't work with TS at the moment
+https://github.com/pact-foundation/pact-js/issues/1164
+
 StateHandlers can either use:
 
 * a single function: this is only used for the setup phase, where you define a function that sets up the provider state. 
