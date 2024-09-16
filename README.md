@@ -182,7 +182,7 @@ PACT_PROVIDER_NO_STATE=true npm run test:provider
 To run tests from a certain consumer:
 
 ```bash
-PACT_CONSUMER="MoviesAPI" npm run test:provider
+PACT_CONSUMER="WebConsumer" npm run test:provider
 ```
 
 #### Handling Breaking Changes
@@ -204,7 +204,7 @@ PACT_BREAKING_CHANGE=true npm run test:provider
 In CI, you can enable this behavior by including a checkbox in the PR description. If the box is unchecked or not included, the `PACT_BREAKING_CHANGE` variable is set to `false`.
 
 ```readme
-- [x] Pact breaking change 
+- [x] Pact breaking change
 ```
 
 ## Consumer Tests
