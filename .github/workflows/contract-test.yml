@@ -56,4 +56,4 @@ jobs:
 
       - name: Record provider deployment
         if: github.ref == 'refs/heads/main'
-        run: npm run record:provider:deployment
+        run: npm run record:provider:deployment --env=dev
