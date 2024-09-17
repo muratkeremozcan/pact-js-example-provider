@@ -111,7 +111,7 @@ npm run can:i:deploy:provider # (5)
 npm run record:provider:deployment --env=dev # (5) change the env param as needed
 ```
 
-### Other scripts on both sides:
+### Other scripts on both sides
 
 ```bash
 npm run lint

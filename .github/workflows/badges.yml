@@ -36,3 +36,5 @@ jobs:
           file_pattern: README.md
           push_options: '--force'
           skip_fetch: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
