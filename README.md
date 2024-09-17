@@ -96,7 +96,7 @@ npm run test:consumer # (1)
 npm run publish:pact  # (2)
 npm run can:i:deploy:consumer # (4)
 # only on main
-npm run record:consumer:deployment # (5)
+npm run record:consumer:deployment --env=dev # (5) change the env param as needed
 ```
 
 ### Provider flow
@@ -108,10 +108,10 @@ npm run record:consumer:deployment # (5)
 npm run test:provider-ci # (3) # starts the provider service and runs the tests
 npm run can:i:deploy:provider # (5)
 # only on main
-npm run record:provider:deployment # (5)
+npm run record:provider:deployment --env=dev # (5) change the env param as needed
 ```
 
-### Other scripts on both sides:
+### Other scripts on both sides
 
 ```bash
 npm run lint
@@ -339,13 +339,13 @@ You can also run them locally but they will only execute on `main` branch. These
 Record the provider deployment:
 
 ```bash
-npm run record:provider:deployment
+npm run record:provider:deployment --env=dev # change the env param as needed
 ```
 
 Record the consumer deployment:
 
 ```bash
-npm run record:consumer:deployment
+npm run record:consumer:deployment --env=dev # change the env param as needed
 ```
 
 ## Webhooks
@@ -360,13 +360,13 @@ npm run test:consumer # (1)
 npm run publish:pact  # (2)
 npm run can:i:deploy:consumer # (4)
 # only on main
-npm run record:consumer:deployment # (5)
+npm run record:consumer:deployment --env=dev # (5) change the env param as needed
 
 # Provider
 npm run test:provider-ci # (3) triggered by webhooks
 npm run can:i:deploy:provider # (4)
 # only on main
-npm run record:consumer:deployment # (5)
+npm run record:provider:deployment --env=dev # (5) change the env param as needed
 ```
 
 ## Nuances of the env vars & scripts
