@@ -68,7 +68,8 @@ export function buildVerifierOptions({
   providerVersion = process.env.GITHUB_SHA,
   providerVersionBranch = process.env.GITHUB_BRANCH,
   pactBrokerUrl = process.env.PACT_BROKER_BASE_URL,
-  pactPayloadUrl = process.env.PACT_PAYLOAD_URL
+  pactPayloadUrl = process.env.PACT_PAYLOAD_URL,
+  enablePending = false // you can control this via an environment variable at the test
 }: {
   provider: string
   port: string
@@ -84,6 +85,7 @@ export function buildVerifierOptions({
   providerVersionBranch?: string
   pactBrokerUrl?: string
   pactPayloadUrl?: string
+  enablePending?: boolean
 }): VerifierOptions {
   const options: VerifierOptions = {
     provider,
@@ -93,9 +95,10 @@ export function buildVerifierOptions({
     afterEach,
     providerBaseUrl: `http://localhost:${port}`,
     publishVerificationResult,
-    pactBrokerToken: pactBrokerToken,
-    providerVersion: providerVersion,
-    providerVersionBranch: providerVersionBranch
+    pactBrokerToken,
+    providerVersion,
+    providerVersionBranch,
+    enablePending // use this if breaking changes from a consumer somehow got in main, and the provider cannot release (allow blasphemy!)
   }
 
   // When the CI triggers the provider tests, we need to use the PACT_PAYLOAD_URL
