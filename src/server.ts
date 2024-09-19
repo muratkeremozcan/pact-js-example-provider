@@ -2,10 +2,18 @@ import express, { json } from 'express'
 import { PrismaClient } from '@prisma/client'
 import { MovieAdapter } from './movie-adapter'
 import { MovieService } from './movie-service'
+import cors from 'cors'
 
 // Initialize Express server
 const server = express()
 server.use(json())
+
+// Enable CORS for all routes
+server.use(
+  cors({
+    origin: 'http://localhost:3000'
+  })
+)
 
 // Initialize PrismaClient
 const prisma = new PrismaClient()
