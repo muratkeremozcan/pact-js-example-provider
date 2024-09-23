@@ -1,16 +1,14 @@
 # Once the PR is merged into the main branch,
-# we publish the provider contract (the OpenAPI spec) to Pact broker
+# we publish the provider contract (the OpenAPI spec) to Pact broker.
+# The schema already got tested in the e2e job.
 
-name: Publish Provider Contract
-
-# on:
-#   push:
-#     branches:
-#       - main
+name: Publish Pact OpenApi
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, edited]
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 env:
   PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
@@ -19,7 +17,7 @@ env:
   GITHUB_BRANCH: ${{ github.ref_name }}
 
 jobs:
-  publish-contract:
+  publish-pact-openapi:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,5 +33,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Publish Provider Contract to Pact
+      - name: Publish Provider OpenApi to Pact
         run: npm run publish:pact-openapi

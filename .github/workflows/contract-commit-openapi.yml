@@ -1,7 +1,7 @@
 # This workflow exists so we do not have to locally generate the OpenAPI spec.
 # If the OpenAPI spec has changed, it commits and pushes those changes back to the PR branch.
 
-name: Generate and Commit OpenAPI Spec
+name: Generate & Commit OpenAPI
 
 on:
   pull_request:
@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  generate-openapi:
+  generate-commit-openapi:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
