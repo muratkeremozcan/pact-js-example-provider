@@ -1,0 +1,33 @@
+# Once the PR is merged into the main branch,
+# we publish the provider contract (the OpenAPI spec) to Pact broker
+
+name: Publish Provider Contract
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  publish-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read Node version from .nvmrc
+        id: node_version
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish Provider Contract to Pact
+        run: npm run publish:openapi

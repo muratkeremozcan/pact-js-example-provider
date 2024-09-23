@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Read Node version from .nvmrc
         id: node_version
@@ -34,6 +36,7 @@ jobs:
           npm run generate:openapi
 
       - name: Cypress e2e tests 🧪
+        id: cypress-tests
         uses: cypress-io/github-action@v6.7.6
         with:
           start: npm run start
@@ -41,3 +44,25 @@ jobs:
           record: true
           group: local
           tag: local
+
+      # We do schema testing within the api e2e
+      # We publish the OpenAPI spec on main, once after the PR is merged
+      # Pact likes to have some file/evidence that the OpenAPI spec was tested
+      # This section handles that need
+
+      - name: Generate Verification Result for Success
+        if: steps.cypress-tests.conclusion == 'success'
+        run: echo "All Cypress tests passed." > cypress/verification-result.txt
+
+      - name: Generate Verification Result for Failure
+        if: steps.cypress-tests.conclusion != 'success'
+        run: echo "Not all Cypress tests passed." > cypress/verification-result.txt
+
+      - name: Commit and push verification result
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: 'GitHub Actions'
+          author_email: 'actions@github.com'
+          message: 'Update verification results'
+          add: 'cypress/verification-result.txt'
+          push: true
