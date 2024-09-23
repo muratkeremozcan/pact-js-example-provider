@@ -36,4 +36,4 @@ jobs:
         run: npm ci
 
       - name: Publish Provider Contract to Pact
-        run: npm run publish:openapi
+        run: npm run publish:pact-openapi
