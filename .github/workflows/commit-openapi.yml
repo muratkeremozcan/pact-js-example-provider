@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }} # Ensure you're on the correct branch
 
       - name: Read Node version from .nvmrc
         id: node_version
