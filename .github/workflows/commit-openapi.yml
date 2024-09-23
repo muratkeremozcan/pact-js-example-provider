@@ -41,6 +41,7 @@ jobs:
           git config --local user.name "GitHub Actions"
           git add src/api-docs/openapi.yml src/api-docs/openapi.json
           if [ -n "$(git status --porcelain)" ]; then
+            git pull --rebase origin ${{ github.head_ref }}
             git commit -m "Update OpenAPI spec"
             git push origin HEAD:${{ github.head_ref }}
           else
