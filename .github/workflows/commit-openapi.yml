@@ -27,9 +27,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Generate OpenAPI docs from code
-        run: |
-          npm install -D tsx
-          npm run generate:openapi
+        run: npm run generate:openapi
 
       - name: Commit OpenAPI changes
         run: |
