@@ -145,12 +145,14 @@ npm run mock:server # starts the mock backend/provider server
 npm run db:migrate
 npm run reset:db
 
-npm run generate:openapi # generates an OpenAPI doc from Zod schemas
 npm run optic:lint # verifies the OpenAPI doc
 npm run optic:diff # compares the OpenAPI on the PR to main, to find breaking changes
 npm run optic:verify # executes the e2e against the OpenAPI doc to gain API coverage and validate it
 npm run optic:update # executes the e2e, and interactively update the OpenAPI doc
 npm run optic:verify-ci # the above, but it also starts the server, in case you're not running it on the side
+
+npm run generate:openapi # generates an OpenAPI doc from Zod schemas
+npm run publish:pact-openapi # publishes the open api spec to Pact Broker for BDCT
 ```
 
 #### Provider selective testing
@@ -406,3 +408,109 @@ Example matrix:
 | `def456`                   | `xyz789`                   | `main`      | `staging`       | Passed                  | The same provider version is compatible with a newer consumer version in staging.                        |
 | `ghi789`                   | `xyz789`                   | `feature-x` | `development`   | Failed                  | The consumer from a feature branch failed verification with the provider in the development environment. |
 | `jkl012`                   | `uvw345`                   | `main`      | `production`    | Pending                 | A new provider version is pending verification against the consumer in production.                       |
+
+## Bi-directional contract testing
+
+In CDCT, the consumer tests are executed on the provider side, which mandates that the provider server can be served locally. This might be a blocker for CDCT. 
+It might also happen that we want to contract-test against a provider outside of the org. 
+
+BDCT offers an easier alternative to CDCT. All you need is the OpenAPI spec of the provider, and the consumer side stays the same.
+
+Here is how it goes:
+
+1) **Generate the OpeAPI spec at the provider**
+
+   Automate this step using tools like `zod-to-openapi`, `swagger-jsdoc`,  [generating OpenAPI documentation directly from TypeScript types, or generating the OpenAPI spec from e2e tests (using Optic)](https://dev.to/muratkeremozcan/automating-api-documentation-a-journey-from-typescript-to-openapi-and-schema-governence-with-optic-ge4). Manual spec writing is the last resort.
+
+2) **Ensure that the spec matches the real API**
+
+   `cypress-ajv-schema-validator`: if you already have cy e2e and you want to easily chain on to the existing api calls.
+
+   Optic: lint the schema and/or run the e2e suite against the OpenAPI spec through the Optic proxy.
+
+   Dredd: executes its own tests (magic!) against your openapi spec (needs your local server, has hooks for things like auth.)
+
+3) **Publish the OpenAPI spec to the pact broker**.
+
+   ```bash
+   pactflow publish-provider-contract 
+     src/api-docs/openapi.json # path to OpenAPI spec
+     # if you also have classic CDCT in the same provider, 
+     # make sure to label the Bi-directional provider name differently
+     --provider MoviesAPI-bi-directional 
+     --provider-app-version=$GITHUB_SHA # best practice
+     --branch=$GITHUB_BRANCH # best practice
+     --content-type application/json # yml ok too if you prefer
+     --verification-exit-code=0 # needs it
+      # can be anything, we just generate a file on e2e success to make Pact happy
+     --verification-results ./cypress/verification-result.txt
+     --verification-results-content-type text/plain # can be anything
+     --verifier cypress # can be anything
+   ```
+
+   Note that verification arguments are optional, and without them you get a warning at Pact broker that the OpenAPI spec is untested.
+
+4) **Execute the consumer contract tests**
+
+   Execution on the Consumer side works exactly the same as classic CDCT.
+
+As you can notice, there is nothing about running the consumer tests on the provider side ( `test:provider`), can-i-deploy checks (`can:i:deploy:provider`), or recording the pact deployment (`record:provider:deployment`). All you do is get the OpenAPI spec right and publish it to Pact Broker.
+
+We have a sample consumer repo for BDCT [pact-js-example-react-consumer](https://github.com/muratkeremozcan/pact-js-example-react-consumer).
+
+The [api calls](https://github.com/muratkeremozcan/pact-js-example-react-consumer/blob/main/src/consumer.ts) are the same as the plain, non-UI app used int CDCT ([link](https://github.com/muratkeremozcan/pact-js-example-consumer/blob/main/src/consumer.ts)).
+
+We cannot have CDCT and BDCT in the same contract relationship. Although, we can have the provider have consumer driven contracts with some consumers and provider driven contracts with others
+
+```bash
+Consumer        -> CDCT  -> Provider
+
+Consumer-React  <- BDCT  <- Provider
+```
+
+BDCT Scripts on the provider:
+```bash
+npm run generate:openapi # generates an OpenAPI doc from Zod schemas
+npm run publish:pact-openapi # publishes the open api spec to Pact Broker for BDCT
+```
+
+### How does it work in the CI
+
+The e2e tests already do the schema testing. A section was appended to the end of `e2e-test.yml` to generate a text file about the status of the e2e run. Pact likes to have some file/evidence that the OpenAPI spec was tested, this satisfies that.
+
+```yml
+# e2e-test.yml
+
+# ... all the e2e
+
+# We do schema testing within the api e2e
+# We publish the OpenAPI spec on main, once after the PR is merged
+# Pact likes to have some file/evidence that the OpenAPI spec was tested
+# This section handles that need
+
+- name: Generate Verification Result for Success
+  if: steps.cypress-tests.conclusion == 'success'
+  run: echo "All Cypress tests passed." > cypress/verification-result.txt
+
+- name: Generate Verification Result for Failure
+  if: steps.cypress-tests.conclusion != 'success'
+  run: echo "Not all Cypress tests passed." > cypress/verification-result.txt
+
+- name: Commit and push verification result
+  uses: EndBug/add-and-commit@v9
+  with:
+    author_name: 'GitHub Actions'
+    author_email: 'actions@github.com'
+    message: 'Update verification results'
+    add: 'cypress/verification-result.txt'
+    push: true
+
+```
+
+Using the same commit-and-push GitHub action, we have another `contract-commit-openapi.yml`, which ensures that the latest openapi spec is committed to the PR, if the changed. That way we do not have to locally generate the OpenAPI spec.
+
+When the PR runs, `e2e-test.yml` executes and tests the schema. `contract-commit-openapi.yml` handles the OpenAPI spec. 
+
+The merge to main happens on a passing PR. 
+
+Finally, on main. we have `contract-publish-openapi.yml` , which publishes the OpenAPI spec to Pact broker with `npm run publish:pact-openapi`.
