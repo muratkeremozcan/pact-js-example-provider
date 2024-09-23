@@ -35,8 +35,7 @@ jobs:
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git add src/api-docs/openapi.json
-					git add src/api-docs/openapi.yml
+          git add src/api-docs/openapi.yml src/api-docs/openapi.json
           git commit -m "Update OpenAPI spec"
           git push origin ${{ github.head_ref }}
         if: success()
