@@ -1,0 +1,37 @@
+# Once the PR is merged into the main branch,
+# we publish the provider contract (the OpenAPI spec) to Pact broker.
+# The schema already got tested in the e2e job.
+
+name: Publish Pact OpenApi
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
+  PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+  GITHUB_SHA: ${{ github.sha }}
+  GITHUB_BRANCH: ${{ github.ref_name }}
+
+jobs:
+  publish-pact-openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read Node version from .nvmrc
+        id: node_version
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish Provider OpenApi to Pact
+        run: npm run publish:pact-openapi
