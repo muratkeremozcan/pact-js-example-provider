@@ -12,7 +12,7 @@ env:
   PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
   GITHUB_SHA: ${{ github.sha }}
-  GITHUB_BRANCH: ${{ github.ref_name }}
+  GITHUB_BRANCH: ${{ github.head_ref || github.ref_name }}
   DATABASE_URL: 'file:./dev.db'
   PORT: 3001
 
@@ -47,10 +47,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Debug Environment Variables
-        run: printenv | sort
-        shell: bash
 
       - name: Run provider contract tests
         run: npm run test:provider-ci
