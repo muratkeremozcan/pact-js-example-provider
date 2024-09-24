@@ -63,13 +63,13 @@ export function buildVerifierOptions({
   afterEach,
   includeMainAndDeployed,
   consumer,
-  enablePending,
   publishVerificationResult = true,
   pactBrokerToken = process.env.PACT_BROKER_TOKEN,
   providerVersion = process.env.GITHUB_SHA,
   providerVersionBranch = process.env.GITHUB_BRANCH,
   pactBrokerUrl = process.env.PACT_BROKER_BASE_URL,
-  pactPayloadUrl = process.env.PACT_PAYLOAD_URL
+  pactPayloadUrl = process.env.PACT_PAYLOAD_URL,
+  enablePending = false // you can control this via an environment variable at the test
 }: {
   provider: string
   port: string

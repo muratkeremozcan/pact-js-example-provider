@@ -15,7 +15,7 @@ env:
   PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
   GITHUB_SHA: ${{ github.sha }}
-  GITHUB_BRANCH: ${{ github.head_ref || github.ref_name }}
+  GITHUB_BRANCH: ${{ github.head_ref }}
   DATABASE_URL: 'file:./dev.db'
   PORT: 3001
 
@@ -23,13 +23,9 @@ jobs:
   contract-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          # During a pull_request event, it checks out the PR branch.
-          # During a push event, it checks out the branch that was pushed to (e.g., main)
-          ref: ${{ github.head_ref || github.ref_name }}
-          fetch-depth: 0 # Ensure full git history is available
+          ref: ${{ github.head_ref }} # Ensure you're on the correct branch
 
       - name: Read Node version from .nvmrc
         id: node_version
@@ -39,8 +35,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      # Set PACT_BREAKING_CHANGE based on PR description during pull_request events
-      - name: Set PACT_BREAKING_CHANGE based on PR description checkbox (PR event)
+      - name: Set PACT_BREAKING_CHANGE based on PR description checkbox
         if: ${{ github.event_name == 'pull_request' }}
         uses: actions/github-script@v7
         with:
@@ -56,44 +51,11 @@ jobs:
               console.log('PACT_BREAKING_CHANGE remains false.');
             }
 
-      # Set PACT_BREAKING_CHANGE based on merged PR description during push events
-      - name: Set PACT_BREAKING_CHANGE based on merged PR description (push to main)
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const commitSha = context.sha;
-            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: commitSha,
-            });
-            const mergedPr = prs.find(pr => pr.merged_at !== null && pr.merge_commit_sha === commitSha);
-            if (mergedPr) {
-              const prBody = mergedPr.body || '';
-              if (prBody.includes('[x] Pact breaking change')) {
-                core.exportVariable('PACT_BREAKING_CHANGE', 'true');
-                console.log('PACT_BREAKING_CHANGE set to true based on merged PR description checkbox.');
-              } else {
-                core.exportVariable('PACT_BREAKING_CHANGE', 'false');
-                console.log('PACT_BREAKING_CHANGE remains false.');
-              }
-            } else {
-              core.exportVariable('PACT_BREAKING_CHANGE', 'false');
-              console.log('No merged PR found for this commit. PACT_BREAKING_CHANGE remains false.');
-            }
-
-      - name: Debug Environment Variables
-        run: printenv | sort
-        shell: bash
-
       - name: Install dependencies
         run: npm ci
 
       - name: Run provider contract tests
-        run: |
-          echo "Running provider contract tests with PACT_BREAKING_CHANGE=$PACT_BREAKING_CHANGE"
-          npm run test:provider-ci
+        run: npm run test:provider-ci
 
       - name: Can I deploy provider? # if breaking change, deploy without checking if we can
         if: env.PACT_BREAKING_CHANGE == 'false'
