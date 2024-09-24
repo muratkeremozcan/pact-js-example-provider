@@ -38,7 +38,9 @@ server.post('/movies', async (req, res) => {
   if ('error' in result) {
     return res.status(result.status).json({ error: result.error })
   } else if ('movie' in result) {
-    return res.status(result.status).json(result.movie)
+    return res
+      .status(result.status)
+      .json({ status: result.status, movie: result.movie })
   } else {
     return res.status(500).json({ error: 'Unexpected error occurred' })
   }
