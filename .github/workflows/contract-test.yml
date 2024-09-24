@@ -3,6 +3,9 @@ name: Run contract tests
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited]
+  push:
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.ref }} && ${{ github.workflow }}
@@ -33,6 +36,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Set PACT_BREAKING_CHANGE based on PR description checkbox
+        if: ${{ github.event_name == 'pull_request' }}
         uses: actions/github-script@v7
         with:
           script: |
