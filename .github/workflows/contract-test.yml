@@ -48,6 +48,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Debug Environment Variables
+        run: printenv | sort
+        shell: bash
+
       - name: Run provider contract tests
         run: npm run test:provider-ci
 
