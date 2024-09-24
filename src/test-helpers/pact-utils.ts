@@ -223,13 +223,6 @@ function buildConsumerVersionSelectors(
     ? { consumer }
     : {}
 
-  // Only include the `matchingBranch` selector if `includeMainAndDeployed` is false (i.e., for breaking changes)
-  if (!includeMainAndDeployed) {
-    console.log('Only using matchingBranch selector due to breaking changes.')
-    return [{ ...baseSelector, matchingBranch: true }]
-  }
-
-  // Otherwise, include all selectors
   const mainAndDeployed = [
     { ...baseSelector, mainBranch: true }, // Tests against consumer's main branch
     { ...baseSelector, deployedOrReleased: true } // Tests against consumer's currently deployed or released versions
@@ -237,5 +230,8 @@ function buildConsumerVersionSelectors(
 
   // Always include the matchingBranch selector
   // Conditionally include mainBranch and deployedOrReleased selectors
-  return [{ ...baseSelector, matchingBranch: true }, ...mainAndDeployed]
+  return [
+    { ...baseSelector, matchingBranch: true }, // Used for coordinated development between consumer and provider teams using matching feature branch names
+    ...(includeMainAndDeployed ? mainAndDeployed : [])
+  ]
 }
