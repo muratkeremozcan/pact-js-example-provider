@@ -83,6 +83,10 @@ jobs:
               console.log('No merged PR found for this commit. PACT_BREAKING_CHANGE remains false.');
             }
 
+      # - name: Debug Environment Variables
+      #   run: printenv | sort
+      #   shell: bash
+
       - name: Install dependencies
         run: npm ci
 
