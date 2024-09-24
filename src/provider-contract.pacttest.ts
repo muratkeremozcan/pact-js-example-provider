@@ -13,6 +13,7 @@ describe('Pact Verification', () => {
     provider: 'MoviesAPI',
     consumer: process.env.PACT_CONSUMER, // filter by the consumer, or run for all if no env var is provided
     includeMainAndDeployed: process.env.PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
+    enablePending: process.env.PACT_BREAKING_CHANGE == 'true',
     port,
     stateHandlers,
     beforeEach: () => {
