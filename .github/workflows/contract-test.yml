@@ -16,6 +16,7 @@ env:
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
   GITHUB_SHA: ${{ github.sha }}
   GITHUB_BRANCH: ${{ github.head_ref }}
+  GITHUB_REF_NAME: ${{ github.ref_name }}
   DATABASE_URL: 'file:./dev.db'
   PORT: 3001
 

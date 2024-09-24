@@ -6,13 +6,17 @@ import { buildVerifierOptions } from './test-helpers/pact-utils'
 // 2) Setup the provider verifier options
 // 3) Write & execute the provider contract test
 
+const PACT_BREAKING_CHANGE = process.env.PACT_BREAKING_CHANGE || 'false'
+const GITHUB_REF_NAME = process.env.GITHUB_REF_NAME || 'local'
+
 describe('Pact Verification', () => {
   // 2) Setup the provider verifier options
   const port = process.env.PORT || '3001'
   const options = buildVerifierOptions({
     provider: 'MoviesAPI',
     consumer: process.env.PACT_CONSUMER, // filter by the consumer, or run for all if no env var is provided
-    includeMainAndDeployed: process.env.PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
+    includeMainAndDeployed: PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
+    enablePending: PACT_BREAKING_CHANGE === 'true',
     port,
     stateHandlers,
     beforeEach: () => {
@@ -28,9 +32,21 @@ describe('Pact Verification', () => {
 
   it('should validate the expectations of movie-consumer', async () => {
     // 3) Write & execute the provider contract test
-    const output = await verifier.verifyProvider()
-    console.log('Pact Verification Complete!')
-    console.log('Result:', output)
+    try {
+      const output = await verifier.verifyProvider()
+      console.log('Pact Verification Complete!')
+      console.log('Result:', output)
+    } catch (error) {
+      console.error('Pact Verification Failed:', error)
+
+      if (PACT_BREAKING_CHANGE === 'true' && GITHUB_REF_NAME === 'main') {
+        console.log(
+          'Ignoring Pact verification failures due to breaking change on main branch.'
+        )
+      } else {
+        throw error // Re-throw the error to fail the test
+      }
+    }
   })
 })
 
