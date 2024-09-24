@@ -7,7 +7,7 @@ import { buildVerifierOptions } from './test-helpers/pact-utils'
 // 3) Write & execute the provider contract test
 
 const PACT_BREAKING_CHANGE = process.env.PACT_BREAKING_CHANGE || 'false'
-const GITHUB_REF_NAME = process.env.GITHUB_REF_NAME || 'local'
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'local'
 
 describe('Pact Verification', () => {
   // 2) Setup the provider verifier options
@@ -39,7 +39,7 @@ describe('Pact Verification', () => {
     } catch (error) {
       console.error('Pact Verification Failed:', error)
 
-      if (PACT_BREAKING_CHANGE === 'true' && GITHUB_REF_NAME === 'main') {
+      if (PACT_BREAKING_CHANGE === 'true' && GITHUB_BRANCH === 'main') {
         console.log(
           'Ignoring Pact verification failures due to breaking change on main branch.'
         )
