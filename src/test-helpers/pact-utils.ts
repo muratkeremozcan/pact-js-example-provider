@@ -87,22 +87,21 @@ export function buildVerifierOptions({
   pactPayloadUrl?: string
   enablePending?: boolean
 }): VerifierOptions {
-  console.log('Building Verifier Options:')
-  console.log(`Provider: ${provider}`)
-  console.log(`Port: ${port}`)
-  console.log(`Log Level: ${logLevel}`)
-  console.log(`State Handlers: ${stateHandlers ? 'Provided' : 'Not Provided'}`)
-  console.log(`Include Main and Deployed: ${includeMainAndDeployed}`)
-  console.log(`Consumer: ${consumer || 'All Consumers'}`)
-  console.log(`PACT_BREAKING_CHANGE: ${process.env.PACT_BREAKING_CHANGE}`)
-  console.log(
-    `PACT_BROKER_TOKEN: ${pactBrokerToken ? 'Provided' : 'Not Provided'}`
-  )
-  console.log(`Provider Version: ${providerVersion}`)
-  console.log(`Provider Version Branch: ${providerVersionBranch}`)
-  console.log(`Pact Broker URL: ${pactBrokerUrl}`)
-  console.log(`Pact Payload URL: ${pactPayloadUrl}`)
-  console.log(`Enable Pending: ${enablePending}`)
+  console.table({
+    Provider: provider,
+    Port: port,
+    'Log Level': logLevel,
+    'State Handlers': stateHandlers ? 'Provided' : 'Not Provided',
+    'Include Main and Deployed': includeMainAndDeployed,
+    Consumer: consumer || 'All Consumers',
+    PACT_BREAKING_CHANGE: process.env.PACT_BREAKING_CHANGE,
+    PACT_BROKER_TOKEN: pactBrokerToken ? 'Provided' : 'Not Provided',
+    'Provider Version': providerVersion,
+    'Provider Version Branch': providerVersionBranch,
+    'Pact Broker URL': pactBrokerUrl,
+    'Pact Payload URL': pactPayloadUrl || 'Not Provided',
+    'Enable Pending': enablePending
+  })
 
   const options: VerifierOptions = {
     provider,
