@@ -13,17 +13,18 @@ describe('CRUD movie', () => {
 
   it('should crud', () => {
     cy.addMovie(movie)
-      // .validateSchema(schema, {
-      //   endpoint: '/movies',
-      //   method: 'POST'
-      // })
+      .validateSchema(schema, {
+        endpoint: '/movies',
+        method: 'POST'
+      })
+      .its('body')
       .should(
         spok({
           status: 200,
-          body: movieProps
+          movie: movieProps
         })
       )
-      .its('body.id')
+      .its('movie.id')
       .then((id) => {
         cy.getAllMovies()
           .validateSchema(schema, {

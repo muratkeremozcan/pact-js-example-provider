@@ -12,7 +12,7 @@ env:
   PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
   GITHUB_SHA: ${{ github.sha }}
-  GITHUB_BRANCH: ${{ github.ref_name }}
+  GITHUB_BRANCH: ${{ github.head_ref }}
   DATABASE_URL: 'file:./dev.db'
   PORT: 3001
 
@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }} # Ensure you're on the correct branch
 
       - name: Read Node version from .nvmrc
         id: node_version
@@ -51,7 +53,8 @@ jobs:
       - name: Run provider contract tests
         run: npm run test:provider-ci
 
-      - name: Can I deploy provider?
+      - name: Can I deploy provider? # if breaking change, deploy without checking if we can
+        if: env.PACT_BREAKING_CHANGE == 'false'
         run: npm run can:i:deploy:provider
 
       - name: Record provider deployment
