@@ -51,7 +51,8 @@ jobs:
       - name: Run provider contract tests
         run: npm run test:provider-ci
 
-      - name: Can I deploy provider?
+      - name: Can I deploy provider? # if breaking change, deploy without checking if we can
+        if: env.PACT_BREAKING_CHANGE == 'false'
         run: npm run can:i:deploy:provider
 
       - name: Record provider deployment
