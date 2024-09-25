@@ -484,7 +484,7 @@ Here is how it goes:
 
    Execution on the Consumer side works exactly the same as classic CDCT.
 
-As you can notice, there is nothing about running the consumer tests on the provider side ( `test:provider`), can-i-deploy checks (`can:i:deploy:provider`),. All you do is get the OpenAPI spec right and publish it to Pact Broker.
+As you can notice, there is nothing about running the consumer tests on the provider side ( `test:provider`), can-i-deploy checks (`can:i:deploy:provider`),. All you do is get the OpenAPI spec right, publish it to Pact Broker, and record the deployment
 
 We have a sample consumer repo for BDCT [pact-js-example-react-consumer](https://github.com/muratkeremozcan/pact-js-example-react-consumer).
 
