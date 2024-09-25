@@ -471,11 +471,20 @@ Here is how it goes:
 
    Note that verification arguments are optional, and without them you get a warning at Pact broker that the OpenAPI spec is untested.
 
-4. **Execute the consumer contract tests**
+4. **Record the provider bi-directional deployment**.
+
+   We still have to record the provider bi-directional, similar to how we do it in CDCT.
+   Otherwise the consumers will have nothing to compare against.
+
+   ```bash
+   npm run record:provider:bidirectional:deployment --env=dev
+   ```
+
+5. **Execute the consumer contract tests**
 
    Execution on the Consumer side works exactly the same as classic CDCT.
 
-As you can notice, there is nothing about running the consumer tests on the provider side ( `test:provider`), can-i-deploy checks (`can:i:deploy:provider`), or recording the pact deployment (`record:provider:deployment`). All you do is get the OpenAPI spec right and publish it to Pact Broker.
+As you can notice, there is nothing about running the consumer tests on the provider side ( `test:provider`), can-i-deploy checks (`can:i:deploy:provider`),. All you do is get the OpenAPI spec right and publish it to Pact Broker.
 
 We have a sample consumer repo for BDCT [pact-js-example-react-consumer](https://github.com/muratkeremozcan/pact-js-example-react-consumer).
 
