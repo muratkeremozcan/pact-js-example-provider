@@ -37,3 +37,7 @@ jobs:
 
       - name: Publish Provider OpenApi to Pact
         run: npm run publish:pact-openapi
+
+      - name: Record provider deployment
+        if: github.ref == 'refs/heads/main'
+        run: npm run record:provider:bidirectional:deployment --env=dev

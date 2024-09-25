@@ -153,6 +153,7 @@ npm run optic:verify-ci # the above, but it also starts the server, in case you'
 
 npm run generate:openapi # generates an OpenAPI doc from Zod schemas
 npm run publish:pact-openapi # publishes the open api spec to Pact Broker for BDCT
+npm run record:provider:bidirectional:deployment --env=dev # records the bi-directional provider deployment
 ```
 
 #### Provider selective testing
@@ -212,7 +213,7 @@ In CI, you can enable this behavior by including a checkbox in the PR descriptio
 #### Breaking change - consumer flow
 
 ```bash
-# (2) UPDATE the consumer test 
+# (2) UPDATE the consumer test
 npm run test:consumer # (2) execute it
 npm run publish:pact  # (3) publish the pact
 npm run can:i:deploy:consumer # (6)
@@ -431,18 +432,18 @@ Example matrix:
 
 ## Bi-directional contract testing
 
-In CDCT, the consumer tests are executed on the provider side, which mandates that the provider server can be served locally. This might be a blocker for CDCT. 
-It might also happen that we want to contract-test against a provider outside of the org. 
+In CDCT, the consumer tests are executed on the provider side, which mandates that the provider server can be served locally. This might be a blocker for CDCT.
+It might also happen that we want to contract-test against a provider outside of the org.
 
 BDCT offers an easier alternative to CDCT. All you need is the OpenAPI spec of the provider, and the consumer side stays the same.
 
 Here is how it goes:
 
-1) **Generate the OpeAPI spec at the provider**
+1. **Generate the OpeAPI spec at the provider**
 
-   Automate this step using tools like `zod-to-openapi`, `swagger-jsdoc`,  [generating OpenAPI documentation directly from TypeScript types, or generating the OpenAPI spec from e2e tests (using Optic)](https://dev.to/muratkeremozcan/automating-api-documentation-a-journey-from-typescript-to-openapi-and-schema-governence-with-optic-ge4). Manual spec writing is the last resort.
+   Automate this step using tools like `zod-to-openapi`, `swagger-jsdoc`, [generating OpenAPI documentation directly from TypeScript types, or generating the OpenAPI spec from e2e tests (using Optic)](https://dev.to/muratkeremozcan/automating-api-documentation-a-journey-from-typescript-to-openapi-and-schema-governence-with-optic-ge4). Manual spec writing is the last resort.
 
-2) **Ensure that the spec matches the real API**
+2. **Ensure that the spec matches the real API**
 
    `cypress-ajv-schema-validator`: if you already have cy e2e and you want to easily chain on to the existing api calls.
 
@@ -450,14 +451,14 @@ Here is how it goes:
 
    Dredd: executes its own tests (magic!) against your openapi spec (needs your local server, has hooks for things like auth.)
 
-3) **Publish the OpenAPI spec to the pact broker**.
+3. **Publish the OpenAPI spec to the pact broker**.
 
    ```bash
-   pactflow publish-provider-contract 
+   pactflow publish-provider-contract
      src/api-docs/openapi.json # path to OpenAPI spec
-     # if you also have classic CDCT in the same provider, 
+     # if you also have classic CDCT in the same provider,
      # make sure to label the Bi-directional provider name differently
-     --provider MoviesAPI-bi-directional 
+     --provider MoviesAPI-bi-directional
      --provider-app-version=$GITHUB_SHA # best practice
      --branch=$GITHUB_BRANCH # best practice
      --content-type application/json # yml ok too if you prefer
@@ -470,7 +471,7 @@ Here is how it goes:
 
    Note that verification arguments are optional, and without them you get a warning at Pact broker that the OpenAPI spec is untested.
 
-4) **Execute the consumer contract tests**
+4. **Execute the consumer contract tests**
 
    Execution on the Consumer side works exactly the same as classic CDCT.
 
@@ -478,7 +479,7 @@ As you can notice, there is nothing about running the consumer tests on the prov
 
 We have a sample consumer repo for BDCT [pact-js-example-react-consumer](https://github.com/muratkeremozcan/pact-js-example-react-consumer).
 
-The [api calls](https://github.com/muratkeremozcan/pact-js-example-react-consumer/blob/main/src/consumer.ts) are the same as the plain, non-UI app used int CDCT ([link](https://github.com/muratkeremozcan/pact-js-example-consumer/blob/main/src/consumer.ts)).
+The [api calls](https://github.com/muratkeremozcan/pact-js-example-react-consumer/blob/main/src/consumer.ts) are the same as the plain, non-UI app used int CDCT.
 
 We cannot have CDCT and BDCT in the same contract relationship. Although, we can have the provider have consumer driven contracts with some consumers and provider driven contracts with others
 
@@ -489,9 +490,11 @@ Consumer-React  <- BDCT  <- Provider
 ```
 
 BDCT Scripts on the provider:
+
 ```bash
 npm run generate:openapi # generates an OpenAPI doc from Zod schemas
 npm run publish:pact-openapi # publishes the open api spec to Pact Broker for BDCT
+npm run record:provider:bidirectional:deployment --env=dev # we still have to record the provider deployment
 ```
 
 ### How does it work in the CI
@@ -524,13 +527,12 @@ The e2e tests already do the schema testing. A section was appended to the end o
     message: 'Update verification results'
     add: 'cypress/verification-result.txt'
     push: true
-
 ```
 
 Using the same commit-and-push GitHub action, we have another `contract-commit-openapi.yml`, which ensures that the latest openapi spec is committed to the PR, if the changed. That way we do not have to locally generate the OpenAPI spec.
 
-When the PR runs, `e2e-test.yml` executes and tests the schema. `contract-commit-openapi.yml` handles the OpenAPI spec. 
+When the PR runs, `e2e-test.yml` executes and tests the schema. `contract-commit-openapi.yml` handles the OpenAPI spec.
 
-The merge to main happens on a passing PR. 
+The merge to main happens on a passing PR.
 
-Finally, on main. we have `contract-publish-openapi.yml` , which publishes the OpenAPI spec to Pact broker with `npm run publish:pact-openapi`.
+Finally, on main. we have `contract-publish-openapi.yml` , which publishes the OpenAPI spec to Pact broker with `npm run publish:pact-openapi` and records the bi-directional provider deployment with `npm run npm run record:provider:bidirectional:deployment --env=dev`.
