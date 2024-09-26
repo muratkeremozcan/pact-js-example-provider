@@ -17,6 +17,9 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   badges:
     name: Badges
