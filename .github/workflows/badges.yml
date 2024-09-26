@@ -23,33 +23,22 @@ permissions:
 
 jobs:
   badges:
-    runs-on: ubuntu-latest
-
+    name: Badges
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout repository
+      - name: Checkout 🛎
         uses: actions/checkout@v4
 
-      - name: Update version badges
+      - name: Update version badges 🏷
         run: npx -p dependency-version-badge update-badge @pact-foundation/pact jest cypress
 
-      - name: Create Pull Request
-        id: create_pr
-        uses: peter-evans/create-pull-request@v7
+      - name: Commit any changed files 💾
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          token: ${{ secrets.PAT_TOKEN }}
-          commit-message: 'Update badges'
-          branch: 'update-badges'
-          title: 'Automated Badge Update'
-          body: 'This PR updates the badges in README.md.'
-
-      - name: Debug PR Number
-        run: |
-          echo "Pull Request Number: ${{ steps.create_pr.outputs.pull-request-number }}"
-
-      - name: Enable Auto-Merge
-        if: ${{ steps.create_pr.outputs.pull-request-number != '' }}
-        uses: peter-evans/enable-pull-request-automerge@v2
-        with:
-          pull-request-number: ${{ steps.create_pr.outputs.pull-request-number }}
-          token: ${{ secrets.PAT_TOKEN }}
-          merge-method: MERGE
+          commit_message: Updated badges
+          branch: main
+          file_pattern: README.md
+          push_options: '--force'
+          skip_fetch: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Updated the token to use GITHUB_TOKEN
