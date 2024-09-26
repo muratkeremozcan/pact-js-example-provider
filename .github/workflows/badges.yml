@@ -19,6 +19,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   badges:
@@ -50,3 +51,5 @@ jobs:
           branch: 'update-badges'
           title: 'Automated Badge Update'
           body: 'This PR updates the badges in README.md.'
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
