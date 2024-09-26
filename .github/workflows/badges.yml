@@ -52,3 +52,4 @@ jobs:
         with:
           pull-request-number: ${{ steps.create_pr.outputs.pull-request-number }}
           token: ${{ secrets.PAT_TOKEN }}
+          merge-method: MERGE
