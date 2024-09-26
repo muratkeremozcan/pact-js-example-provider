@@ -50,3 +50,9 @@ jobs:
           branch: 'update-badges'
           title: 'Automated Badge Update'
           body: 'This PR updates the badges in README.md.'
+
+      - name: Enable Auto-Merge
+        uses: peter-evans/enable-pull-request-automerge@v2
+        with:
+          pull-request-number: ${{ steps.create-pull-request.outputs.pull-request-number }}
+          token: ${{ secrets.PAT_TOKEN }}
