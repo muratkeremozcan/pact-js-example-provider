@@ -1,12 +1,25 @@
 name: badges
 on:
+  push:
+    # update README badge only if the README file changes
+    # or if the package.json file changes, or this file changes
+    branches:
+      - main
+    paths:
+      - README.md
+      - package.json
+      - .github/workflows/badges.yml
   schedule:
-    - cron: '0 3 * * *' # Runs every night at 3 AM
-  workflow_dispatch: # Allows manual triggering of the workflow
+    # update badges every night
+    # because we have a few badges that are linked
+    # to the external repositories
+    - cron: '0 3 * * *'
+
+  workflow_dispatch:
 
 permissions:
-  contents: write # Allow writing to the repo
-  pull-requests: write # Allow managing pull requests
+  contents: write
+  pull-requests: write
 
 jobs:
   badges:
