@@ -51,8 +51,12 @@ jobs:
           title: 'Automated Badge Update'
           body: 'This PR updates the badges in README.md.'
 
+      - name: Output PR Number
+        run: echo "Pull Request Number - ${{ steps.create_pr.outputs.pull-request-number }}"
+
       - name: Enable Auto-Merge
+        if: ${{ steps.create_pr.outputs.pull-request-number != '' }}
         uses: peter-evans/enable-pull-request-automerge@v2
         with:
-          pull-request-number: ${{ steps.create-pull-request.outputs.pull-request-number }}
+          pull-request-number: ${{ steps.create_pr.outputs.pull-request-number }}
           token: ${{ secrets.PAT_TOKEN }}
