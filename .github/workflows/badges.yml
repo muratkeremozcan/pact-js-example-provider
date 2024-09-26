@@ -32,13 +32,21 @@ jobs:
       - name: Update version badges 🏷
         run: npx -p dependency-version-badge update-badge @pact-foundation/pact jest cypress
 
-      - name: Commit any changed files 💾
-        uses: stefanzweifel/git-auto-commit-action@v5
+      # - name: Commit any changed files 💾
+      #   uses: stefanzweifel/git-auto-commit-action@v5
+      #   with:
+      #     commit_message: Updated badges
+      #     branch: main
+      #     file_pattern: README.md
+      #     push_options: '--force'
+      #     skip_fetch: true
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
         with:
-          commit_message: Updated badges
-          branch: main
-          file_pattern: README.md
-          push_options: '--force'
-          skip_fetch: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
+          commit-message: 'Update badges'
+          branch: 'update-badges'
+          title: 'Automated Badge Update'
+          body: 'This PR updates the badges in README.md.'
