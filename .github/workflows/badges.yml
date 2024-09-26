@@ -40,6 +40,7 @@ jobs:
           title: 'Automated Badge Update'
           body: 'This PR updates the badges in README.md.'
 
+      # not sure if this works
       - name: Enable Auto-Merge
         run: gh pr merge --auto --merge ${{ steps.cpr.outputs.pull-request-number }}
         env:
