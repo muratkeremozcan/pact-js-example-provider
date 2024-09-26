@@ -1,48 +1,26 @@
 name: badges
 on:
-  push:
-    # update README badge only if the README file changes
-    # or if the package.json file changes, or this file changes
-    branches:
-      - main
-    paths:
-      - README.md
-      - package.json
-      - .github/workflows/badges.yml
   schedule:
-    # update badges every night
-    # because we have a few badges that are linked
-    # to the external repositories
-    - cron: '0 3 * * *'
-
-  workflow_dispatch:
+    - cron: '0 3 * * *' # Runs every night at 3 AM
+  workflow_dispatch: # Allows manual triggering of the workflow
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: write # Allow writing to the repo
+  pull-requests: write # Allow managing pull requests
 
 jobs:
   badges:
-    name: Badges
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout 🛎
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Update version badges 🏷
+      - name: Update version badges
         run: npx -p dependency-version-badge update-badge @pact-foundation/pact jest cypress
 
-      # - name: Commit any changed files 💾
-      #   uses: stefanzweifel/git-auto-commit-action@v5
-      #   with:
-      #     commit_message: Updated badges
-      #     branch: main
-      #     file_pattern: README.md
-      #     push_options: '--force'
-      #     skip_fetch: true
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Pull Request
+        id: create_pr
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.PAT_TOKEN }}
@@ -51,8 +29,9 @@ jobs:
           title: 'Automated Badge Update'
           body: 'This PR updates the badges in README.md.'
 
-      - name: Output PR Number
-        run: echo "Pull Request Number - ${{ steps.create_pr.outputs.pull-request-number }}"
+      - name: Debug PR Number
+        run: |
+          echo "Pull Request Number: ${{ steps.create_pr.outputs.pull-request-number }}"
 
       - name: Enable Auto-Merge
         if: ${{ steps.create_pr.outputs.pull-request-number != '' }}
