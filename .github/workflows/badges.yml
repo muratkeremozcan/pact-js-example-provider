@@ -32,18 +32,7 @@ jobs:
       - name: Update version badges 🏷
         run: npx -p dependency-version-badge update-badge @pact-foundation/pact jest cypress
 
-      - name: Commit changes to new branch 💾
-        id: commit
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'Updated badges'
-          branch: 'update-badges' # Use a new branch for changes
-          file_pattern: README.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-
       - name: Create Pull Request
-        if: ${{ steps.commit.outputs.committed == 'true' }}
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.PAT_TOKEN }}
@@ -51,4 +40,3 @@ jobs:
           branch: 'update-badges'
           title: 'Automated Badge Update'
           body: 'This PR updates the badges in README.md.'
-          delete-branch: true
