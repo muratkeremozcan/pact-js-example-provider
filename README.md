@@ -544,4 +544,4 @@ When the PR runs, `e2e-test.yml` executes and tests the schema. `contract-commit
 
 The merge to main happens on a passing PR.
 
-Finally, on main. we have `contract-publish-openapi.yml` , which publishes the OpenAPI spec to Pact broker with `npm run publish:pact-openapi` and records the bi-directional provider deployment with `npm run npm run record:provider:bidirectional:deployment --env=dev`.
+Finally, on main. we have `contract-publish-openapi.yml` , which publishes the OpenAPI spec to Pact broker with `npm run publish:pact-openapi` and records the bi-directional provider deployment with `npm run record:provider:bidirectional:deployment --env=dev`.
