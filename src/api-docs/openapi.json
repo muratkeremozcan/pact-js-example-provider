@@ -269,7 +269,7 @@
         }
       }
     },
-    "/movie/{id}": {
+    "/movies/{id}": {
       "get": {
         "summary": "Get a movie by ID",
         "description": "Retrieve a single movie by its ID",
