@@ -10,7 +10,7 @@ GET {{baseUrl}}/movies
 
 ###
 # @name getMovieById
-GET {{baseUrl}}/movie/1
+GET {{baseUrl}}/movies/1
 
 ###
 # @name addMovie
@@ -44,8 +44,8 @@ Content-Type: application/json
 
 ###
 # @name deleteMovie
-DELETE {{baseUrl}}/movie/1
+DELETE {{baseUrl}}/movies/1
 
 ###
 # @name getNonExistentMovie
-GET {{baseUrl}}/movie/999
+GET {{baseUrl}}/movies/999

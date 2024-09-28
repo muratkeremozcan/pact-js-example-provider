@@ -17,7 +17,7 @@ Cypress.Commands.add('getMovieById', (id: number, allowedToFail = false) => {
   cy.log(`**getMovieById: ${id}**`)
   return cy.api({
     method: 'GET',
-    url: `/movie/${id}`,
+    url: `/movies/${id}`,
     retryOnStatusCodeFailure: !allowedToFail,
     failOnStatusCode: !allowedToFail
   })
@@ -41,7 +41,7 @@ Cypress.Commands.add('deleteMovie', (id: number, allowedToFail = false) => {
   cy.log('**deleteMovie by id: ${id}**')
   return cy.api({
     method: 'DELETE',
-    url: `/movie/${id}`,
+    url: `/movies/${id}`,
     retryOnStatusCodeFailure: !allowedToFail,
     failOnStatusCode: !allowedToFail
   })

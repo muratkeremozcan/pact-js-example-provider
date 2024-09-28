@@ -73,7 +73,7 @@ registry.registerPath({
 // Register path for getting a movie by ID
 registry.registerPath({
   method: 'get',
-  path: '/movie/{id}',
+  path: '/movies/{id}',
   summary: 'Get a movie by ID',
   description: 'Retrieve a single movie by its ID',
   parameters: [MOVIE_ID_PARAM], // This ensures {id} is documented as a path param
@@ -121,7 +121,7 @@ registry.registerPath({
 // delete movie
 registry.registerPath({
   method: 'delete',
-  path: '/movie/{id}',
+  path: '/movies/{id}',
   summary: 'Delete a movie by ID',
   parameters: [MOVIE_ID_PARAM],
   responses: {
