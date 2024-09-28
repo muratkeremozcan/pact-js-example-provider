@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Movies API
-  version: 1.0.0
+  version: 2.0.0
   description: API for managing movies
 servers:
   - url: http://localhost:3000
@@ -179,7 +179,7 @@ paths:
                   - error
         "500":
           description: Unexpected error occurred
-  /movie/{id}:
+  /movies/{id}:
     get:
       summary: Get a movie by ID
       description: Retrieve a single movie by its ID

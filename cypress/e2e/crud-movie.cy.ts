@@ -42,7 +42,7 @@ describe('CRUD movie', () => {
 
         cy.getMovieById(id)
           .validateSchema(schema, {
-            endpoint: '/movie/{id}',
+            endpoint: '/movies/{id}',
             method: 'GET'
           })
           .should(
@@ -57,7 +57,7 @@ describe('CRUD movie', () => {
 
         cy.deleteMovie(id)
           .validateSchema(schema, {
-            endpoint: '/movie/{id}',
+            endpoint: '/movies/{id}',
             method: 'DELETE'
           })
 
