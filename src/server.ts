@@ -25,7 +25,7 @@ server.get('/movies', async (req, res) => {
   return res.json(allMovies)
 })
 
-server.get('/movie/:id', async (req, res) => {
+server.get('/movies/:id', async (req, res) => {
   const movie = await movieService.getMovieById(parseInt(req.params.id!))
 
   if (!movie) return res.status(404).send('Movie not found')
@@ -46,7 +46,7 @@ server.post('/movies', async (req, res) => {
   }
 })
 
-server.delete('/movie/:id', async (req, res) => {
+server.delete('/movies/:id', async (req, res) => {
   const movieDeleted = await movieService.deleteMovieById(
     parseInt(req.params.id!)
   )
@@ -62,7 +62,7 @@ server.delete('/movie/:id', async (req, res) => {
 
 // TODO: try adding this later for a CDCT test
 // server.delete(
-//   '/movie/name/:name',
+//   '/movies/name/:name',
 //   async (req, res) => {
 //     const movieDeleted = await movieService.deleteMovieByName(req.params.name)
 
