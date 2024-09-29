@@ -3,8 +3,9 @@ import type {
   GetMovieResponse,
   CreateMovieRequest,
   CreateMovieResponse,
-  GetMovieNotFoundResponse,
-  ConflictMovieResponse
+  MovieNotFoundResponse,
+  ConflictMovieResponse,
+  DeleteMovieResponse
 } from './@types'
 
 // In the context of the MovieService, what you care about is the contract/interface
@@ -23,17 +24,19 @@ export class MovieService {
 
   async getMovieById(
     id: number
-  ): Promise<GetMovieResponse | GetMovieNotFoundResponse> {
+  ): Promise<GetMovieResponse | MovieNotFoundResponse> {
     return this.movieRepository.getMovieById(id)
   }
 
   async getMovieByName(
     name: string
-  ): Promise<GetMovieResponse | GetMovieNotFoundResponse> {
+  ): Promise<GetMovieResponse | MovieNotFoundResponse> {
     return this.movieRepository.getMovieByName(name)
   }
 
-  async deleteMovieById(id: number): Promise<boolean> {
+  async deleteMovieById(
+    id: number
+  ): Promise<DeleteMovieResponse | MovieNotFoundResponse> {
     return this.movieRepository.deleteMovieById(id)
   }
 

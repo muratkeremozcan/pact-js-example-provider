@@ -3,8 +3,9 @@ import type {
   GetMovieResponse,
   CreateMovieRequest,
   CreateMovieResponse,
-  GetMovieNotFoundResponse,
-  ConflictMovieResponse
+  MovieNotFoundResponse,
+  ConflictMovieResponse,
+  DeleteMovieResponse
 } from './@types'
 import type { MovieRepository } from './movie-repository'
 import { CreateMovieSchema } from './@types/schema'
@@ -76,7 +77,7 @@ export class MovieAdapter implements MovieRepository {
   // Get a movie by its ID
   async getMovieById(
     id: number
-  ): Promise<GetMovieResponse | GetMovieNotFoundResponse> {
+  ): Promise<GetMovieResponse | MovieNotFoundResponse> {
     try {
       return await this.prisma.movie.findUnique({ where: { id } })
     } catch (error) {
@@ -88,7 +89,7 @@ export class MovieAdapter implements MovieRepository {
   // Get a movie by its name
   async getMovieByName(
     name: string
-  ): Promise<GetMovieResponse | GetMovieNotFoundResponse> {
+  ): Promise<GetMovieResponse | MovieNotFoundResponse> {
     try {
       return await this.prisma.movie.findFirst({ where: { name } })
     } catch (error) {
@@ -98,19 +99,27 @@ export class MovieAdapter implements MovieRepository {
   }
 
   // Delete a movie by its ID
-  async deleteMovieById(id: number): Promise<boolean> {
+  async deleteMovieById(
+    id: number
+  ): Promise<DeleteMovieResponse | MovieNotFoundResponse> {
     try {
       await this.prisma.movie.delete({
         where: { id }
       })
-      return true
+      return {
+        status: 200,
+        message: `Movie ${id} has been deleted`
+      }
     } catch (error) {
       // Handle specific error codes (e.g., movie not found)
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2025'
       ) {
-        return false // Record not found
+        return {
+          status: 404,
+          message: `Movie with ${id} not found`
+        }
       }
       this.handleError(error)
       throw error // Re-throw other errors

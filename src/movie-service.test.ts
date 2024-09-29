@@ -100,11 +100,29 @@ describe('MovieService', () => {
   })
 
   it('should delete a movie by id', async () => {
-    mockMovieRepository.deleteMovieById.mockResolvedValue(true)
+    const expectedResult = {
+      status: 200,
+      message: 'Movie deleted'
+    }
+    mockMovieRepository.deleteMovieById.mockResolvedValue(expectedResult)
 
     const result = await movieService.deleteMovieById(1)
 
-    expect(result).toBe(true)
+    expect(result).toBe(expectedResult)
     expect(mockMovieRepository.deleteMovieById).toHaveBeenCalledWith(1)
+  })
+
+  it('should try to delete and not find a movie', async () => {
+    const expectedResult = {
+      status: 404,
+      message: 'Movie not found'
+    }
+    mockMovieRepository.deleteMovieById.mockResolvedValue(expectedResult)
+    const id = 999
+
+    const result = await movieService.deleteMovieById(id)
+
+    expect(result).toEqual(expectedResult)
+    expect(mockMovieRepository.deleteMovieById).toHaveBeenCalledWith(id)
   })
 })

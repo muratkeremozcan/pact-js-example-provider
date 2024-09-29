@@ -7,7 +7,7 @@ import {
   CreateMovieResponseSchema,
   CreateMovieSchema,
   DeleteMovieResponseSchema,
-  GetMovieNotFoundSchema,
+  MovieNotFoundResponseSchema,
   GetMovieResponseUnionSchema
 } from '../@types/schema'
 import type { ParameterObject } from 'openapi3-ts/oas31'
@@ -21,7 +21,7 @@ const registry = new OpenAPIRegistry()
 registry.register('CreateMovieRequest', CreateMovieSchema)
 registry.register('CreateMovieResponse', CreateMovieResponseSchema)
 registry.register('GetMovieResponse', GetMovieResponseUnionSchema)
-registry.register('GetMovieNotFound', GetMovieNotFoundSchema)
+registry.register('MovieNotFound', MovieNotFoundResponseSchema)
 registry.register('DeleteMovieMessage', DeleteMovieResponseSchema)
 
 // Constants to avoid repetition
@@ -84,7 +84,7 @@ registry.registerPath({
     },
     404: {
       description: 'Movie not found',
-      content: { 'application/json': { schema: GetMovieNotFoundSchema } }
+      content: { 'application/json': { schema: MovieNotFoundResponseSchema } }
     }
   }
 })
@@ -133,7 +133,7 @@ registry.registerPath({
     },
     404: {
       description: 'Movie not found',
-      content: { 'application/json': { schema: GetMovieNotFoundSchema } }
+      content: { 'application/json': { schema: MovieNotFoundResponseSchema } }
     }
   }
 })

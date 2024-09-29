@@ -3,7 +3,7 @@ import type {
   CreateMovieResponseSchema,
   CreateMovieSchema,
   GetMovieResponseUnionSchema,
-  GetMovieNotFoundSchema,
+  MovieNotFoundResponseSchema,
   DeleteMovieResponseSchema,
   ConflictMovieResponseSchema
 } from './schema'
@@ -26,6 +26,6 @@ export type ConflictMovieResponse = z.infer<typeof ConflictMovieResponseSchema>
 export type GetMovieResponse = z.infer<typeof GetMovieResponseUnionSchema>
 // export type GetMovieResponse = Movie | null
 
-export type GetMovieNotFoundResponse = z.infer<typeof GetMovieNotFoundSchema>
+export type MovieNotFoundResponse = z.infer<typeof MovieNotFoundResponseSchema>
 
 export type DeleteMovieResponse = z.infer<typeof DeleteMovieResponseSchema>

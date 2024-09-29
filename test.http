@@ -49,3 +49,8 @@ DELETE {{baseUrl}}/movies/1
 ###
 # @name getNonExistentMovie
 GET {{baseUrl}}/movies/999
+
+
+###
+# @name deleteNonExistentMovie
+DELETE {{baseUrl}}/movies/999

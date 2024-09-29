@@ -58,9 +58,9 @@ describe('CRUD movie', () => {
         cy.deleteMovie(id)
           .validateSchema(schema, {
             endpoint: '/movies/{id}',
-            method: 'DELETE'
+            method: 'DELETE',
+            status: 200
           })
-
           .should(
             spok({
               status: 200,
@@ -74,6 +74,22 @@ describe('CRUD movie', () => {
           .its('body')
           .findOne({ name: movie.name })
           .should('not.exist')
+
+        cy.log('**delete non existing movie**')
+        cy.deleteMovie(id, true) // allowedToFail
+          .validateSchema(schema, {
+            endpoint: '/movies/{id}',
+            method: 'DELETE',
+            status: 404
+          })
+          .should(
+            spok({
+              status: 404,
+              body: {
+                error: spok.string
+              }
+            })
+          )
       })
   })
 })
