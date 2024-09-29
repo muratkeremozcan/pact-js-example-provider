@@ -136,7 +136,7 @@
           }
         ]
       },
-      "GetMovieNotFound": {
+      "MovieNotFound": {
         "type": "object",
         "properties": {
           "status": {
@@ -158,12 +158,38 @@
       "DeleteMovieMessage": {
         "type": "object",
         "properties": {
+          "status": {
+            "type": "integer",
+            "description": "Response status code",
+            "example": 200
+          },
           "message": {
             "type": "string",
+            "description": "Success message for the deleted movie",
             "example": "Movie {id} has been deleted"
           }
         },
         "required": [
+          "status",
+          "message"
+        ]
+      },
+      "DeleteMovieResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "Response status code",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "Success message for the deleted movie",
+            "example": "Movie {id} has been deleted"
+          }
+        },
+        "required": [
+          "status",
           "message"
         ]
       }
@@ -342,7 +368,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DeleteMovieMessage"
+                  "$ref": "#/components/schemas/DeleteMovieResponse"
                 }
               }
             }

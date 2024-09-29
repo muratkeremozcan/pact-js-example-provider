@@ -47,16 +47,20 @@ server.post('/movies', async (req, res) => {
 })
 
 server.delete('/movies/:id', async (req, res) => {
-  const movieDeleted = await movieService.deleteMovieById(
+  const { status } = await movieService.deleteMovieById(
     parseInt(req.params.id!)
   )
 
-  if (!movieDeleted) {
-    return res.status(404).json({ error: `Movie ${req.params.id} not found` })
+  if (status === 404) {
+    return res.status(404).json({
+      error: `Movie ${req.params.id} not found`,
+      status: status
+    })
   } else {
-    return res
-      .status(200)
-      .json({ message: `Movie ${req.params.id} has been deleted` })
+    return res.status(200).json({
+      message: `Movie ${req.params.id} has been deleted`,
+      status: status
+    })
   }
 })
 
