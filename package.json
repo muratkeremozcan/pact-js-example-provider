@@ -16,7 +16,7 @@
     "start": "npm run db:migrate && npm run reset:db && cross-env tsx src/server-listen.ts",
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|ts|json)\"",
     "fix:format": "npm run prettier -- --write",
-    "validate": "npm-run-all --parallel typecheck lint fix:format",
+    "validate": "npm-run-all --parallel typecheck lint fix:format test",
     "test": "jest --detectOpenHandles --verbose --silent --config jest.config.ts",
     "test:watch": "jest --watch --config jest.config.ts",
     "test:provider": ". ./scripts/env-setup.sh && jest --config jest-pact.config.ts --runInBand",

@@ -142,12 +142,16 @@ describe('MovieAdapter', () => {
   })
 
   describe('deleteMovieById', () => {
-    it('should delete a movie by id and return true', async () => {
+    it('should delete a movie by id', async () => {
       prismaMock.movie.delete.mockResolvedValue(mockMovie)
 
       const result = await movieAdapter.deleteMovieById(mockMovie.id)
 
-      expect(result).toBe(true)
+      const expectedResult = {
+        status: 200,
+        message: `Movie ${mockMovie.id} has been deleted`
+      }
+      expect(result).toStrictEqual(expectedResult)
       expect(prismaMock.movie.delete).toHaveBeenCalledWith({
         where: { id: mockMovie.id }
       })
@@ -164,7 +168,11 @@ describe('MovieAdapter', () => {
 
       const result = await movieAdapter.deleteMovieById(id)
 
-      expect(result).toBe(false) // Expect false if the movie is not found
+      const expectedResult = {
+        status: 404,
+        message: `Movie with ${id} not found`
+      }
+      expect(result).toStrictEqual(expectedResult)
       expect(prismaMock.movie.delete).toHaveBeenCalledWith({ where: { id } })
     })
 
