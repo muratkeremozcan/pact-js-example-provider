@@ -35,7 +35,7 @@ const MOVIE_ID_PARAM: ParameterObject = {
 const MOVIE_NAME_PARAM: ParameterObject = {
   name: 'name',
   in: 'query',
-  required: true,
+  required: false,
   schema: { type: 'string' },
   description: 'Movie name to search for'
 }
