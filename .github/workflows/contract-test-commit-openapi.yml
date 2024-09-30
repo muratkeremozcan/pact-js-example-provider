@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 # if this branch is pushed back to back, cancel the older branch's workflow
 concurrency:
