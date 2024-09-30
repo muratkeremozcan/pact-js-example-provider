@@ -54,6 +54,23 @@ describe('CRUD movie', () => {
               }
             })
           )
+          .its('body.name')
+          .then((name) => {
+            cy.getMovieByName(name)
+              .validateSchema(schema, {
+                endpoint: '/movies',
+                method: 'GET'
+              })
+              .should(
+                spok({
+                  status: 200,
+                  body: {
+                    ...movieProps,
+                    name
+                  }
+                })
+              )
+          })
 
         cy.deleteMovie(id)
           .validateSchema(schema, {

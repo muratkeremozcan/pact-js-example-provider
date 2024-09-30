@@ -37,7 +37,17 @@ jobs:
       - name: Generate OpenAPI docs from code
         run: npm run generate:openapi
 
+      - name: Check if OpenAPI docs have changed
+        id: check_changes
+        run: |
+          if git diff --quiet src/api-docs/openapi.yml src/api-docs/openapi.json; then
+            echo "changes=false" >> $GITHUB_ENV
+          else
+            echo "changes=true" >> $GITHUB_ENV
+          fi
+
       - name: Commit and push OpenAPI changes
+        if: env.changes == 'true'
         uses: EndBug/add-and-commit@v9
         with:
           author_name: 'GitHub Actions'
@@ -45,3 +55,9 @@ jobs:
           message: 'Update OpenAPI spec'
           add: 'src/api-docs/openapi.yml src/api-docs/openapi.json'
           push: true
+
+      - name: Create empty commit to re-run checks
+        if: env.changes == 'true'
+        run: |
+          git commit --allow-empty -m "Re-run checks after OpenAPI update"
+          git push

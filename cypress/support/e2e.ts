@@ -24,6 +24,20 @@ Cypress.Commands.add('getMovieById', (id: number, allowedToFail = false) => {
 })
 
 Cypress.Commands.add(
+  'getMovieByName',
+  (name: string, allowedToFail = false) => {
+    cy.log(`**getMovieByName: ${name}**`)
+    return cy.api({
+      method: 'GET',
+      url: '/movies',
+      qs: { name },
+      retryOnStatusCodeFailure: !allowedToFail,
+      failOnStatusCode: !allowedToFail
+    })
+  }
+)
+
+Cypress.Commands.add(
   'addMovie',
   (body: Omit<Movie, 'id'>, allowedToFail = false) => {
     cy.log('**addMovie**')

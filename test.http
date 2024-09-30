@@ -13,6 +13,10 @@ GET {{baseUrl}}/movies
 GET {{baseUrl}}/movies/1
 
 ###
+# @name getMovieByName
+GET {{baseUrl}}/movies?name=Inception
+
+###
 # @name addMovie
 POST {{baseUrl}}/movies
 Content-Type: application/json

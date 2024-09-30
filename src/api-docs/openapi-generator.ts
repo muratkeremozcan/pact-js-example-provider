@@ -32,6 +32,13 @@ const MOVIE_ID_PARAM: ParameterObject = {
   schema: { type: 'string' },
   description: 'Movie ID'
 }
+const MOVIE_NAME_PARAM: ParameterObject = {
+  name: 'name',
+  in: 'query',
+  required: true,
+  schema: { type: 'string' },
+  description: 'Movie name to search for'
+}
 
 // Register paths
 // health check
@@ -56,16 +63,24 @@ registry.registerPath({
   }
 })
 
-// get movies
+// Register path for getting all movies or filtering by name via query parameter
 registry.registerPath({
   method: 'get',
   path: '/movies',
-  summary: 'Get all movies',
-  description: 'Retrieve a list of all movies',
+  summary: 'Get all movies or filter by name',
+  description:
+    'Retrieve a list of all movies. Optionally, provide a query parameter "name" to filter by a specific movie name.',
+  parameters: [MOVIE_NAME_PARAM], // Query param for filtering by name
   responses: {
     200: {
-      description: 'List of movies',
+      description:
+        'List of movies or a specific movie if the "name" query parameter is provided',
       content: { 'application/json': { schema: GetMovieResponseUnionSchema } }
+    },
+    404: {
+      description:
+        'Movie not found if the name is provided and does not match any movie',
+      content: { 'application/json': { schema: MovieNotFoundResponseSchema } }
     }
   }
 })
@@ -144,7 +159,7 @@ export const openApiDoc = generator.generateDocument({
   openapi: '3.1.0',
   info: {
     title: 'Movies API',
-    version: '2.0.0',
+    version: '3.0.0',
     description: 'API for managing movies'
   },
   servers: [

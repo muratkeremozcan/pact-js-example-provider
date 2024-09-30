@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Movies API",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "description": "API for managing movies"
   },
   "servers": [
@@ -222,15 +222,52 @@
     },
     "/movies": {
       "get": {
-        "summary": "Get all movies",
-        "description": "Retrieve a list of all movies",
+        "summary": "Get all movies or filter by name",
+        "description": "Retrieve a list of all movies. Optionally, provide a query parameter \"name\" to filter by a specific movie name.",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Movie name to search for"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "List of movies",
+            "description": "List of movies or a specific movie if the \"name\" query parameter is provided",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetMovieResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Movie not found if the name is provided and does not match any movie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "description": "Response status code",
+                      "example": 404
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "Error message",
+                      "example": "Movie not found"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "error"
+                  ]
                 }
               }
             }
