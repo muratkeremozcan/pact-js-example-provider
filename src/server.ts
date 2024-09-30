@@ -1,10 +1,16 @@
 import express, { json } from 'express'
+import cors from 'cors'
 import { PrismaClient } from '@prisma/client'
 import { MovieAdapter } from './movie-adapter'
 import { MovieService } from './movie-service'
 
 // Initialize Express server
 const server = express()
+server.use(
+  cors({
+    origin: 'http://localhost:3000' // allow only your React app, you can add other urls here for deployments
+  })
+)
 server.use(json())
 
 // Initialize PrismaClient
