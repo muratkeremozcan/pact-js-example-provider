@@ -26,6 +26,16 @@ declare global {
         allowedToFail?: boolean
       ): Chainable<Response<Movie> & Messages>
 
+      /** Gets a movie by name
+       * ```js
+       * cy.getMovieByName('The Great Gatsby')
+       * ```
+       */
+      getMovieByName(
+        name: string,
+        allowedToFail?: boolean
+      ): Chainable<Response<Movie> & Messages>
+
       /** Creates a movie
        * ```js
        * cy.addMovie({name: 'The Great Gatsby', year: 1925  })

@@ -21,15 +21,33 @@ server.get('/', (req, res) =>
 )
 
 server.get('/movies', async (req, res) => {
-  const allMovies = await movieService.getMovies()
-  return res.json(allMovies)
+  const name = req.query.name
+
+  if (typeof name === 'string') {
+    const movie = await movieService.getMovieByName(name as string)
+    if (!movie) {
+      return res
+        .status(404)
+        .json({ error: `Movie with name "${name}" not found` })
+    } else {
+      return res.json(movie)
+    }
+  } else if (name) {
+    return res.status(400).json({ error: 'Invalid movie name provided' })
+  } else {
+    const allMovies = await movieService.getMovies()
+    return res.json(allMovies)
+  }
 })
 
 server.get('/movies/:id', async (req, res) => {
   const movie = await movieService.getMovieById(parseInt(req.params.id!))
 
-  if (!movie) return res.status(404).send('Movie not found')
-  else return res.send(movie)
+  if (!movie) {
+    return res.status(404).json({ error: 'Movie not found' })
+  } else {
+    return res.json(movie)
+  }
 })
 
 server.post('/movies', async (req, res) => {
