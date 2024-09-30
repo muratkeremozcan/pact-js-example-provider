@@ -43,11 +43,8 @@ server.get('/movies', async (req, res) => {
 server.get('/movies/:id', async (req, res) => {
   const movie = await movieService.getMovieById(parseInt(req.params.id!))
 
-  if (!movie) {
-    return res.status(404).json({ error: 'Movie not found' })
-  } else {
-    return res.json(movie)
-  }
+  if (!movie) return res.status(404).json({ error: 'Movie not found' })
+  else return res.json(movie)
 })
 
 server.post('/movies', async (req, res) => {
