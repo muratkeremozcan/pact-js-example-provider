@@ -5,7 +5,9 @@ import type {
   CreateMovieResponse,
   MovieNotFoundResponse,
   ConflictMovieResponse,
-  DeleteMovieResponse
+  DeleteMovieResponse,
+  UpdateMovieRequest,
+  UpdateMovieResponse
 } from './@types'
 
 // In the context of the MovieService, what you care about is the contract/interface
@@ -45,5 +47,14 @@ export class MovieService {
     id?: number
   ): Promise<CreateMovieResponse | ConflictMovieResponse> {
     return this.movieRepository.addMovie(data, id)
+  }
+
+  async updateMovie(
+    data: UpdateMovieRequest,
+    id: number
+  ): Promise<
+    UpdateMovieResponse | MovieNotFoundResponse | ConflictMovieResponse
+  > {
+    return this.movieRepository.updateMovie(data, id)
   }
 }

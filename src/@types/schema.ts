@@ -92,3 +92,43 @@ export const DeleteMovieResponseSchema = z
     })
   })
   .openapi('DeleteMovieResponse')
+
+export const UpdateMovieSchema = z
+  .object({
+    id: z.number().optional().openapi({ example: 1, description: 'Movie ID' }),
+    name: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({ example: 'Inception', description: 'Movie name' }),
+    year: z
+      .number()
+      .int()
+      .min(1900)
+      .max(2024)
+      .optional()
+      .openapi({ example: 2010, description: 'Release year' })
+  })
+  .openapi('UpdateMovieRequest')
+
+export const UpdateMovieResponseSchema = z
+  .object({
+    status: z
+      .number()
+      .int()
+      .openapi({ example: 200, description: 'Response status code' }),
+    movie: z
+      .object({
+        id: z.number().openapi({ example: 1, description: 'Movie ID' }),
+        name: z
+          .string()
+          .openapi({ example: 'Inception', description: 'Movie name' }),
+        year: z.number().openapi({ example: 2010, description: 'Release year' })
+      })
+      .openapi({ description: 'Updated movie data' }),
+    error: z
+      .string()
+      .optional()
+      .openapi({ description: 'Error message, if any' })
+  })
+  .openapi('UpdateMovieResponse')

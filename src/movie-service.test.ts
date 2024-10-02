@@ -18,8 +18,8 @@ import type { Movie } from '@prisma/client'
 describe('MovieService', () => {
   let movieService: MovieService
   let mockMovieRepository: jest.Mocked<MovieRepository>
-
-  const mockMovie: Movie = { id: 1, name: 'Inception', year: 2020 }
+  const id = 1
+  const mockMovie: Movie = { id, name: 'Inception', year: 2020 }
 
   beforeEach(() => {
     mockMovieRepository = {
@@ -27,7 +27,8 @@ describe('MovieService', () => {
       getMovieById: jest.fn(),
       getMovieByName: jest.fn(),
       deleteMovieById: jest.fn(),
-      addMovie: jest.fn()
+      addMovie: jest.fn(),
+      updateMovie: jest.fn()
     }
 
     movieService = new MovieService(mockMovieRepository)
@@ -94,8 +95,28 @@ describe('MovieService', () => {
 
     expect(result).toEqual(expectedResult)
     expect(mockMovieRepository.addMovie).toHaveBeenCalledWith(
-      { id: 1, name: 'Inception', year: 2020 },
+      mockMovie,
       undefined
+    )
+  })
+
+  it('should update a movie', async () => {
+    const expectedResult = {
+      status: 200,
+      movie: mockMovie,
+      error: undefined
+    }
+    mockMovieRepository.updateMovie.mockResolvedValue(expectedResult)
+
+    const result = await movieService.updateMovie(
+      { name: mockMovie.name, year: mockMovie.year },
+      id
+    )
+
+    expect(result).toEqual(expectedResult)
+    expect(mockMovieRepository.updateMovie).toHaveBeenCalledWith(
+      { name: mockMovie.name, year: mockMovie.year },
+      id
     )
   })
 

@@ -192,6 +192,73 @@
           "status",
           "message"
         ]
+      },
+      "UpdateMovieResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "Response status code",
+            "example": 200
+          },
+          "movie": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number",
+                "description": "Movie ID",
+                "example": 1
+              },
+              "name": {
+                "type": "string",
+                "description": "Movie name",
+                "example": "Inception"
+              },
+              "year": {
+                "type": "number",
+                "description": "Release year",
+                "example": 2010
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "year"
+            ],
+            "description": "Updated movie data"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message, if any"
+          }
+        },
+        "required": [
+          "status",
+          "movie"
+        ]
+      },
+      "UpdateMovieRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Movie ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Movie name",
+            "example": "Inception"
+          },
+          "year": {
+            "type": "integer",
+            "minimum": 1900,
+            "maximum": 2024,
+            "description": "Release year",
+            "example": 2010
+          }
+        }
       }
     },
     "parameters": {}
@@ -435,6 +502,71 @@
                 }
               }
             }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a movie by ID",
+        "description": "Update the details of an existing movie by providing a movie ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Movie ID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMovieRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Movie updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateMovieResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Movie not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "description": "Response status code",
+                      "example": 404
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "Error message",
+                      "example": "Movie not found"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }

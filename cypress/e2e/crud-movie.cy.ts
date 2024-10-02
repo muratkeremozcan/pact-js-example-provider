@@ -6,6 +6,7 @@ import schema from '../../src/api-docs/openapi.json'
 
 describe('CRUD movie', () => {
   const movie = generateMovie()
+  const updatedMovie = generateMovie()
   const movieProps: Omit<Movie, 'id'> = {
     name: spok.string,
     year: spok.number
@@ -71,6 +72,24 @@ describe('CRUD movie', () => {
                 })
               )
           })
+
+        cy.updateMovie(id, updatedMovie)
+          .validateSchema(schema, {
+            endpoint: '/movies/{id}',
+            method: 'PUT',
+            status: 200
+          })
+          .its('body')
+          .print()
+          .should(
+            spok({
+              status: 200,
+              movie: {
+                ...movieProps,
+                id
+              }
+            })
+          )
 
         cy.deleteMovie(id)
           .validateSchema(schema, {

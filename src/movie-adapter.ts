@@ -5,10 +5,13 @@ import type {
   CreateMovieResponse,
   MovieNotFoundResponse,
   ConflictMovieResponse,
-  DeleteMovieResponse
+  DeleteMovieResponse,
+  UpdateMovieRequest,
+  UpdateMovieResponse
 } from './@types'
 import type { MovieRepository } from './movie-repository'
-import { CreateMovieSchema } from './@types/schema'
+import { CreateMovieSchema, UpdateMovieSchema } from './@types/schema'
+import type { ZodSchema } from 'zod'
 
 // ports & adapters (hexagonal) pattern refactor:
 // movies.ts (now called movie-service) has been split into two parts,
@@ -118,7 +121,7 @@ export class MovieAdapter implements MovieRepository {
       ) {
         return {
           status: 404,
-          message: `Movie with ${id} not found`
+          message: `Movie with ID ${id} not found`
         }
       }
       this.handleError(error)
@@ -135,15 +138,9 @@ export class MovieAdapter implements MovieRepository {
       // Zod Key feature 3: safeParse
       // Zod note: if you have a frontend, you can use the schema + safeParse there
       // in order to perform form validation before sending the data to the server
-      const parseResult = CreateMovieSchema.safeParse(data)
-      // handle validation errors
-      if (!parseResult.success) {
-        const errorMessages = parseResult.error.errors
-          .map((err) => err.message)
-          .join(', ')
-
-        return { status: 400, error: errorMessages }
-      }
+      const validationResult = validateSchema(CreateMovieSchema, data)
+      if (!validationResult.success)
+        return { status: 400, error: validationResult.error }
 
       const existingMovie = await this.getMovieByName(data.name)
       if (existingMovie) {
@@ -162,5 +159,56 @@ export class MovieAdapter implements MovieRepository {
       this.handleError(error)
       return { status: 500, error: 'Internal server error' }
     }
+  }
+
+  async updateMovie(
+    data: Partial<UpdateMovieRequest>,
+    id: number
+  ): Promise<
+    UpdateMovieResponse | MovieNotFoundResponse | ConflictMovieResponse
+  > {
+    try {
+      // Zod Key feature 3: safeParse
+      // Zod note: if you have a frontend, you can use the schema + safeParse there
+      // in order to perform form validation before sending the data to the server
+      const validationResult = validateSchema(UpdateMovieSchema, data)
+      if (!validationResult.success)
+        return { status: 400, error: validationResult.error }
+
+      const existingMovie = await this.prisma.movie.findUnique({
+        where: { id }
+      })
+      if (!existingMovie)
+        return { status: 404, error: `Movie with ID ${id} not found` }
+
+      const updatedMovie = await this.prisma.movie.update({
+        where: { id },
+        data
+      })
+
+      return {
+        status: 200,
+        movie: updatedMovie
+      }
+    } catch (error) {
+      this.handleError(error)
+      return { status: 500, error: 'Internal server error' }
+    }
+  }
+}
+
+// helper function for schema validation
+function validateSchema<T>(
+  schema: ZodSchema<T>,
+  data: unknown
+): { success: true; data: T } | { success: false; error: string } {
+  const result = schema.safeParse(data)
+  if (result.success) {
+    return { success: true, data: result.data }
+  } else {
+    const errorMessages = result.error.errors
+      .map((err) => err.message)
+      .join(', ')
+    return { success: false, error: errorMessages }
   }
 }

@@ -47,6 +47,17 @@ Content-Type: application/json
 }
 
 ###
+# @name updateMovie
+PUT {{baseUrl}}/movies/1
+Content-Type: application/json
+
+{
+    "name": "Inception Updated",
+    "year": 2015
+}
+
+
+###
 # @name deleteMovie
 DELETE {{baseUrl}}/movies/1
 
