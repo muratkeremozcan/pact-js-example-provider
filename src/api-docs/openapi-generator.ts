@@ -8,7 +8,9 @@ import {
   CreateMovieSchema,
   DeleteMovieResponseSchema,
   MovieNotFoundResponseSchema,
-  GetMovieResponseUnionSchema
+  GetMovieResponseUnionSchema,
+  UpdateMovieSchema,
+  UpdateMovieResponseSchema
 } from '../@types/schema'
 import type { ParameterObject } from 'openapi3-ts/oas31'
 
@@ -104,7 +106,7 @@ registry.registerPath({
   }
 })
 
-// post movie
+// add movie
 registry.registerPath({
   method: 'post',
   path: '/movies',
@@ -150,6 +152,34 @@ registry.registerPath({
       description: 'Movie not found',
       content: { 'application/json': { schema: MovieNotFoundResponseSchema } }
     }
+  }
+})
+
+// update movie
+registry.registerPath({
+  method: 'put',
+  path: '/movies/{id}',
+  summary: 'Update a movie by ID',
+  description:
+    'Update the details of an existing movie by providing a movie ID',
+  parameters: [MOVIE_ID_PARAM], // Movie ID is required for update
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: UpdateMovieSchema }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: 'Movie updated successfully',
+      content: { 'application/json': { schema: UpdateMovieResponseSchema } }
+    },
+    404: {
+      description: 'Movie not found',
+      content: { 'application/json': { schema: MovieNotFoundResponseSchema } }
+    },
+    500: { description: 'Internal server error' }
   }
 })
 

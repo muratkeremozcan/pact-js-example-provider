@@ -4,7 +4,9 @@ import type {
   CreateMovieResponse,
   MovieNotFoundResponse,
   ConflictMovieResponse,
-  DeleteMovieResponse
+  DeleteMovieResponse,
+  UpdateMovieRequest,
+  UpdateMovieResponse
 } from './@types'
 
 // MovieRepository: this is the interface/contract that defines the methods
@@ -24,4 +26,10 @@ export interface MovieRepository {
     data: CreateMovieRequest,
     id?: number
   ): Promise<CreateMovieResponse | ConflictMovieResponse>
+  updateMovie(
+    data: UpdateMovieRequest,
+    id: number
+  ): Promise<
+    UpdateMovieResponse | MovieNotFoundResponse | ConflictMovieResponse
+  >
 }

@@ -170,7 +170,7 @@ describe('MovieAdapter', () => {
 
       const expectedResult = {
         status: 404,
-        message: `Movie with ${id} not found`
+        message: `Movie with ID ${id} not found`
       }
       expect(result).toStrictEqual(expectedResult)
       expect(prismaMock.movie.delete).toHaveBeenCalledWith({ where: { id } })
@@ -235,7 +235,6 @@ describe('MovieAdapter', () => {
       const invalidMovieData = { name: '', year: 1899 } // Invalid year, empty name
 
       const result = await movieAdapter.addMovie(invalidMovieData)
-
       expect(result).toEqual(
         expect.objectContaining({
           status: 400,
@@ -272,6 +271,83 @@ describe('MovieAdapter', () => {
         expect.objectContaining({ status: 500, error: 'Internal server error' })
       )
       expect(handleErrorSpy).toHaveBeenCalledWith(new Error(error))
+    })
+  })
+
+  describe('updateMovie', () => {
+    const id = 1
+    const existingMovie = { name: 'Inception', year: 2020, id }
+    const updateMovieData = { name: 'The Dark Knight', year: 2008 }
+    const updatedMovie = { id, ...updateMovieData }
+
+    it('should successfully update a movie', async () => {
+      prismaMock.movie.findUnique.mockResolvedValue(existingMovie)
+      prismaMock.movie.update.mockResolvedValue(updatedMovie)
+
+      const result = await movieAdapter.updateMovie(updateMovieData, id)
+      expect(result).toEqual({
+        status: 200,
+        movie: updatedMovie
+      })
+
+      expect(prismaMock.movie.findUnique).toHaveBeenCalledWith({
+        where: { id }
+      })
+      expect(prismaMock.movie.update).toHaveBeenCalledWith({
+        where: { id },
+        data: updateMovieData
+      })
+    })
+
+    it('should return 404 if the movie is not found', async () => {
+      prismaMock.movie.findUnique.mockResolvedValue(null)
+
+      const result = await movieAdapter.updateMovie(updateMovieData, id)
+
+      expect(result).toEqual({
+        status: 404,
+        error: `Movie with ID ${id} not found`
+      })
+
+      expect(prismaMock.movie.findUnique).toHaveBeenCalledWith({
+        where: { id }
+      })
+      expect(prismaMock.movie.update).not.toHaveBeenCalled()
+    })
+
+    it('should return 400 if validation fails', async () => {
+      prismaMock.movie.findUnique.mockResolvedValue(existingMovie)
+      const invalidMovieData = { name: '', year: 1899 } // Invalid year, empty name
+
+      const result = await movieAdapter.updateMovie(invalidMovieData, id)
+      expect(result).toEqual(
+        expect.objectContaining({
+          status: 400,
+          error:
+            'String must contain at least 1 character(s), Number must be greater than or equal to 1900'
+        })
+      )
+    })
+
+    it('should return 500 if an unexpected error occurs', async () => {
+      // Mock the movie to be found in the database
+      prismaMock.movie.findUnique.mockResolvedValue(existingMovie)
+      // Mock an unexpected error during the update
+      const error = new Error('Unexpected error')
+      prismaMock.movie.update.mockRejectedValue(error)
+
+      // Spy on the handleError method to ensure it's called
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const handleErrorSpy = jest.spyOn(movieAdapter as any, 'handleError')
+
+      const result = await movieAdapter.updateMovie(updateMovieData, id)
+
+      // Assertions
+      expect(result).toEqual({
+        status: 500,
+        error: 'Internal server error'
+      })
+      expect(handleErrorSpy).toHaveBeenCalledWith(error)
     })
   })
 })

@@ -51,6 +51,21 @@ Cypress.Commands.add(
   }
 )
 
+// update movie
+Cypress.Commands.add(
+  'updateMovie',
+  (id: number, body: Partial<Movie>, allowedToFail = false) => {
+    cy.log(`**updateMovie by id: ${id}**`)
+    return cy.api({
+      method: 'PUT',
+      url: `/movies/${id}`,
+      body: body,
+      retryOnStatusCodeFailure: !allowedToFail,
+      failOnStatusCode: !allowedToFail
+    })
+  }
+)
+
 Cypress.Commands.add('deleteMovie', (id: number, allowedToFail = false) => {
   cy.log('**deleteMovie by id: ${id}**')
   return cy.api({

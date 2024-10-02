@@ -46,6 +46,16 @@ declare global {
         allowedToFail?: boolean
       ): Chainable<Response<Omit<Movie, 'id'>> & Messages>
 
+      /** Updates a movie by id
+       * ```js
+       * cy.updateMovie(1, {name: 'The Great Gatsby Updated'})
+       * ```
+       */
+      updateMovie(
+        id: number,
+        body: Partial<Movie>
+      ): Chainable<Response<Movie> & Messages>
+
       /** Deletes a movie
        * ```js
        * cy.deleteMovie(1)
