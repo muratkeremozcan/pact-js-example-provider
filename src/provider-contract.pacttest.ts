@@ -1,12 +1,14 @@
 import { Verifier } from '@pact-foundation/pact'
 import { stateHandlers } from './test-helpers/state-handlers'
 import { buildVerifierOptions } from './test-helpers/pact-utils'
+import { truncateTables } from '../scripts/truncate-tables'
 
 // 1) Run the provider service
 // 2) Setup the provider verifier options
 // 3) Write & execute the provider contract test
 
 const PACT_BREAKING_CHANGE = process.env.PACT_BREAKING_CHANGE || 'false'
+const PACT_ENABLE_PENDING = process.env.PACT_ENABLE_PENDING || 'false'
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'local'
 
 describe('Pact Verification', () => {
@@ -16,17 +18,18 @@ describe('Pact Verification', () => {
     provider: 'MoviesAPI',
     consumer: process.env.PACT_CONSUMER, // filter by the consumer, or run for all if no env var is provided
     includeMainAndDeployed: PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
-    enablePending: PACT_BREAKING_CHANGE === 'true',
+    enablePending: PACT_ENABLE_PENDING === 'true',
     port,
     stateHandlers,
-    beforeEach: () => {
-      console.log('I run before each test coming from the consumer...')
-      return Promise.resolve()
-    },
-    afterEach: () => {
-      console.log('I run after each test coming from the consumer...')
+    beforeEach: async () => {
+      // console.log('I run before each test coming from the consumer...')
+      await truncateTables()
       return Promise.resolve()
     }
+    // afterEach: () => {
+    //   console.log('I run after each test coming from the consumer...')
+    //   return Promise.resolve()
+    // }
   })
   const verifier = new Verifier(options)
 
