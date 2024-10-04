@@ -14,7 +14,7 @@ import type {
 // It's a port in hexagonal architecture.
 
 export interface MovieRepository {
-  getMovies(): Promise<GetMovieResponse[]>
+  getMovies(): Promise<GetMovieResponse>
   getMovieById(id: number): Promise<GetMovieResponse | MovieNotFoundResponse>
   getMovieByName(
     name: string

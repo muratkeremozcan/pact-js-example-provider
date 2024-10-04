@@ -20,7 +20,7 @@ export class MovieService {
     this.movieRepository = movieRepository
   }
 
-  async getMovies(): Promise<GetMovieResponse[]> {
+  async getMovies(): Promise<GetMovieResponse> {
     return this.movieRepository.getMovies()
   }
 

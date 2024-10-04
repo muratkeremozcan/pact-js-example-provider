@@ -19,9 +19,9 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
     const { id } = params as HasMovieWithSpecificIDParams
 
     // Check if the movie with the given id already exists
-    const existingMovie = await movieService.getMovieById(id)
+    const res = await movieService.getMovieById(id)
 
-    if (!existingMovie) {
+    if (res.status !== 200) {
       // If the movie doesn't exist, create it
       const movieData: Omit<Movie, 'id'> = {
         name: `Movie Title ${Math.random().toString(36).substring(7)}`,
@@ -42,9 +42,9 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
     const { name, year } = params as ExistingMovieParams
 
     // Check if the movie already exists by name
-    const existingMovie = await movieService.getMovieByName(name)
+    const res = await movieService.getMovieByName(name)
 
-    if (!existingMovie) {
+    if (res.status !== 200) {
       // Insert the movie if it doesn't exist
       await movieService.addMovie({ name, year })
       console.log(`Movie with name "${name}" added.`)

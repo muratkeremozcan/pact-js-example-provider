@@ -25,6 +25,7 @@ import type {
  * @param afterEach - (Optional) A hook that runs after each consumer interaction.
  * @param includeMainAndDeployed - (Required) Flag indicating whether to include `mainBranch` and `deployedOrReleased` selectors. Should be explicitly controlled.
  * @param consumer - (Optional) A specific consumer to run verification for. If not provided, all consumers will be verified.
+ * @param enablePending - (Optional, defaults to `false`) use this if breaking changes from a consumer somehow got in main, and the provider cannot release (allow blasphemy!)
  * @param publishVerificationResult - (Optional, defaults to `true`) Whether to publish the verification result to the Pact Broker.
  * @param pactBrokerToken - (Optional) Token for authentication with the Pact Broker, defaults to environment variable.
  * @param providerVersion - (Optional) The version of the provider, typically tied to a Git commit or build.
