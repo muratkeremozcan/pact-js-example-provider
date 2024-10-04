@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Movies API",
-    "version": "3.0.0",
+    "version": "4.0.0",
     "description": "API for managing movies"
   },
   "servers": [
@@ -52,7 +52,7 @@
             "description": "Response status code",
             "example": 200
           },
-          "movie": {
+          "data": {
             "type": "object",
             "properties": {
               "id": {
@@ -85,55 +85,91 @@
         },
         "required": [
           "status",
-          "movie"
+          "data"
         ]
       },
       "GetMovieResponse": {
-        "anyOf": [
-          {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "number"
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "Response status code",
+            "example": 200
+          },
+          "data": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number",
+                    "description": "Movie ID",
+                    "example": 1
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Movie name",
+                    "example": "Inception"
+                  },
+                  "year": {
+                    "type": "number",
+                    "description": "Release year",
+                    "example": 2010
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "year"
+                ]
               },
-              "name": {
-                "type": "string"
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "number",
+                      "description": "Movie ID",
+                      "example": 1
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Movie name",
+                      "example": "Inception"
+                    },
+                    "year": {
+                      "type": "number",
+                      "description": "Release year",
+                      "example": 2010
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "year"
+                  ]
+                },
+                "description": "List of movies or an empty array if no movies exist",
+                "example": []
               },
-              "year": {
-                "type": "number"
+              {
+                "type": "null"
               }
-            },
-            "required": [
-              "id",
-              "name",
-              "year"
             ]
           },
-          {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "number"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "year": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "id",
-                "name",
-                "year"
-              ]
-            }
-          },
-          {
-            "type": "null"
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Error message if an error occurred, otherwise null"
           }
+        },
+        "required": [
+          "status",
+          "data",
+          "error"
         ]
       },
       "MovieNotFound": {
@@ -201,7 +237,7 @@
             "description": "Response status code",
             "example": 200
           },
-          "movie": {
+          "data": {
             "type": "object",
             "properties": {
               "id": {
@@ -234,7 +270,7 @@
         },
         "required": [
           "status",
-          "movie"
+          "data"
         ]
       },
       "UpdateMovieRequest": {

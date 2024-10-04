@@ -67,13 +67,31 @@ export class MovieAdapter implements MovieRepository {
   }
 
   // Get all movies
-  async getMovies(): Promise<GetMovieResponse[]> {
+  async getMovies(): Promise<GetMovieResponse> {
     try {
       const movies = await this.prisma.movie.findMany()
-      return movies.length > 0 ? movies : []
+
+      if (movies.length > 0) {
+        return {
+          status: 200,
+          data: movies,
+          error: null
+        }
+      } else {
+        return {
+          status: 200,
+          data: [],
+          error: null
+        }
+      }
     } catch (error) {
       this.handleError(error)
-      return []
+
+      return {
+        status: 500,
+        data: null,
+        error: 'Failed to retrieve movies'
+      }
     }
   }
 
@@ -82,22 +100,55 @@ export class MovieAdapter implements MovieRepository {
     id: number
   ): Promise<GetMovieResponse | MovieNotFoundResponse> {
     try {
-      return await this.prisma.movie.findUnique({ where: { id } })
+      const movie = await this.prisma.movie.findUnique({ where: { id } })
+      if (movie) {
+        return {
+          status: 200,
+          data: movie, // return the movie object
+          error: null // no error if successful
+        }
+      }
+      return {
+        status: 404,
+        data: null, // return null if not found
+        error: `Movie with ID ${id} not found`
+      }
     } catch (error) {
       this.handleError(error)
-      return null
+      return {
+        status: 500,
+        data: null, // return null in case of failure
+        error: 'Internal server error'
+      }
     }
   }
 
   // Get a movie by its name
-  async getMovieByName(
-    name: string
-  ): Promise<GetMovieResponse | MovieNotFoundResponse> {
+  async getMovieByName(name: string): Promise<GetMovieResponse> {
     try {
-      return await this.prisma.movie.findFirst({ where: { name } })
+      const movie = await this.prisma.movie.findFirst({ where: { name } })
+
+      if (movie) {
+        return {
+          status: 200,
+          data: movie,
+          error: null
+        }
+      } else {
+        // Return a structured response if no movie is found
+        return {
+          status: 404,
+          data: null,
+          error: `Movie with name "${name}" not found`
+        }
+      }
     } catch (error) {
       this.handleError(error)
-      return null
+      return {
+        status: 500,
+        data: null,
+        error: 'Internal server error'
+      }
     }
   }
 
@@ -139,21 +190,27 @@ export class MovieAdapter implements MovieRepository {
       // Zod note: if you have a frontend, you can use the schema + safeParse there
       // in order to perform form validation before sending the data to the server
       const validationResult = validateSchema(CreateMovieSchema, data)
-      if (!validationResult.success)
+      if (!validationResult.success) {
         return { status: 400, error: validationResult.error }
+      }
 
-      const existingMovie = await this.getMovieByName(data.name)
+      // Check if the movie already exists
+      const existingMovie = await this.prisma.movie.findFirst({
+        where: { name: data.name }
+      })
+
       if (existingMovie) {
         return { status: 409, error: `Movie ${data.name} already exists` }
       }
 
+      // Create the new movie
       const movie = await this.prisma.movie.create({
         data: id ? { id, ...data } : data
       })
 
       return {
         status: 200,
-        movie
+        data: movie
       }
     } catch (error) {
       this.handleError(error)
@@ -188,7 +245,7 @@ export class MovieAdapter implements MovieRepository {
 
       return {
         status: 200,
-        movie: updatedMovie
+        data: updatedMovie
       }
     } catch (error) {
       this.handleError(error)
