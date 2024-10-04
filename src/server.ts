@@ -75,7 +75,6 @@ server.get('/movies', async (req, res) => {
 
   if (typeof name === 'string') {
     const movie = await movieService.getMovieByName(name as string)
-    console.log({ movie })
     return handleResponse(res, movie)
   } else if (name) {
     return res.status(400).json({ error: 'Invalid movie name provided' })
