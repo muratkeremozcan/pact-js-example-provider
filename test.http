@@ -68,4 +68,4 @@ GET {{baseUrl}}/movies/999
 
 ###
 # @name deleteNonExistentMovie
-DELETE {{baseUrl}}/movies/999
+DELETE {{baseUrl}}/movies/4
