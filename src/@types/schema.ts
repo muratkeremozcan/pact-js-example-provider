@@ -31,7 +31,7 @@ export const CreateMovieResponseSchema = z
       .number()
       .int()
       .openapi({ example: 200, description: 'Response status code' }),
-    data: z
+    movie: z
       .object({
         id: z.number().openapi({ example: 1, description: 'Movie ID' }),
         name: z
@@ -58,35 +58,16 @@ export const ConflictMovieResponseSchema = z.object({
 })
 
 const movieObj = {
-  id: z.number().openapi({ example: 1, description: 'Movie ID' }),
-  name: z.string().openapi({ example: 'Inception', description: 'Movie name' }),
-  year: z.number().openapi({ example: 2010, description: 'Release year' })
+  id: z.number(),
+  name: z.string(),
+  year: z.number()
 }
-
 export const GetMovieResponseUnionSchema = z
-  .object({
-    status: z
-      .number()
-      .int()
-      .openapi({ example: 200, description: 'Response status code' }),
-    data: z.union([
-      z
-        .object(movieObj)
-        .nullable()
-        .openapi({
-          description: 'Movie details or null if not found',
-          example: { id: 1, name: 'Inception', year: 2010 }
-        }),
-      z.array(z.object(movieObj)).openapi({
-        description: 'List of movies or an empty array if no movies exist',
-        example: []
-      })
-    ]),
-    error: z.string().nullable().openapi({
-      description: 'Error message if an error occurred, otherwise null',
-      example: null
-    })
-  })
+  .union([
+    // Use union to handle both single and array responses
+    z.object(movieObj).nullable(),
+    z.array(z.object(movieObj))
+  ])
   .openapi('GetMovieResponse')
 
 export const MovieNotFoundResponseSchema = z.object({
@@ -136,7 +117,7 @@ export const UpdateMovieResponseSchema = z
       .number()
       .int()
       .openapi({ example: 200, description: 'Response status code' }),
-    data: z
+    movie: z
       .object({
         id: z.number().openapi({ example: 1, description: 'Movie ID' }),
         name: z

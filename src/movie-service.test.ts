@@ -20,13 +20,6 @@ describe('MovieService', () => {
   let mockMovieRepository: jest.Mocked<MovieRepository>
   const id = 1
   const mockMovie: Movie = { id, name: 'Inception', year: 2020 }
-  const mockMovieResponse = { status: 200, data: mockMovie, error: null }
-  const mockMoviesResponse = {
-    status: 200,
-    data: [mockMovie],
-    error: null
-  }
-  const notFoundResponse = { status: 404, data: null, error: null }
 
   beforeEach(() => {
     mockMovieRepository = {
@@ -36,68 +29,64 @@ describe('MovieService', () => {
       deleteMovieById: jest.fn(),
       addMovie: jest.fn(),
       updateMovie: jest.fn()
-    } as jest.Mocked<MovieRepository>
+    }
 
     movieService = new MovieService(mockMovieRepository)
   })
 
   it('should get all movies', async () => {
-    mockMovieRepository.getMovies.mockResolvedValue(mockMoviesResponse)
+    mockMovieRepository.getMovies.mockResolvedValue([mockMovie])
 
-    const { data } = await movieService.getMovies()
+    const movies = await movieService.getMovies()
 
-    expect(data).toEqual([mockMovie])
+    expect(movies).toEqual([mockMovie])
     expect(mockMovieRepository.getMovies).toHaveBeenCalledTimes(1)
   })
 
   it('should get a movie by id', async () => {
-    mockMovieRepository.getMovieById.mockResolvedValue(mockMovieResponse)
+    mockMovieRepository.getMovieById.mockResolvedValue(mockMovie)
 
-    // @ts-expect-error TypeScript should chill for tests here
-    const { data } = await movieService.getMovieById(mockMovie.id)
+    const result = await movieService.getMovieById(mockMovie.id)
 
-    expect(data).toEqual(mockMovie)
+    expect(result).toEqual(mockMovie)
     expect(mockMovieRepository.getMovieById).toHaveBeenCalledWith(mockMovie.id)
   })
 
   it('should return null if movie by id not found', async () => {
-    mockMovieRepository.getMovieById.mockResolvedValue(notFoundResponse)
+    mockMovieRepository.getMovieById.mockResolvedValue(null)
     const id = 999
 
-    // @ts-expect-error TypeScript should chill for tests here
-    const { data } = await movieService.getMovieById(id)
+    const result = await movieService.getMovieById(id)
 
-    expect(data).toBeNull()
+    expect(result).toBeNull()
     expect(mockMovieRepository.getMovieById).toHaveBeenCalledWith(id)
   })
 
   it('should get a movie by name', async () => {
-    mockMovieRepository.getMovieByName.mockResolvedValue(mockMovieResponse)
+    mockMovieRepository.getMovieByName.mockResolvedValue(mockMovie)
 
-    // @ts-expect-error TypeScript should chill for tests here
-    const { data } = await movieService.getMovieByName(mockMovie.name)
+    const result = await movieService.getMovieByName(mockMovie.name)
 
-    expect(data).toEqual(mockMovie)
+    expect(result).toEqual(mockMovie)
     expect(mockMovieRepository.getMovieByName).toHaveBeenCalledWith(
       mockMovie.name
     )
   })
 
   it('should return null if movie by name not found', async () => {
-    mockMovieRepository.getMovieByName.mockResolvedValue(notFoundResponse)
+    mockMovieRepository.getMovieByName.mockResolvedValue(null)
     const name = 'Non-existent Movie'
 
-    // @ts-expect-error TypeScript should chill for tests here
-    const { data } = await movieService.getMovieByName(name)
+    const result = await movieService.getMovieByName(name)
 
-    expect(data).toBeNull()
+    expect(result).toBeNull()
     expect(mockMovieRepository.getMovieByName).toHaveBeenCalledWith(name)
   })
 
   it('should add a new movie', async () => {
     const expectedResult = {
       status: 200,
-      data: mockMovie,
+      movie: mockMovie,
       error: undefined
     }
     mockMovieRepository.addMovie.mockResolvedValue(expectedResult)
@@ -114,7 +103,7 @@ describe('MovieService', () => {
   it('should update a movie', async () => {
     const expectedResult = {
       status: 200,
-      data: mockMovie,
+      movie: mockMovie,
       error: undefined
     }
     mockMovieRepository.updateMovie.mockResolvedValue(expectedResult)

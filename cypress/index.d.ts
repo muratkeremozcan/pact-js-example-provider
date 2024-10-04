@@ -1,14 +1,6 @@
 import type { UserData } from './support/register-login-user'
 import type { Movie } from '@prisma/client'
 import type { OpenAPIV31 } from 'openapi-types'
-import type {
-  UpdateMovieResponse,
-  CreateMovieResponse,
-  MovieNotFoundResponse,
-  ConflictMovieResponse,
-  GetMovieResponse,
-  DeleteMovieResponse
-} from './@types'
 
 export {}
 
@@ -20,7 +12,9 @@ declare global {
        * cy.getAllMovies()
        * ```
        */
-      getAllMovies(allowedToFail?: boolean): Chainable<GetMovieResponse>
+      getAllMovies(
+        allowedToFail?: boolean
+      ): Chainable<Response<Movie[]> & Messages>
 
       /** Gets a movie by id
        * ```js
@@ -30,7 +24,7 @@ declare global {
       getMovieById(
         id: number,
         allowedToFail?: boolean
-      ): Chainable<GetMovieResponse>
+      ): Chainable<Response<Movie> & Messages>
 
       /** Gets a movie by name
        * ```js
@@ -40,7 +34,7 @@ declare global {
       getMovieByName(
         name: string,
         allowedToFail?: boolean
-      ): Chainable<GetMovieResponse>
+      ): Chainable<Response<Movie> & Messages>
 
       /** Creates a movie
        * ```js
@@ -50,7 +44,7 @@ declare global {
       addMovie(
         body: Omit<Movie, 'id'>,
         allowedToFail?: boolean
-      ): Chainable<CreateMovieResponse>
+      ): Chainable<Response<Omit<Movie, 'id'>> & Messages>
 
       /** Updates a movie by id
        * ```js
@@ -60,7 +54,7 @@ declare global {
       updateMovie(
         id: number,
         body: Partial<Movie>
-      ): Chainable<UpdateMovieResponse>
+      ): Chainable<Response<Movie> & Messages>
 
       /** Deletes a movie
        * ```js
@@ -70,7 +64,7 @@ declare global {
       deleteMovie(
         id: number,
         allowedToFail?: boolean
-      ): Chainable<DeleteMovieResponse>
+      ): Chainable<Response<Movie> & Messages>
 
       /**
        * Validates the response body against the provided schema.
