@@ -52,9 +52,9 @@ describe('MovieAdapter', () => {
     it('should get all movies', async () => {
       prismaMock.movie.findMany.mockResolvedValue([mockMovie])
 
-      const { data } = await movieAdapter.getMovies()
+      const result = await movieAdapter.getMovies()
 
-      expect(data).toEqual([mockMovie])
+      expect(result).toEqual([mockMovie])
       expect(prismaMock.movie.findMany).toHaveBeenCalledTimes(1)
     })
 
@@ -64,7 +64,7 @@ describe('MovieAdapter', () => {
       )
 
       const result = await movieAdapter.getMovies()
-      expect(result.data).toBe(null) // empty array on error
+      expect(result).toEqual([]) // empty array on error
       expect(prismaMock.movie.findMany).toHaveBeenCalledTimes(1)
     })
   })
@@ -73,10 +73,9 @@ describe('MovieAdapter', () => {
     it('should get a movie by id', async () => {
       prismaMock.movie.findUnique.mockResolvedValue(mockMovie)
 
-      // @ts-expect-error TypeScript should chill for tests here
-      const { data } = await movieAdapter.getMovieById(mockMovie.id)
+      const result = await movieAdapter.getMovieById(mockMovie.id)
 
-      expect(data).toEqual(mockMovie)
+      expect(result).toEqual(mockMovie)
       expect(prismaMock.movie.findUnique).toHaveBeenCalledWith({
         where: { id: mockMovie.id }
       })
@@ -86,10 +85,9 @@ describe('MovieAdapter', () => {
       prismaMock.movie.findUnique.mockResolvedValue(null)
       const id = 999
 
-      // @ts-expect-error TypeScript should chill for tests here
-      const { data } = await movieAdapter.getMovieById(id)
+      const result = await movieAdapter.getMovieById(id)
 
-      expect(data).toBeNull()
+      expect(result).toBeNull()
       expect(prismaMock.movie.findUnique).toHaveBeenCalledWith({
         where: { id }
       })
@@ -100,10 +98,9 @@ describe('MovieAdapter', () => {
         new Error('Error fetching movie by id')
       )
 
-      // @ts-expect-error TypeScript should chill for tests here
-      const { data } = await movieAdapter.getMovieById(1)
+      const result = await movieAdapter.getMovieById(1)
 
-      expect(data).toBeNull()
+      expect(result).toBeNull() // Expect null on error
       expect(prismaMock.movie.findUnique).toHaveBeenCalledTimes(1)
     })
   })
@@ -112,9 +109,9 @@ describe('MovieAdapter', () => {
     it('should get a movie by name', async () => {
       prismaMock.movie.findFirst.mockResolvedValue(mockMovie)
 
-      const { data } = await movieAdapter.getMovieByName(mockMovie.name)
+      const result = await movieAdapter.getMovieByName(mockMovie.name)
 
-      expect(data).toEqual(mockMovie)
+      expect(result).toEqual(mockMovie)
       expect(prismaMock.movie.findFirst).toHaveBeenCalledWith({
         where: { name: mockMovie.name }
       })
@@ -124,9 +121,9 @@ describe('MovieAdapter', () => {
       prismaMock.movie.findFirst.mockResolvedValue(null)
       const name = 'Non-existent Movie'
 
-      const { data } = await movieAdapter.getMovieByName(name)
+      const result = await movieAdapter.getMovieByName(name)
 
-      expect(data).toBeNull()
+      expect(result).toBeNull()
       expect(prismaMock.movie.findFirst).toHaveBeenCalledWith({
         where: { name }
       })
@@ -137,9 +134,9 @@ describe('MovieAdapter', () => {
         new Error('Error fetching movie by name')
       )
 
-      const { data } = await movieAdapter.getMovieByName('Inception')
+      const result = await movieAdapter.getMovieByName('Inception')
 
-      expect(data).toBeNull() // Expect null on error
+      expect(result).toBeNull() // Expect null on error
       expect(prismaMock.movie.findFirst).toHaveBeenCalledTimes(1)
     })
   })
@@ -207,10 +204,13 @@ describe('MovieAdapter', () => {
       prismaMock.movie.create.mockResolvedValue({ id, ...movieData })
 
       const result = await movieAdapter.addMovie(movieData)
-      expect(result).toEqual({
-        status: 200,
-        data: { id, name: 'Inception', year: 2020 }
-      })
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          status: 200,
+          movie: { id, ...movieData }
+        })
+      )
       expect(prismaMock.movie.create).toHaveBeenCalledWith({ data: movieData })
     })
 
@@ -223,7 +223,7 @@ describe('MovieAdapter', () => {
       expect(result).toEqual(
         expect.objectContaining({
           status: 200,
-          data: { id, ...movieData }
+          movie: { id, ...movieData }
         })
       )
       expect(prismaMock.movie.create).toHaveBeenCalledWith({
@@ -287,7 +287,7 @@ describe('MovieAdapter', () => {
       const result = await movieAdapter.updateMovie(updateMovieData, id)
       expect(result).toEqual({
         status: 200,
-        data: updatedMovie
+        movie: updatedMovie
       })
 
       expect(prismaMock.movie.findUnique).toHaveBeenCalledWith({

@@ -8,9 +8,7 @@ import type {
   UpdateMovieResponse,
   CreateMovieResponse,
   MovieNotFoundResponse,
-  ConflictMovieResponse,
-  GetMovieResponse,
-  DeleteMovieResponse
+  ConflictMovieResponse
 } from './@types'
 
 // Initialize Express server
@@ -29,38 +27,21 @@ const movieAdapter = new MovieAdapter(prisma)
 const movieService = new MovieService(movieAdapter)
 
 type MovieResponse =
-  | DeleteMovieResponse
-  | GetMovieResponse
   | UpdateMovieResponse
   | CreateMovieResponse
   | MovieNotFoundResponse
   | ConflictMovieResponse
 
-function handleResponse(res: Response, result: MovieResponse): Response {
-  if ('error' in result && result.error) {
+function handleMovieResponse(res: Response, result: MovieResponse): Response {
+  if ('error' in result) {
     return res.status(result.status).json({ error: result.error })
-  } else if ('data' in result) {
-    if (result.data === null) {
-      return res.status(404).json({ error: 'No movies found' })
-    }
+  } else if ('movie' in result) {
     return res
       .status(result.status)
-      .json({ status: result.status, data: result.data })
-  } else if ('message' in result) {
-    // Handle delete movie case with a success message
-    return res
-      .status(result.status)
-      .json({ status: result.status, message: result.message })
+      .json({ status: result.status, movie: result.movie })
   } else {
     return res.status(500).json({ error: 'Unexpected error occurred' })
   }
-}
-
-function validateId(res: Response, id: number): boolean | Response {
-  if (isNaN(id)) {
-    res.status(400).json({ error: 'Invalid movie ID provided' })
-    return false // prevent further execution
-  } else return true // id is valid
 }
 
 // Routes are focused on handling HTTP requests and responses,
@@ -75,43 +56,57 @@ server.get('/movies', async (req, res) => {
 
   if (typeof name === 'string') {
     const movie = await movieService.getMovieByName(name as string)
-    return handleResponse(res, movie)
+    if (!movie) {
+      return res
+        .status(404)
+        .json({ error: `Movie with name "${name}" not found` })
+    } else {
+      return res.json(movie)
+    }
   } else if (name) {
     return res.status(400).json({ error: 'Invalid movie name provided' })
   } else {
     const allMovies = await movieService.getMovies()
-    return handleResponse(res, allMovies)
+    return res.json(allMovies)
   }
 })
 
 server.get('/movies/:id', async (req, res) => {
-  const movieId = parseInt(req.params.id!)
-  validateId(res, movieId)
+  const movie = await movieService.getMovieById(parseInt(req.params.id!))
 
-  const movie = await movieService.getMovieById(movieId)
-  return handleResponse(res, movie)
+  if (!movie) return res.status(404).json({ error: 'Movie not found' })
+  else return res.json(movie)
 })
 
 server.post('/movies', async (req, res) => {
   const result = await movieService.addMovie(req.body)
 
-  return handleResponse(res, result)
+  return handleMovieResponse(res, result)
 })
 
 server.put('/movies/:id', async (req, res) => {
   const movieId = parseInt(req.params.id!)
   const result = await movieService.updateMovie(req.body, movieId)
 
-  return handleResponse(res, result)
+  return handleMovieResponse(res, result)
 })
 
 server.delete('/movies/:id', async (req, res) => {
-  const movieId = parseInt(req.params.id!)
-  validateId(res, movieId)
+  const { status } = await movieService.deleteMovieById(
+    parseInt(req.params.id!)
+  )
 
-  const result = await movieService.deleteMovieById(movieId)
-
-  return handleResponse(res, result)
+  if (status === 404) {
+    return res.status(404).json({
+      error: `Movie ${req.params.id} not found`,
+      status: status
+    })
+  } else {
+    return res.status(200).json({
+      message: `Movie ${req.params.id} has been deleted`,
+      status: status
+    })
+  }
 })
 
 export { server }
