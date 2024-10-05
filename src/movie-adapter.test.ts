@@ -173,7 +173,7 @@ describe('MovieAdapter', () => {
 
       const expectedResult = {
         status: 404,
-        message: `Movie with ID ${id} not found`
+        error: `Movie with ID ${id} not found`
       }
       expect(result).toStrictEqual(expectedResult)
       expect(prismaMock.movie.delete).toHaveBeenCalledWith({ where: { id } })
