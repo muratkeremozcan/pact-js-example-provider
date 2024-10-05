@@ -112,7 +112,7 @@ describe('CRUD movie', () => {
           .should(
             spok({
               status: 404,
-              message: spok.string
+              error: spok.string
             })
           )
           .validateSchema(schema, {
