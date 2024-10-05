@@ -172,7 +172,7 @@ export class MovieAdapter implements MovieRepository {
       ) {
         return {
           status: 404,
-          message: `Movie with ID ${id} not found`
+          error: `Movie with ID ${id} not found`
         }
       }
       this.handleError(error)
