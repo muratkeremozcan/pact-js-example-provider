@@ -39,7 +39,10 @@
             "example": 2010
           }
         },
-        "required": ["name", "year"]
+        "required": [
+          "name",
+          "year"
+        ]
       },
       "CreateMovieResponse": {
         "type": "object",
@@ -68,7 +71,11 @@
                 "example": 2010
               }
             },
-            "required": ["id", "name", "year"],
+            "required": [
+              "id",
+              "name",
+              "year"
+            ],
             "description": "Movie data"
           },
           "error": {
@@ -76,7 +83,10 @@
             "description": "Error message, if any"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetMovieResponse": {
         "type": "object",
@@ -107,7 +117,11 @@
                     "example": 2010
                   }
                 },
-                "required": ["id", "name", "year"]
+                "required": [
+                  "id",
+                  "name",
+                  "year"
+                ]
               },
               {
                 "type": "array",
@@ -130,7 +144,11 @@
                       "example": 2010
                     }
                   },
-                  "required": ["id", "name", "year"]
+                  "required": [
+                    "id",
+                    "name",
+                    "year"
+                  ]
                 },
                 "description": "List of movies or an empty array if no movies exist",
                 "example": []
@@ -141,11 +159,18 @@
             ]
           },
           "error": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Error message if an error occurred, otherwise null"
           }
         },
-        "required": ["status", "data", "error"]
+        "required": [
+          "status",
+          "data",
+          "error"
+        ]
       },
       "MovieNotFound": {
         "type": "object",
@@ -161,7 +186,10 @@
             "example": "Movie not found"
           }
         },
-        "required": ["status", "error"]
+        "required": [
+          "status",
+          "error"
+        ]
       },
       "DeleteMovieMessage": {
         "type": "object",
@@ -177,7 +205,10 @@
             "example": "Movie {id} has been deleted"
           }
         },
-        "required": ["status", "message"]
+        "required": [
+          "status",
+          "message"
+        ]
       },
       "DeleteMovieResponse": {
         "type": "object",
@@ -193,7 +224,10 @@
             "example": "Movie {id} has been deleted"
           }
         },
-        "required": ["status", "message"]
+        "required": [
+          "status",
+          "message"
+        ]
       },
       "UpdateMovieResponse": {
         "type": "object",
@@ -222,7 +256,11 @@
                 "example": 2010
               }
             },
-            "required": ["id", "name", "year"],
+            "required": [
+              "id",
+              "name",
+              "year"
+            ],
             "description": "Updated movie data"
           },
           "error": {
@@ -230,7 +268,10 @@
             "description": "Error message, if any"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateMovieRequest": {
         "type": "object",
@@ -326,7 +367,10 @@
                       "example": "Movie not found"
                     }
                   },
-                  "required": ["status", "error"]
+                  "required": [
+                    "status",
+                    "error"
+                  ]
                 }
               }
             }
@@ -377,7 +421,10 @@
                       "example": "Movie already exists"
                     }
                   },
-                  "required": ["status", "error"]
+                  "required": [
+                    "status",
+                    "error"
+                  ]
                 }
               }
             }
@@ -432,7 +479,10 @@
                       "example": "Movie not found"
                     }
                   },
-                  "required": ["status", "error"]
+                  "required": [
+                    "status",
+                    "error"
+                  ]
                 }
               }
             }
@@ -481,7 +531,10 @@
                       "example": "Movie not found"
                     }
                   },
-                  "required": ["status", "error"]
+                  "required": [
+                    "status",
+                    "error"
+                  ]
                 }
               }
             }
@@ -540,7 +593,10 @@
                       "example": "Movie not found"
                     }
                   },
-                  "required": ["status", "error"]
+                  "required": [
+                    "status",
+                    "error"
+                  ]
                 }
               }
             }
