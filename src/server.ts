@@ -38,10 +38,14 @@ type MovieResponse =
 
 function handleResponse(res: Response, result: MovieResponse): Response {
   if ('error' in result && result.error) {
-    return res.status(result.status).json({ error: result.error })
+    return res
+      .status(result.status)
+      .json({ status: result.status, error: result.error })
   } else if ('data' in result) {
     if (result.data === null) {
-      return res.status(404).json({ error: 'No movies found' })
+      return res
+        .status(result.status)
+        .json({ status: result.status, error: 'No movies found' })
     }
     return res
       .status(result.status)
