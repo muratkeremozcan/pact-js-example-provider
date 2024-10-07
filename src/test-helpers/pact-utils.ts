@@ -105,10 +105,12 @@ export function buildVerifierOptions({
     'Provider Version Branch': providerVersionBranch,
     'Pact Broker URL': pactBrokerUrl,
     'Pact Payload URL': pactPayloadUrl || 'Not Provided',
-    'Enable Pending': enablePending
+    'Enable Pending': enablePending,
+    'Request Filter':
+      requestFilter === noOpRequestFilter
+        ? 'Default (No-Op)'
+        : 'Custom Provided'
   })
-
-  console.log('Request filter being passed to Verifier:', requestFilter)
 
   const options: VerifierOptions = {
     provider,
@@ -124,8 +126,6 @@ export function buildVerifierOptions({
     providerVersionBranch,
     enablePending // use this if breaking changes from a consumer somehow got in main, and the provider cannot release (allow blasphemy!)
   }
-
-  console.log('Verifier options:', options)
 
   // When the CI triggers the provider tests, we need to use the PACT_PAYLOAD_URL
   // To use the PACT_PAYLOAD_URL, we need to update the provider options to use this URL instead.

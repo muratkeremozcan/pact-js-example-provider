@@ -35,7 +35,7 @@ const handleExpressEnv = (
 /**
  * Creates a request filter function that adds an Authorization header if not present.
  * The function is designed as a higher-order function to allow for customization of token generation
- * and also to fulfill Pact's type requirements of handling three arguments: `req`, `res`, and `next`.
+ * and also to fulfill Pact's express-like type requirements of handling three arguments : `req`, `res`, and `next`.
  *
  * @param {RequestFilterOptions} [options] - Options to customize the token generation logic.
  * @returns {ProxyOptions['requestFilter']} - A request filter that adds Authorization header. */
@@ -49,8 +49,6 @@ const createRequestFilter =
     if (!req.headers['Authorization']) {
       req.headers['Authorization'] = `Bearer ${tokenGenerator()}`
     }
-
-    console.log('Modified headers:', req.headers)
 
     return handleExpressEnv(req, next)
   }
