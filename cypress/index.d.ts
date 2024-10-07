@@ -17,27 +17,32 @@ declare global {
     interface Chainable<Subject> {
       /** Gets a list of movies
        * ```js
-       * cy.getAllMovies()
+       * cy.getAllMovies(token)
        * ```
        */
-      getAllMovies(allowedToFail?: boolean): Chainable<GetMovieResponse>
+      getAllMovies(
+        token: string,
+        allowedToFail?: boolean
+      ): Chainable<GetMovieResponse>
 
       /** Gets a movie by id
        * ```js
-       * cy.getMovieById(1)
+       * cy.getMovieById(token, 1)
        * ```
        */
       getMovieById(
+        token: string,
         id: number,
         allowedToFail?: boolean
       ): Chainable<GetMovieResponse>
 
       /** Gets a movie by name
        * ```js
-       * cy.getMovieByName('The Great Gatsby')
+       * cy.getMovieByName(token, 'The Great Gatsby')
        * ```
        */
       getMovieByName(
+        token: string,
         name: string,
         allowedToFail?: boolean
       ): Chainable<GetMovieResponse>
@@ -48,6 +53,7 @@ declare global {
        * ```
        */
       addMovie(
+        token: string,
         body: Omit<Movie, 'id'>,
         allowedToFail?: boolean
       ): Chainable<CreateMovieResponse>
@@ -58,6 +64,7 @@ declare global {
        * ```
        */
       updateMovie(
+        token: string,
         id: number,
         body: Partial<Movie>
       ): Chainable<UpdateMovieResponse>
@@ -68,6 +75,7 @@ declare global {
        * ```
        */
       deleteMovie(
+        token: string,
         id: number,
         allowedToFail?: boolean
       ): Chainable<DeleteMovieResponse>
@@ -105,6 +113,12 @@ declare global {
           status?: string | number
         }
       ): Chainable<Subject>
+
+      /**
+       * If the token exists, reuses it
+       * If no token is exists, gets a token
+       */
+      maybeGetToken(sessionName: string): Chainable<string>
     }
   }
 }

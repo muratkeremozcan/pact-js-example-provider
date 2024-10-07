@@ -15,7 +15,7 @@
     "reset:db": "tsx ./scripts/global-setup.ts",
     "start": "npm run db:migrate && npm run reset:db && nodemon",
     "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|ts|json)\"",
-    "fix:format": "npm run prettier -- --write",
+    "fix:format": "prettier --write '**/*.{js,ts,json}' --ignore-path .prettierignore",
     "validate": "npm-run-all --parallel typecheck lint fix:format test",
     "test": "jest --detectOpenHandles --verbose --silent --config jest.config.ts",
     "test:watch": "jest --watch --config jest.config.ts",

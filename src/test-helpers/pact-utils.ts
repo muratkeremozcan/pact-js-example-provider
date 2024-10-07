@@ -7,6 +7,7 @@ import type {
   ProxyOptions,
   StateHandlers
 } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
+import { noOpRequestFilter } from './pact-request-filter'
 
 /**
  * Builds a `VerifierOptions` object for Pact verification, encapsulating
@@ -26,6 +27,7 @@ import type {
  * @param includeMainAndDeployed - (Required) Flag indicating whether to include `mainBranch` and `deployedOrReleased` selectors. Should be explicitly controlled.
  * @param consumer - (Optional) A specific consumer to run verification for. If not provided, all consumers will be verified.
  * @param enablePending - (Optional, defaults to `false`) use this if breaking changes from a consumer somehow got in main, and the provider cannot release (allow blasphemy!)
+ * @param requestFilter = (Optional) A custom request filter function to modify incoming requests (ex: auth).
  * @param publishVerificationResult - (Optional, defaults to `true`) Whether to publish the verification result to the Pact Broker.
  * @param pactBrokerToken - (Optional) Token for authentication with the Pact Broker, defaults to environment variable.
  * @param providerVersion - (Optional) The version of the provider, typically tied to a Git commit or build.
@@ -65,6 +67,7 @@ export function buildVerifierOptions({
   includeMainAndDeployed,
   consumer,
   enablePending,
+  requestFilter = noOpRequestFilter,
   publishVerificationResult = true,
   pactBrokerToken = process.env.PACT_BROKER_TOKEN,
   providerVersion = process.env.GITHUB_SHA,
@@ -81,6 +84,7 @@ export function buildVerifierOptions({
   includeMainAndDeployed: boolean
   consumer?: string
   enablePending?: boolean
+  requestFilter?: ProxyOptions['requestFilter']
   publishVerificationResult?: boolean
   pactBrokerToken?: string
   providerVersion?: string
@@ -101,7 +105,11 @@ export function buildVerifierOptions({
     'Provider Version Branch': providerVersionBranch,
     'Pact Broker URL': pactBrokerUrl,
     'Pact Payload URL': pactPayloadUrl || 'Not Provided',
-    'Enable Pending': enablePending
+    'Enable Pending': enablePending,
+    'Request Filter':
+      requestFilter === noOpRequestFilter
+        ? 'Default (No-Op)'
+        : 'Custom Provided'
   })
 
   const options: VerifierOptions = {
@@ -110,6 +118,7 @@ export function buildVerifierOptions({
     stateHandlers,
     beforeEach,
     afterEach,
+    requestFilter,
     providerBaseUrl: `http://localhost:${port}`,
     publishVerificationResult,
     pactBrokerToken,

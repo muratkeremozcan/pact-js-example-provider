@@ -1,8 +1,10 @@
 import 'cypress-ajv-schema-validator'
+
 import type { Movie } from '@prisma/client'
 import { generateMovie } from '../support/factories'
 import spok from 'cy-spok'
 import schema from '../../src/api-docs/openapi.json'
+import { retryableBefore } from '../support/retryable-before'
 
 Cypress.Commands.overwrite('validateSchema', (originalFn, schema, options) => {
   cy.log('Schema validation is disabled for now')
@@ -18,8 +20,15 @@ describe('CRUD movie', () => {
     year: spok.number
   }
 
+  let token: string
+  retryableBefore(() => {
+    cy.maybeGetToken('token-session').then((t) => {
+      token = t
+    })
+  })
+
   it('should crud', () => {
-    cy.addMovie(movie)
+    cy.addMovie(token, movie)
       .should(
         spok({
           status: 200,
@@ -32,7 +41,7 @@ describe('CRUD movie', () => {
       })
       .its('data.id')
       .then((id) => {
-        cy.getAllMovies()
+        cy.getAllMovies(token)
           .should(
             spok({
               status: 200,
@@ -45,7 +54,7 @@ describe('CRUD movie', () => {
           })
           .findOne({ name: movie.name })
 
-        cy.getMovieById(id)
+        cy.getMovieById(token, id)
           .should(
             spok({
               status: 200,
@@ -61,7 +70,7 @@ describe('CRUD movie', () => {
           })
           .its('data.name')
           .then((name) => {
-            cy.getMovieByName(name)
+            cy.getMovieByName(token, name)
               .should(
                 spok({
                   status: 200,
@@ -76,7 +85,7 @@ describe('CRUD movie', () => {
               })
           })
 
-        cy.updateMovie(id, updatedMovie)
+        cy.updateMovie(token, id, updatedMovie)
           .should(
             spok({
               status: 200,
@@ -92,7 +101,7 @@ describe('CRUD movie', () => {
             status: 200
           })
 
-        cy.deleteMovie(id)
+        cy.deleteMovie(token, id)
           .should(
             spok({
               status: 200,
@@ -105,10 +114,10 @@ describe('CRUD movie', () => {
             status: 200
           })
 
-        cy.getAllMovies().findOne({ name: movie.name }).should('not.exist')
+        cy.getAllMovies(token).findOne({ name: movie.name }).should('not.exist')
 
         cy.log('**delete non existing movie**')
-        cy.deleteMovie(id, true) // allowedToFail
+        cy.deleteMovie(token, id, true) // allowedToFail
           .should(
             spok({
               status: 404,

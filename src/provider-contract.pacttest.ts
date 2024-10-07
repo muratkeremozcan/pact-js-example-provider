@@ -2,6 +2,7 @@ import { Verifier } from '@pact-foundation/pact'
 import { stateHandlers } from './test-helpers/state-handlers'
 import { buildVerifierOptions } from './test-helpers/pact-utils'
 import { truncateTables } from '../scripts/truncate-tables'
+import { requestFilter } from './test-helpers/pact-request-filter'
 
 // 1) Run the provider service
 // 2) Setup the provider verifier options
@@ -21,6 +22,7 @@ describe('Pact Verification', () => {
     enablePending: PACT_ENABLE_PENDING === 'true',
     port,
     stateHandlers,
+    requestFilter,
     beforeEach: async () => {
       // console.log('I run before each test coming from the consumer...')
       await truncateTables()
