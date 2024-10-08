@@ -61,6 +61,7 @@
     "cypress-ajv-schema-validator": "1.2.0",
     "cypress-data-session": "2.8.5",
     "cypress-map": "1.40.0",
+    "cypress-plugin-api": "^2.11.2",
     "dotenv": "16.4.5",
     "eslint": "8.57.1",
     "eslint-config-prettier": "9.1.0",
