@@ -16,8 +16,8 @@ const BASE_URL =
 const config = {
   e2e: {
     env: {
-      ENVIRONMENT: 'local'
-      // enableMismatchesOnUI: true
+      ENVIRONMENT: 'local',
+      enableMismatchesOnUI: true
       // disableSchemaValidation: true
     },
     baseUrl: BASE_URL
