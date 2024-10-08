@@ -6,12 +6,6 @@ import spok from 'cy-spok'
 import schema from '../../src/api-docs/openapi.json'
 import { retryableBefore } from '../support/retryable-before'
 
-Cypress.Commands.overwrite('validateSchema', (originalFn, schema, options) => {
-  cy.log('Schema validation is disabled for now')
-  // Return the original Cypress chain, which effectively skips the validation
-  return originalFn(schema, options)
-})
-
 describe('CRUD movie', () => {
   const movie = generateMovie()
   const updatedMovie = generateMovie()
