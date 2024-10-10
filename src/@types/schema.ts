@@ -82,7 +82,7 @@ export const GetMovieResponseUnionSchema = z
         example: []
       })
     ]),
-    error: z.string().nullable().openapi({
+    error: z.string().nullable().optional().openapi({
       description: 'Error message if an error occurred, otherwise null',
       example: null
     })

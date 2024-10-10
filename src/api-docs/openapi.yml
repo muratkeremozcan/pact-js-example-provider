@@ -122,7 +122,6 @@ components:
       required:
         - status
         - data
-        - error
     MovieNotFound:
       type: object
       properties:

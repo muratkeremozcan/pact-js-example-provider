@@ -168,8 +168,7 @@
         },
         "required": [
           "status",
-          "data",
-          "error"
+          "data"
         ]
       },
       "MovieNotFound": {

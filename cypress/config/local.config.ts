@@ -3,8 +3,9 @@ import { defineConfig } from 'cypress'
 import { baseConfig } from './base.config'
 import path from 'node:path'
 import merge from 'lodash/merge'
+import { config as dotenvConfig } from 'dotenv'
 
-require('dotenv').config({
+dotenvConfig({
   path: path.resolve(__dirname, '../../.env')
 })
 
@@ -15,7 +16,9 @@ const BASE_URL =
 const config = {
   e2e: {
     env: {
-      ENVIRONMENT: 'local'
+      ENVIRONMENT: 'local',
+      enableMismatchesOnUI: true
+      // disableSchemaValidation: true
     },
     baseUrl: BASE_URL
   }
