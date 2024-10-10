@@ -6,12 +6,6 @@ import spok from 'cy-spok'
 import schema from '../../src/api-docs/openapi.json'
 import { retryableBefore } from '../support/retryable-before'
 
-Cypress.Commands.overwrite('validateSchema', (originalFn, schema, options) => {
-  cy.log('Schema validation is disabled for now')
-  // Return the original Cypress chain, which effectively skips the validation
-  return originalFn(schema, options)
-})
-
 describe('CRUD movie', () => {
   const movie = generateMovie()
   const updatedMovie = generateMovie()
@@ -29,32 +23,39 @@ describe('CRUD movie', () => {
 
   it('should crud', () => {
     cy.addMovie(token, movie)
+      .validateSchema(schema, {
+        endpoint: '/movies',
+        method: 'POST'
+      })
+      .its('body')
       .should(
         spok({
           status: 200,
           data: movieProps
         })
       )
-      .validateSchema(schema, {
-        endpoint: '/movies',
-        method: 'POST'
-      })
       .its('data.id')
       .then((id) => {
         cy.getAllMovies(token)
+          .validateSchema(schema, {
+            endpoint: '/movies',
+            method: 'GET'
+          })
+          .its('body')
           .should(
             spok({
               status: 200,
               data: spok.array
             })
           )
-          .validateSchema(schema, {
-            endpoint: '/movies',
-            method: 'GET'
-          })
           .findOne({ name: movie.name })
 
         cy.getMovieById(token, id)
+          .validateSchema(schema, {
+            endpoint: '/movies/{id}',
+            method: 'GET'
+          })
+          .its('body')
           .should(
             spok({
               status: 200,
@@ -64,13 +65,14 @@ describe('CRUD movie', () => {
               }
             })
           )
-          .validateSchema(schema, {
-            endpoint: '/movies/{id}',
-            method: 'GET'
-          })
           .its('data.name')
           .then((name) => {
             cy.getMovieByName(token, name)
+              .validateSchema(schema, {
+                endpoint: '/movies',
+                method: 'GET'
+              })
+              .its('body')
               .should(
                 spok({
                   status: 200,
@@ -79,13 +81,16 @@ describe('CRUD movie', () => {
                   }
                 })
               )
-              .validateSchema(schema, {
-                endpoint: '/movies',
-                method: 'GET'
-              })
           })
 
         cy.updateMovie(token, id, updatedMovie)
+          .tap()
+          .validateSchema(schema, {
+            endpoint: '/movies/{id}',
+            method: 'PUT',
+            status: 200
+          })
+          .its('body')
           .should(
             spok({
               status: 200,
@@ -95,40 +100,37 @@ describe('CRUD movie', () => {
               }
             })
           )
-          .validateSchema(schema, {
-            endpoint: '/movies/{id}',
-            method: 'PUT',
-            status: 200
-          })
 
         cy.deleteMovie(token, id)
+          .validateSchema(schema, {
+            endpoint: '/movies/{id}',
+            method: 'DELETE',
+            status: 200
+          })
+          .its('body')
           .should(
             spok({
               status: 200,
               message: spok.string
             })
           )
-          .validateSchema(schema, {
-            endpoint: '/movies/{id}',
-            method: 'DELETE',
-            status: 200
-          })
 
         cy.getAllMovies(token).findOne({ name: movie.name }).should('not.exist')
 
         cy.log('**delete non existing movie**')
-        cy.deleteMovie(token, id, true) // allowedToFail
+        cy.deleteMovie(token, id, true)
+          .validateSchema(schema, {
+            endpoint: '/movies/{id}',
+            method: 'DELETE',
+            status: 404
+          })
+          .its('body')
           .should(
             spok({
               status: 404,
               error: spok.string
             })
           )
-          .validateSchema(schema, {
-            endpoint: '/movies/{id}',
-            method: 'DELETE',
-            status: 404
-          })
       })
   })
 })

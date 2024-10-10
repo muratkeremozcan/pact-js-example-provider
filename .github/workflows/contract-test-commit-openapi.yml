@@ -56,6 +56,7 @@ jobs:
           message: 'Update OpenAPI spec'
           add: 'src/api-docs/openapi.yml src/api-docs/openapi.json'
           push: true
+          github_token: ${{ secrets.PAT_TOKEN }} # need a personal access token with workflow scope, so that the rerun triggers everything
 
       - name: Create empty commit to re-run checks
         if: env.changes == 'true'
