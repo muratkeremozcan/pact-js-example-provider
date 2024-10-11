@@ -1,0 +1,68 @@
+# This docker-compose file can be used to start Kafka and its dependencies locally.
+# If Kafka is not running, movie CRUD operations will still work but the movie events will not be published.
+
+version: '3.8'  # Version of Docker Compose file format
+
+services:
+  kafka:
+    image: confluentinc/cp-kafka:6.0.14  # Kafka Docker image
+    platform: linux/amd64  # Ensures compatibility with AMD64 architecture
+    depends_on:
+      - zookeeper  # Kafka requires Zookeeper for managing configurations and cluster state
+    ports:
+      - '29092:29092'  # Exposes Kafka on port 29092 for external access
+    expose:
+      - '29092'  # Makes port 29092 available for other containers in the same Docker network
+    environment:
+      KAFKA_BROKER_ID: 1  # Unique identifier for this Kafka broker
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'  # Connects Kafka to the Zookeeper service via its default port 2181
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka:9092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:29092
+      # Kafka uses advertised listeners to allow clients to connect. One listener for internal Docker network and another for external access.
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      # Mapping listener protocols to plaintext (no encryption/authentication).
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL  # Used for inter-broker communication within Docker network
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # Replication factor for Kafka's internal topic used to manage consumer offsets
+    volumes:
+      - kafka_data:/var/lib/kafka/data  # Persistent storage for Kafka logs to avoid data loss during container restarts
+
+  init-kafka:
+    image: confluentinc/cp-kafka:6.0.14  # Kafka image, the same as the main Kafka broker
+    depends_on:
+      - kafka  # Will run after the Kafka broker is up and running
+    entrypoint: ['/bin/sh', '-c']  # Defines the shell entry point for this container
+    command: |
+      "
+      # The command to initialize Kafka topics
+      # Waits until Kafka is available and lists topics to ensure the broker is up
+      kafka-topics --bootstrap-server kafka:9092 --list
+
+      # Create the 'movies' topic if it does not already exist
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic movies --replication-factor 1 --partitions 1
+
+      # Output the list of all topics in Kafka
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:9092 --list
+      "
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest  # Kafka UI tool for managing and viewing topics and brokers
+    ports:
+      - 8085:8080  # Exposes the Kafka UI on port 8085 (localhost:8085 in the browser)
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local  # Names the Kafka cluster in the UI as 'local'
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092  # Connects the UI to the Kafka broker
+      DYNAMIC_CONFIG_ENABLED: 'true'  # Enables dynamic configuration in the UI
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:6.0.14  # Zookeeper image for managing Kafka configurations and metadata
+    platform: linux/amd64  # Ensures compatibility with AMD64 architecture
+    ports:
+      - '22181:2181'  # Exposes Zookeeper on port 2181 for external access
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181  # Default client port for Zookeeper communication
+      ZOOKEEPER_TICK_TIME: 2000  # Zookeeper heartbeat interval in milliseconds
+
+volumes:
+  kafka_data:
+    driver: local  # Define a Docker volume to persist Kafka data

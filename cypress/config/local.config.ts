@@ -17,8 +17,9 @@ const config = {
   e2e: {
     env: {
       ENVIRONMENT: 'local',
-      enableMismatchesOnUI: true
-      // disableSchemaValidation: true
+      enableMismatchesOnUI: true,
+      // disableSchemaValidation: true,
+      KAFKA_UI_URL: 'http://localhost:8085' // defined at src/events/kafka-cluster.yml L85, purely optional
     },
     baseUrl: BASE_URL
   }

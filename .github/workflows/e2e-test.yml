@@ -16,6 +16,7 @@ env:
   PORT: 3001
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+  KAFKAJS_NO_PARTITIONER_WARNING: 1 # less kafka noise
 
 jobs:
   e2e-test:
@@ -37,6 +38,11 @@ jobs:
         run: |
           npm install -D tsx
           npm run generate:openapi
+
+      # Start Kafka before running the tests
+      # Locally if no Kafka, the kafka version of the e2e test just doesn't run
+      - name: Start Kafka
+        run: docker compose -f ./src/events/kafka-cluster.yml up -d --no-recreate
 
       - name: Cypress e2e tests 🧪
         id: cypress-tests
@@ -69,3 +75,8 @@ jobs:
           message: 'Update verification results'
           add: 'cypress/verification-result.txt'
           push: true
+
+      # Stop Kafka after tests are completed
+      - name: Stop Kafka
+        if: always()
+        run: docker compose -f ./src/events/kafka-cluster.yml down

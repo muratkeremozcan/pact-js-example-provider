@@ -11,6 +11,7 @@ import { validateId } from './middleware/validate-movie-id'
 import { MovieAdapter } from './movie-adapter'
 import { MovieService } from './movie-service'
 import { formatResponse } from './utils/format-response'
+import { produceMovieEvent } from './events/movie-events'
 
 export const moviesRoute = Router()
 
@@ -42,6 +43,12 @@ moviesRoute.get('/', async (req, res) => {
 
 moviesRoute.post('/', async (req, res) => {
   const result = await movieService.addMovie(req.body)
+
+  if ('data' in result) {
+    const movie = result.data
+    await produceMovieEvent(movie)
+  }
+
   return formatResponse(res, result as CreateMovieResponse)
 })
 
