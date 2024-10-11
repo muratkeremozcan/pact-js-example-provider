@@ -16,6 +16,7 @@ env:
   PORT: 3001
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+  KAFKAJS_NO_PARTITIONER_WARNING: 1 # less kafka noise
 
 jobs:
   e2e-test:
