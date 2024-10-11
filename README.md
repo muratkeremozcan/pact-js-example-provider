@@ -114,11 +114,6 @@ npm run record:provider:deployment --env=dev # (5) change the env param as neede
 ### Other scripts on both sides
 
 ```bash
-# start Docker first, and then run this
-# if Kafka isn't up, nothing in CRUD movie fails, but the movie events do not get published
-npm run kafka:start
-npm run kafka:stop
-
 npm run lint
 npm run typecheck
 npm run fix:format
@@ -144,7 +139,12 @@ npm run mock:server # starts the mock backend/provider server
 
 #### Provider specific scripts
 
+Using Kafka and Docker is optional. The Kafka version of the CRUD e2e test checks whether Kafka events are being written to a file, in addition to the standard CRUD operations. This test will only run if Docker is started and the Kafka UI is available. Therefore, make sure to start Docker (e.g., Docker Desktop) before executing the `kafka:start` script and the e2e test `crud-movie-event.cy.ts`.
+
 ```bash
+npm run kafka:start # start Docker first, and then run this
+npm run kafka:stop # to stop when we are done
+
 # these 2 run as a part of start, and reset the db
 # you usually don't have to use them
 npm run db:migrate
