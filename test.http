@@ -16,7 +16,7 @@ GET {{baseUrl}}
 # @name addMovie
 POST {{baseUrl}}/movies
 Content-Type: application/json
-Authorization: Bearer 2024-10-11T10:54:06.610Z
+Authorization: {{token}}
 
 {
     "name": "Inception",

@@ -21,7 +21,7 @@ npm-debug.log*
 **/downloads
 **/cypress.env.json
 # for checking kafka events
-./cypress/movie-events.log
+cypress/movie-events.log
 
 # Prisma
 prisma/dev.db
