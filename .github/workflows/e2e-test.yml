@@ -38,6 +38,11 @@ jobs:
           npm install -D tsx
           npm run generate:openapi
 
+      # Start Kafka before running the tests
+      # Locally if no Kafka, the kafka version of the e2e test just doesn't run
+      - name: Start Kafka
+        run: docker compose -f ./src/events/kafka-cluster.yml up -d --no-recreate
+
       - name: Cypress e2e tests 🧪
         id: cypress-tests
         uses: cypress-io/github-action@v6.7.6
@@ -69,3 +74,8 @@ jobs:
           message: 'Update verification results'
           add: 'cypress/verification-result.txt'
           push: true
+
+      # Stop Kafka after tests are completed
+      - name: Stop Kafka
+        if: always()
+        run: docker compose -f ./src/events/kafka-cluster.yml down

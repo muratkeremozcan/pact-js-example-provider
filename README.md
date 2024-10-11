@@ -114,6 +114,11 @@ npm run record:provider:deployment --env=dev # (5) change the env param as neede
 ### Other scripts on both sides
 
 ```bash
+# start Docker first, and then run this
+# if Kafka isn't up, nothing in CRUD movie fails, but the movie events do not get published
+npm run kafka:start
+npm run kafka:stop
+
 npm run lint
 npm run typecheck
 npm run fix:format

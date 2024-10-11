@@ -5,7 +5,8 @@
 # Simulate token generation (mocked)
 GET {{baseUrl}}/auth/fake-token
 
-@token =  {{generateToken.response.body.token}}
+###
+@token = {{generateToken.response.body.token}}
 
 ###
 # @name heartbeat
@@ -15,12 +16,14 @@ GET {{baseUrl}}
 # @name addMovie
 POST {{baseUrl}}/movies
 Content-Type: application/json
-Authorization: {{token}}
+Authorization: Bearer 2024-10-11T10:54:06.610Z
 
 {
-    "name": "Inception 2",
+    "name": "Inception",
     "year": 2010
 }
+
+###
 
 @movieId = {{addMovie.response.body.data.id}}
 @movieName = {{addMovie.response.body.data.name}}
