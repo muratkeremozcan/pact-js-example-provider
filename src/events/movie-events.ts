@@ -17,7 +17,7 @@ const kafka = new Kafka({
 })
 const producer = kafka.producer()
 
-type MovieAction = 'created' | 'updated' | 'deleted'
+export type MovieAction = 'created' | 'updated' | 'deleted'
 type Event<T extends string> = {
   topic: `movie-${T}`
   messages: Array<{
@@ -25,7 +25,7 @@ type Event<T extends string> = {
     value: string // serialized movie object
   }>
 }
-type MovieEvent = Event<MovieAction>
+export type MovieEvent = Event<MovieAction>
 
 // console log it and write the event to a file, so we can somewhat verify them
 // in the real world, you might check db, other services, or any other external side effects
