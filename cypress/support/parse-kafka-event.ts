@@ -1,8 +1,11 @@
 // all Kafka events are logged to a file, so we can somewhat verify them
 // in the real world, you might check db, other services, or any other external side effects
 
-import type { MovieEvent, MovieAction } from '../../src/events/movie-events'
-import { logFilePath } from '../../src/events/movie-events'
+import type {
+  MovieEvent,
+  MovieAction
+} from '../../src/@types/movie-event-types'
+import { logFilePath } from '../../src/events/log-file-path'
 
 /**
  * Reshapes the Kafka event entry into a simplified format for easier processing.
@@ -39,7 +42,7 @@ const filterByTopicAndId =
  */
 export const parseKafkaEvent = (
   movieId: number,
-  topic: `movie=${MovieAction}`,
+  topic: `movie-${MovieAction}`,
   filePath = logFilePath
 ) =>
   cy
@@ -49,6 +52,4 @@ export const parseKafkaEvent = (
     .invoke('split', '\n')
     .map(JSON.parse)
     .map(reshape)
-    .tap()
     .apply(filterByTopicAndId(movieId, topic))
-    .its(0)

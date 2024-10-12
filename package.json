@@ -66,6 +66,7 @@
     "cypress-ajv-schema-validator": "1.3.0",
     "cypress-data-session": "2.8.5",
     "cypress-map": "1.40.0",
+    "cypress-recurse": "^1.35.3",
     "cypress-skip-test": "^1.0.0",
     "dotenv": "16.4.5",
     "eslint": "8.57.1",
