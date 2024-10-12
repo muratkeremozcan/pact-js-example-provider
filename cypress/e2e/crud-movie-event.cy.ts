@@ -47,15 +47,13 @@ describe('CRUD movie', () => {
       )
       .its('data.id')
       .then((id) => {
-        parseKafkaEvent(id, 'movie-created')
-          .its(0)
-          .should(
-            spok({
-              topic: 'movie-created',
-              key: String(id),
-              movie: { ...movieProps, id }
-            })
-          )
+        parseKafkaEvent(id, 'movie-created').should(
+          spok({
+            topic: 'movie-created',
+            key: String(id),
+            movie: { ...movieProps, id }
+          })
+        )
 
         cy.getAllMovies(token)
           .validateSchema(schema, {
@@ -121,6 +119,14 @@ describe('CRUD movie', () => {
             })
           )
 
+        parseKafkaEvent(id, 'movie-updated').should(
+          spok({
+            topic: 'movie-updated',
+            key: String(id),
+            movie: { ...movieProps, id }
+          })
+        )
+
         cy.deleteMovie(token, id)
           .validateSchema(schema, {
             endpoint: '/movies/{id}',
@@ -134,6 +140,14 @@ describe('CRUD movie', () => {
               message: spok.string
             })
           )
+
+        parseKafkaEvent(id, 'movie-deleted').should(
+          spok({
+            topic: 'movie-deleted',
+            key: String(id),
+            movie: { ...movieProps, id }
+          })
+        )
 
         cy.getAllMovies(token).findOne({ name: movie.name }).should('not.exist')
 

@@ -38,13 +38,13 @@ const filterByTopicAndId =
  * Parses the Kafka event log file and filters events based on the topic and movieId.
  *
  * @param {number} movieId - The ID of the movie to filter for.
- * @param {string} topic - The Kafka topic to filter by.
+ * @param {'movie-created' | 'movie-updated' | 'movie-deleted'} topic - The Kafka topic to filter by.
  * @param {string} [filePath=logFilePath] - Optional file path for the Kafka event log file.
  * @returns {Cypress.Chainable} - A Cypress chainable that resolves to the first matching event.
  */
 export const parseKafkaEvent = (
   movieId: number,
-  topic: string,
+  topic: 'movie-created' | 'movie-updated' | 'movie-deleted',
   filePath = logFilePath
 ) =>
   cy
@@ -54,4 +54,6 @@ export const parseKafkaEvent = (
     .invoke('split', '\n')
     .map(JSON.parse)
     .map(reshape)
+    .tap()
     .apply(filterByTopicAndId(movieId, topic))
+    .its(0)
