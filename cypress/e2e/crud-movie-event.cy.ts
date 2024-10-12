@@ -1,12 +1,13 @@
-import 'cypress-ajv-schema-validator'
 import '@cypress/skip-test/support'
+import 'cypress-ajv-schema-validator'
 
 import type { Movie } from '@prisma/client'
-import { generateMovie } from '../support/factories'
 import spok from 'cy-spok'
 import schema from '../../src/api-docs/openapi.json'
-import { retryableBefore } from '../support/retryable-before'
+import { generateMovie } from '../support/factories'
 import { parseKafkaEvent } from '../support/parse-kafka-event'
+import { retryableBefore } from '../support/retryable-before'
+import { recurse } from 'cypress-recurse'
 
 describe('CRUD movie', () => {
   const movie = generateMovie()
@@ -25,7 +26,10 @@ describe('CRUD movie', () => {
       {
         failOnNonZeroExit: false
       }
-    ).then((res) => cy.skipOn(res.stdout !== '200'))
+    ).then((res) => {
+      cy.log('**npm run kafka:start to enable this test**')
+      cy.skipOn(res.stdout !== '200')
+    })
 
     cy.maybeGetToken('token-session').then((t) => {
       token = t
@@ -47,15 +51,29 @@ describe('CRUD movie', () => {
       )
       .its('data.id')
       .then((id) => {
-        parseKafkaEvent(id, 'movie-created')
-          .its(0)
-          .should(
-            spok({
+        // this can work when setTimeout is 0, or if sync event, if longer than that, it will fail
+        // parseKafkaEvent(id, 'movie-created').should(
+        //   spok([
+        //     {
+        //       topic: 'movie-created',
+        //       key: String(id),
+        //       movie: { ...movieProps, id }
+        //     }
+        //   ])
+        // )
+        // in the real world, the events will take place asynchronously
+        // unlike our naive file write check
+        // therefore we have to assert things via recursive assertions
+        recurse(
+          () => parseKafkaEvent(id, 'movie-created'),
+          spok([
+            {
               topic: 'movie-created',
               key: String(id),
               movie: { ...movieProps, id }
-            })
-          )
+            }
+          ])
+        )
 
         cy.getAllMovies(token)
           .validateSchema(schema, {
@@ -121,6 +139,17 @@ describe('CRUD movie', () => {
             })
           )
 
+        recurse(
+          () => parseKafkaEvent(id, 'movie-updated'),
+          spok([
+            {
+              topic: 'movie-updated',
+              key: String(id),
+              movie: { ...movieProps, id }
+            }
+          ])
+        )
+
         cy.deleteMovie(token, id)
           .validateSchema(schema, {
             endpoint: '/movies/{id}',
@@ -134,6 +163,17 @@ describe('CRUD movie', () => {
               message: spok.string
             })
           )
+
+        recurse(
+          () => parseKafkaEvent(id, 'movie-deleted'),
+          spok([
+            {
+              topic: 'movie-deleted',
+              key: String(id),
+              movie: { id, ...movieProps }
+            }
+          ])
+        )
 
         cy.getAllMovies(token).findOne({ name: movie.name }).should('not.exist')
 

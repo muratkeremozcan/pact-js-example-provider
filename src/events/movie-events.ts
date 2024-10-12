@@ -1,8 +1,9 @@
 import type { Movie } from '@prisma/client'
 import { Kafka } from 'kafkajs'
-import fs from 'node:fs'
-
-export const logFilePath = './cypress/movie-events.log'
+import syncFs from 'node:fs'
+import fs from 'node:fs/promises'
+import type { MovieEvent } from '../@types/movie-event-types'
+import { logFilePath } from './log-file-path'
 
 const kafka = new Kafka({
   clientId: 'movie-provider',
@@ -17,21 +18,38 @@ const kafka = new Kafka({
 })
 const producer = kafka.producer()
 
-export const produceMovieEvent = async (movie: Movie) => {
-  const event = {
-    topic: 'movie-created',
+// console log it and write the event to a file, so we can somewhat verify them
+// in the real world, you might check db, other services, or any other external side effects
+const logEvent = async (event: MovieEvent, logFilePath: string) => {
+  console.table(event)
+
+  return new Promise<void>((resolve) => {
+    setTimeout(async () => {
+      await fs.appendFile(logFilePath, `${JSON.stringify(event)}\n`)
+      resolve()
+    }, 1000)
+  })
+}
+
+// const logEventSync = (event: MovieEvent, logFilePath: string) => {
+//   console.table(event)
+//   syncFs.appendFileSync(logFilePath, `${JSON.stringify(event)}\n`)
+// }
+
+export const produceMovieEvent = async (
+  movie: Movie,
+  action: 'created' | 'updated' | 'deleted'
+) => {
+  const event: MovieEvent = {
+    topic: `movie-${action}`,
     messages: [{ key: movie.id.toString(), value: JSON.stringify(movie) }]
   }
 
   try {
     await producer.connect()
     await producer.send(event)
-
-    // console log it and write the event to a file, so we can somewhat verify them
-    // in the real world, you might check db, other services, or any other external side effects
-    console.table(event)
-    fs.appendFileSync(logFilePath, `${JSON.stringify(event)}\n`)
-
+    logEvent(event, logFilePath)
+    // logEventSync(event, logFilePath)
     await producer.disconnect()
   } catch (err) {
     console.error(

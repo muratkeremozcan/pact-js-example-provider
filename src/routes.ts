@@ -1,3 +1,4 @@
+import type { Movie } from '@prisma/client'
 import { PrismaClient } from '@prisma/client'
 import { Router } from 'express'
 import type {
@@ -46,7 +47,7 @@ moviesRoute.post('/', async (req, res) => {
 
   if ('data' in result) {
     const movie = result.data
-    await produceMovieEvent(movie)
+    await produceMovieEvent(movie, 'created')
   }
 
   return formatResponse(res, result as CreateMovieResponse)
@@ -59,10 +60,34 @@ moviesRoute.get('/:id', validateId, async (req, res) => {
 
 moviesRoute.put('/:id', validateId, async (req, res) => {
   const result = await movieService.updateMovie(req.body, Number(req.params.id))
+
+  if ('data' in result) {
+    const movie = result.data
+    await produceMovieEvent(movie, 'updated')
+  }
+
   return formatResponse(res, result as UpdateMovieResponse)
 })
 
 moviesRoute.delete('/:id', validateId, async (req, res) => {
-  const result = await movieService.deleteMovieById(Number(req.params.id))
-  return formatResponse(res, result as DeleteMovieResponse)
+  // check if the movie exists before attempting to delete it
+  const movieResponse = await movieService.getMovieById(Number(req.params.id))
+
+  // proceed only if the movie exists
+  if ('data' in movieResponse && movieResponse.data) {
+    const movie = movieResponse.data as Movie
+    const result = await movieService.deleteMovieById(Number(req.params.id))
+
+    if ('message' in result) {
+      await produceMovieEvent(movie, 'deleted')
+    }
+
+    return formatResponse(res, result as DeleteMovieResponse)
+  } else {
+    // If the movie was not found, return a 404 or an appropriate error response
+    return formatResponse(res, {
+      status: 404,
+      error: `Movie with ID ${Number(req.params.id)} not found`
+    })
+  }
 })
