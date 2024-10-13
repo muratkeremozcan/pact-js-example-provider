@@ -1,6 +1,6 @@
 import type { Movie } from '@prisma/client'
 import { Kafka } from 'kafkajs'
-import syncFs from 'node:fs'
+// import syncFs from 'node:fs'
 import fs from 'node:fs/promises'
 import type { MovieEvent } from '../@types/movie-event-types'
 import { logFilePath } from './log-file-path'

@@ -135,11 +135,17 @@ If using a back backend, we use `Mockoon` which runs on PORT 3000.
 
 ```bash
 npm run mock:server # starts the mock backend/provider server
+npm start # only used to demo kafka events on the consumer side
 ```
 
 #### Provider specific scripts
 
+Using Kafka and Docker is optional. The Kafka version of the CRUD e2e test checks whether Kafka events are being written to a file, in addition to the standard CRUD operations. This test will only run if Docker is started and the Kafka UI is available. Therefore, make sure to start Docker (e.g., Docker Desktop) before executing the `kafka:start` script and the e2e test `crud-movie-event.cy.ts`.
+
 ```bash
+npm run kafka:start # start Docker first, and then run this
+npm run kafka:stop # to stop when we are done
+
 # these 2 run as a part of start, and reset the db
 # you usually don't have to use them
 npm run db:migrate
