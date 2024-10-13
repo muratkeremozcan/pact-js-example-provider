@@ -2,6 +2,7 @@
 // for them to be seen in action, the provider repo has to be started
 // docker has to be started, and kafka:start script has be executed in the provider repo
 // we have e2e tests in the provider that execute if kafka is up
+// the real intent is to test events with pact while no kafka is running
 
 import type { Movie } from '@prisma/client'
 import { Kafka } from 'kafkajs'
