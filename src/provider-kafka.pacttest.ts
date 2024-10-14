@@ -1,64 +1,37 @@
-import {
-  MessageProviderPact,
-  providerWithMetadata,
-  Verifier
-} from '@pact-foundation/pact'
-import { stateHandlers } from './test-helpers/state-handlers'
-import { buildVerifierOptions } from './test-helpers/pact-utils'
-import { truncateTables } from '../scripts/truncate-tables'
-import { requestFilter } from './test-helpers/pact-request-filter'
-import { produceMovieEvent } from './events/movie-events'
-import { generateMovie } from './test-helpers/factories'
-import type { Movie } from '@prisma/client'
+import { MessageProviderPact } from '@pact-foundation/pact'
+import { messageProviders } from './test-helpers/message-providers'
+import { buildMessageProviderPact } from './test-helpers/pact-utils'
 
-// 1) Run the provider service
-// 2) Setup the provider verifier options
-// 3) Write & execute the provider contract test
+// 1) Run the provider service, optionally start the kafka cluster (if you want to see the console logs)
+// 2) Setup the provider message verifier options
+// 3) Write & execute the provider message queue test
 
 const PACT_BREAKING_CHANGE = process.env.PACT_BREAKING_CHANGE || 'false'
 const PACT_ENABLE_PENDING = process.env.PACT_ENABLE_PENDING || 'false'
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'local'
 
 describe('Pact Verification', () => {
-  const movie: Movie = { id: 7, ...generateMovie() }
+  const options = buildMessageProviderPact({
+    provider: 'MoviesAPI-event-producer', // ensure unique provider name for message pacts
+    consumer: process.env.PACT_CONSUMER, // optional: Specify if targeting a specific consumer
+    includeMainAndDeployed: PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
+    enablePending: PACT_ENABLE_PENDING === 'true',
+    // logLevel: 'debug'
+    messageProviders // the bread and butter of the test is here
+  })
+  const provider = new MessageProviderPact(options)
 
-  const provider = new MessageProviderPact({
-    messageProviders: {
-      'a movie-created event': providerWithMetadata(
-        () => produceMovieEvent(movie, 'created'),
-        {
-          contentType: 'application/json'
-        }
-      ),
-      'a movie-updated event': providerWithMetadata(
-        () => produceMovieEvent(movie, 'updated'),
-        {
-          contentType: 'application/json'
-        }
-      ),
-      'a movie-deleted event': providerWithMetadata(
-        () => produceMovieEvent(movie, 'deleted'),
-        {
-          contentType: 'application/json'
-        }
-      )
-    },
-    // logLevel: 'debug',
-    provider: 'MoviesAPI-event-producer', // Ensure unique provider name for message pacts
-    providerVersion: process.env.GITHUB_SHA,
-    providerVersionBranch: process.env.GITHUB_BRANCH,
-    pactBrokerUrl: process.env.PACT_BROKER_BASE_URL,
-    pactBrokerToken: process.env.PACT_BROKER_TOKEN,
-    publishVerificationResult: true,
-    consumerVersionSelectors: [
-      { mainBranch: true },
-      { matchingBranch: true },
-      { deployedOrReleased: true }
-    ]
+  // our produceMovieEvent has some console.logs which we don't need during tests
+  // but you can comment these out if you want to see them.
+  beforeAll(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {})
+    jest.spyOn(console, 'error').mockImplementation(() => {})
+  })
+  afterAll(() => {
+    jest.restoreAllMocks()
   })
 
   it('should validate the expectations of movie-consumer', async () => {
-    // 3) Write & execute the provider contract test
     try {
       const output = await provider.verify()
       console.log('Pact Message Verification Complete!')
@@ -99,7 +72,7 @@ PACT_DESCRIPTION="a request to delete a movie that exists" PACT_PROVIDER_STATE="
 PACT_PROVIDER_NO_STATE=true npm run test:provider
 
 # to run tests from a certain consumer
-PACT_CONSUMER="WebConsumer" npm run test:provider
+PACT_CONSUMER="WebConsumer-event-consumer" npm run test:provider
 
 # to relax the can:i:deploy and only check against matching branches
 PACT_BREAKING_CHANGE=true npm run test:provider
