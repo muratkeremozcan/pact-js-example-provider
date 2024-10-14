@@ -3,7 +3,7 @@ on:
   pull_request:
   workflow_dispatch:
 
-# If this branch is pushed back to back, cancel the older branch's workflow
+# if this branch is pushed back to back, cancel the older branch's workflow
 concurrency:
   group: ${{ github.ref }} && ${{ github.workflow }}
   cancel-in-progress: true
@@ -16,60 +16,36 @@ env:
   PORT: 3001
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-  KAFKAJS_NO_PARTITIONER_WARNING: 1 # Less Kafka noise
+  KAFKAJS_NO_PARTITIONER_WARNING: 1 # less kafka noise
 
 jobs:
   e2e-test:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the code from the repo
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
 
-      # Step 2: Read Node version from .nvmrc file
       - name: Read Node version from .nvmrc
         id: node_version
         run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
 
-      # Step 3: Set up Node environment with the correct version
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      # Step 4: Install dependencies and generate OpenAPI docs
       - name: Generate OpenAPI docs from code
         run: |
           npm install -D tsx
           npm run generate:openapi
 
-      # Step 5: Cache Docker images to avoid pull rate limits
-      # This ensures that Docker images are only pulled if they are not cached
-      - name: Cache Docker images
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.docker
-          key: ${{ runner.os }}-docker-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-docker-
+      # Start Kafka before running the tests
+      # Locally if no Kafka, the kafka version of the e2e test just doesn't run
 
-      # Step 6: Load Docker images if not cached
-      - name: Load Docker images
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: docker compose -f ./src/events/kafka-cluster.yml pull
-
-      # Step 7: Save Docker images to cache them for future runs
-      - name: Save Docker images
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          docker save $(docker images --format '{{.Repository}}:{{.Tag}}') > /tmp/.docker/docker-images.tar
-
-      # Step 8: Start Kafka before running the tests
-      # Locally if no Kafka, the Kafka version of the e2e test just doesn't run
       - name: Start Kafka
+        continue-on-error: true # if we hit the docker pull limit, no kafka
         run: docker compose -f ./src/events/kafka-cluster.yml up -d --no-recreate
 
-      # Step 9: Run Cypress end-to-end tests
       - name: Cypress e2e tests 🧪
         id: cypress-tests
         uses: cypress-io/github-action@v6.7.6
@@ -80,17 +56,19 @@ jobs:
           group: local
           tag: local
 
-      # Step 10: Generate verification results for success
+      # We do schema testing within the api e2e
+      # We publish the OpenAPI spec on main, once after the PR is merged
+      # Pact likes to have some file/evidence that the OpenAPI spec was tested
+      # This section handles that need
+
       - name: Generate Verification Result for Success
         if: steps.cypress-tests.conclusion == 'success'
         run: echo "All Cypress tests passed." > cypress/verification-result.txt
 
-      # Step 11: Generate verification results for failure
       - name: Generate Verification Result for Failure
         if: steps.cypress-tests.conclusion != 'success'
         run: echo "Not all Cypress tests passed." > cypress/verification-result.txt
 
-      # Step 12: Commit and push the verification results to the repo
       - name: Commit and push verification result
         uses: EndBug/add-and-commit@v9
         with:
@@ -100,7 +78,8 @@ jobs:
           add: 'cypress/verification-result.txt'
           push: true
 
-      # Step 13: Stop Kafka after tests are completed
+      # Stop Kafka after tests are completed
       - name: Stop Kafka
+        continue-on-error: true
         if: always()
         run: docker compose -f ./src/events/kafka-cluster.yml down
