@@ -5,10 +5,9 @@ import { generateMovie } from './factories'
 
 const movie: Movie = { id: 7, ...generateMovie() }
 
-// These are the "expected messages" the provider is expected to produce based on consumer contracts.
-// Each key represents a specific event (e.g., 'a movie-created event') and is associated with a pact's handler function
-// `providerWithMetadata` that generates and returns the expected message content.
-// The metadata, such as `contentType`, is provided to ensure correct interpretation of the message format.
+// These are the messages the provider should produce based on consumer contracts.
+// Each key is an event (e.g., 'movie-created') linked to a handler (providerWithMetadata) that generates the message.
+// Metadata like contentType ensures correct message format interpretation.
 
 export const messageProviders = {
   'a movie-created event': providerWithMetadata(
