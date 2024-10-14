@@ -41,7 +41,9 @@ jobs:
 
       # Start Kafka before running the tests
       # Locally if no Kafka, the kafka version of the e2e test just doesn't run
+
       - name: Start Kafka
+        continue-on-error: true # if we hit the docker pull limit, no kafka
         run: docker compose -f ./src/events/kafka-cluster.yml up -d --no-recreate
 
       - name: Cypress e2e tests 🧪
@@ -78,5 +80,6 @@ jobs:
 
       # Stop Kafka after tests are completed
       - name: Stop Kafka
+        continue-on-error: true
         if: always()
         run: docker compose -f ./src/events/kafka-cluster.yml down
