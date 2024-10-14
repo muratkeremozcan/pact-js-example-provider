@@ -3,14 +3,16 @@
 # Load environment variables
 . ./scripts/env-setup.sh
 
-# Publish the provider OpenAPI contract to Pactflow
-pactflow publish-provider-contract \
-    src/api-docs/openapi.json \
-    --provider MoviesAPI-bi-directional \
-    --provider-app-version=$GITHUB_SHA \
-    --branch=$GITHUB_BRANCH \
-    --content-type application/json \
-    --verification-exit-code=0 \
-    --verification-results ./cypress/verification-result.txt \
-    --verification-results-content-type text/plain \
-    --verifier cypress
+# Check if provider MoviesAPI can be deployed
+pact-broker can-i-deploy \
+    --pacticipant MoviesAPI \
+    --version=$GITHUB_SHA \
+    --to-environment dev \
+    --broker-base-url=$PACT_BROKER_BASE_URL
+
+# Check if provider MoviesAPI-event-producer can be deployed
+pact-broker can-i-deploy \
+    --pacticipant MoviesAPI-event-producer \
+    --version=$GITHUB_SHA \
+    --to-environment dev \
+    --broker-base-url=$PACT_BROKER_BASE_URL
