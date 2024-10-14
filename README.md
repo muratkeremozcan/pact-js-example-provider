@@ -261,14 +261,15 @@ Here's how a test generally looks:
 // ...provider setup prior...
 
 it('...', () => {
-  provider
+  await pact
+    .addInteraction()
     // specifications about how the provider
-    // should behave upon receving requests
+    // should behave upon receiving requests
     // this part is what really configures the contract
 
-  await provider.executeTest(async(mockProvider) => {
-
-    // assertions against the mockProvider/contract
+    .executeTest(async(mockProvider) => {
+    // call the source code & 
+    // make assertions against the mockProvider/contract
   })
 })
 ```

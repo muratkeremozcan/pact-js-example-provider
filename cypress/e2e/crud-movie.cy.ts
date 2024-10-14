@@ -1,7 +1,7 @@
 import 'cypress-ajv-schema-validator'
 
 import type { Movie } from '@prisma/client'
-import { generateMovie } from '../support/factories'
+import { generateMovie } from '../../src/test-helpers/factories'
 import spok from 'cy-spok'
 import schema from '../../src/api-docs/openapi.json'
 import { retryableBefore } from '../support/retryable-before'

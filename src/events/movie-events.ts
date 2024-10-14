@@ -6,7 +6,6 @@
 
 import type { Movie } from '@prisma/client'
 import { Kafka } from 'kafkajs'
-// import syncFs from 'node:fs'
 import fs from 'node:fs/promises'
 import type { MovieEvent } from '../@types/movie-event-types'
 import { logFilePath } from './log-file-path'
@@ -37,11 +36,6 @@ const logEvent = async (event: MovieEvent, logFilePath: string) => {
   })
 }
 
-// const logEventSync = (event: MovieEvent, logFilePath: string) => {
-//   console.table(event)
-//   syncFs.appendFileSync(logFilePath, `${JSON.stringify(event)}\n`)
-// }
-
 export const produceMovieEvent = async (
   movie: Movie,
   action: 'created' | 'updated' | 'deleted'
@@ -55,8 +49,9 @@ export const produceMovieEvent = async (
     await producer.connect()
     await producer.send(event)
     logEvent(event, logFilePath)
-    // logEventSync(event, logFilePath)
     await producer.disconnect()
+
+    return parseEvent(event)
   } catch (err) {
     console.error(
       'Kafka broker unavailable, skipping event publication: ',
@@ -65,5 +60,24 @@ export const produceMovieEvent = async (
     // optionally rethrow the error
     // if you want to let the caller handle it further with a try-catch of their own
     // throw err
+
+    return parseEvent(event)
   }
 }
+
+/**
+ * Parses the Kafka event for Pact testing.
+ *
+ * Kafka requires the `messages.value` field to be stringified when sending the event,
+ * but for Pact testing, we want to return the parsed object version of the event
+ * to simulate the original message.
+ *
+ * @param {MovieEvent} event - The event that was sent to Kafka.
+ * @returns {MovieEvent} - The parsed event with `messages.value` converted from a string to an object. */
+const parseEvent = (event: MovieEvent) => ({
+  ...event,
+  messages: event.messages.map((msg) => ({
+    key: msg.key,
+    value: typeof msg.value === 'string' ? JSON.parse(msg.value) : msg.value
+  }))
+})
