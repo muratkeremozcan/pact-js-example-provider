@@ -16,7 +16,7 @@ describe('Pact Verification', () => {
     consumer: process.env.PACT_CONSUMER, // optional: Specify if targeting a specific consumer
     includeMainAndDeployed: PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
     enablePending: PACT_ENABLE_PENDING === 'true',
-    // logLevel: 'debug'
+    logLevel: 'debug',
     messageProviders // the bread and butter of the test is here
   })
   const provider = new MessageProviderPact(options)
