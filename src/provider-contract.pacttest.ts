@@ -17,10 +17,10 @@ describe('Pact Verification', () => {
   const port = process.env.PORT || '3001'
   const options = buildVerifierOptions({
     provider: 'MoviesAPI',
-    consumer: process.env.PACT_CONSUMER, // filter by the consumer, or run for all if no env var is provided
+    consumer: 'WebConsumer', // with multiple pact test files, best to specify the consumer
     includeMainAndDeployed: PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
     enablePending: PACT_ENABLE_PENDING === 'true',
-    logLevel: 'debug',
+    // logLevel: 'debug',
     port,
     stateHandlers,
     requestFilter,
