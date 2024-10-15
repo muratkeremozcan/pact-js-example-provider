@@ -1,7 +1,5 @@
 # PactJS Contract Testing Example
 
-![@pact-foundation/pact version](https://img.shields.io/badge/@pact--foundation/pact-13.1.3-brightgreen) ![jest version](https://img.shields.io/badge/jest-29.7.0-brightgreen) ![cypress version](https://img.shields.io/badge/cypress-13.15.0-brightgreen)
-
 ![Pact Status](https://ozcan.pactflow.io/pacts/provider/MoviesAPI/consumer/WebConsumer/latest/badge.svg)
 
 ![Can I Deploy?](https://ozcan.pactflow.io/pacticipants/MoviesAPI/branches/main/latest-version/can-i-deploy/to-environment/dev/badge.svg)
