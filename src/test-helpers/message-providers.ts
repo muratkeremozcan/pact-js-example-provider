@@ -5,7 +5,7 @@ import { generateMovie } from './factories'
 
 const movie: Movie = { id: 7, ...generateMovie() }
 
-// These are the messages the provider should produce based on consumer contracts.
+// These are the messages the provider should produce
 // Each key is an event (e.g., 'movie-created') linked to a handler (providerWithMetadata) that generates the message.
 // Metadata like contentType ensures correct message format interpretation.
 

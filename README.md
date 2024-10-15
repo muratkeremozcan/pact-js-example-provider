@@ -238,17 +238,13 @@ PACT_BREAKING_CHANGE=true npm run test:provider-ci # (4) start the provider serv
 
 ## Consumer Tests
 
-The consumer can be any client that makes API calls. Can be an API service, can be a web app (using Axios for example); it does not make a difference.
-
-The purpose of consumer tests is to define and validate the interactions that the consumer expects from the provider.
-
 Here is how it works:
 
 1. Write the consumer test.
 
 2. Execute the and generate a contract / pact / json file.
 
-   The contract specifies how to provider should respond upon receiving requests from the consumer.
+   The contract specifies how the provider should respond upon receiving requests from the consumer.
 
 3. Once the contract is created, from then on the Pact `mockProvider` takes over as if we are locally serving the provider API and executing the tests against that.
    That means, there is no need to serve the client api or the provider api at the moment, the consumer tests and `mockProvider` cover that interaction.
@@ -258,17 +254,19 @@ Here is how it works:
 Here's how a test generally looks:
 
 ```js
-// ...provider setup prior...
+// consumer test
 
 it('...', () => {
   await pact
-    .addInteraction()
-    // specifications about how the provider
-    // should behave upon receiving requests
-    // this part is what really configures the contract
+    // simulate/specify how the provider should respond
+    .addInteraction(...)
+    .given(some state name) // optional
+    .uponReceiving(<the name of the test>)
+    .withRequest(http verb, path)
+    .willRespondWith({ this is the meat and bones of the response })
 
     .executeTest(async(mockProvider) => {
-    // call the source code & 
+    // call the source code &
     // make assertions against the mockProvider/contract
   })
 })
@@ -342,7 +340,109 @@ npm run test:provider-ci
 - Provider states help maintain the correct data setup before verification.
 - State handlers must match the provider states defined in consumer tests.
 
-### Can I Deploy?
+## Message queue consumer tests in short
+
+1. Write the consumer test.
+
+   Message q consumer test: **simulates receiving a message from the queue**.
+
+   Traditional consumer test: **simulates receiving a response from the provider**.
+
+2. Execute the and generate a contract / pact / json file. (same)
+
+   The message queue contract **specifies the expected structure of the message from the producer.**
+
+   Traditional consumer test contract **specifies the expected structure of the response from the provider**.
+
+3. Once the contract is created, Pact `mockProducer` takes over as if we are locally pushing messages to the queue (`expectsToReceive`) and verifying the message agains our src code event-message-consumer-handler.
+
+   This is similar to traditional consumer test where the `mockProvider` takes over as if we are locally serving the provider API and executing the tests against that.
+
+4. The test can fail at the `verify` portion, if / when the simulated message does not match our src code event-message-consumer.
+
+Here is a contract test vs message queue test side by side:
+
+```typescript
+// message queue consumer test
+
+it('...', () => {
+  await messagePact
+    // simulate/specify the expected message
+    .expectsToReceive('some text for event name')
+    .withContent({ this is the meat and bones of the event })
+    .withMetaData({ contentType: 'application/json' })
+
+    // feed the message into the event consumer
+    .verify(asynchronousBodyHandler(yourEventConsumerHandler))
+  })
+})
+```
+
+```typescript
+// consumer test
+
+it('...', () => {
+  await pact
+    // simulate/specify how the provider should respond
+    .addInteraction(...)
+    .given(some state name) // optional
+    .uponReceiving(<the name of the test>)
+    .withRequest(http verb, path)
+    .willRespondWith({ this is the meat and bones of the response })
+
+    .executeTest(async(mockProvider) => {
+    // call the source code &
+    // make assertions against the mockProvider/contract
+  })
+})
+```
+
+The flow is the same as a traditional consumer test, in fact if the repo has both, both tests are executed
+
+```bash
+npm run test:consumer
+npm run publish:pact
+```
+
+## Message queue provider tests in short
+
+These tests verify that **the messages the provider produces match the structure the consumer expects**.
+
+In contrast, in traditional CDCT, the tests verify that **the responses of the provider API match the structure the consumer expects**.
+
+1. The message consumer already generated the contract and published it. (Same thing as the traditional CDCT)
+
+2. The provider has one test per consumer to ensure all is satisfactory. Most of the file is about setting up the options. (Again, same)
+
+3. We ensure that the provider api is running locally. (Again, same)
+
+4. **The message queue consumer tests execute against the provider/message-producer**, as if they are a regular message-consumer running locally.
+
+   In contrast, in traditional CDCT, **the consumer tests execute against the provider api**, as if they are a regular API client running locally.
+
+### Execution (Same as traditional CDCT)
+
+Run the server/service.
+
+```bash
+npm run start
+```
+
+> The provider/producer server/service has to be running locally for the provider message queue tests to be executed.
+
+Run the provider/producer message queue test
+
+```bash
+npm run test:provider
+```
+
+Two in one:
+
+```bash
+npm run test:provider:ci
+```
+
+## Can I Deploy?
 
 Before deploying to an environment, we verify if the consumer and provider versions are compatible using the `can-i-deploy` tool. This step ensures that any changes made to the consumer or provider do not break existing integrations across environments.
 
@@ -360,7 +460,7 @@ Verify the consumer:
 npm run can:i:deploy:consumer
 ```
 
-### Record Deployments
+## Record Deployments
 
 This is akin to releasing; used to record the deployment in the Pact Broker to show the deployed version in an environment. Usually this is `main` being deployed on `dev` environment.
 
