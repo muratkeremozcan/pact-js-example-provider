@@ -12,6 +12,37 @@ Consumer repo: https://github.com/muratkeremozcan/pact-js-example-consumer
 
 Provider repo: https://github.com/muratkeremozcan/pact-js-example-provider
 
+React consumer repo for bi-directional contract testing: https://github.com/muratkeremozcan/pact-js-example-react-consumer
+
+- [PactJS Contract Testing Example](#pactjs-contract-testing-example)
+  - [Setup](#setup)
+    - [Webhook setup](#webhook-setup)
+    - [Consumer flow](#consumer-flow)
+    - [Provider flow](#provider-flow)
+    - [Other scripts on both sides](#other-scripts-on-both-sides)
+      - [Consumer specific scripts](#consumer-specific-scripts)
+      - [Provider specific scripts](#provider-specific-scripts)
+      - [Provider selective testing](#provider-selective-testing)
+      - [Handling Breaking Changes](#handling-breaking-changes)
+      - [Breaking change - consumer flow](#breaking-change---consumer-flow)
+      - [Breaking change - provider flow](#breaking-change---provider-flow)
+  - [Consumer Tests](#consumer-tests)
+  - [Provider Tests](#provider-tests)
+    - [Execution](#execution)
+  - [Message queue consumer tests in short](#message-queue-consumer-tests-in-short)
+  - [Message queue provider tests in short](#message-queue-provider-tests-in-short)
+    - [Execution (Same as traditional CDCT)](#execution-same-as-traditional-cdct)
+  - [Can I Deploy?](#can-i-deploy)
+  - [Record Deployments](#record-deployments)
+  - [Webhooks](#webhooks)
+  - [Nuances of the env vars \& scripts](#nuances-of-the-env-vars--scripts)
+    - [Why `GITHUB_SHA` and `GITHUB_BRANCH`?](#why-github_sha-and-github_branch)
+    - [What is the Pact Matrix?](#what-is-the-pact-matrix)
+  - [Bi-directional contract testing](#bi-directional-contract-testing)
+    - [Consumer flow for Pact Bi-directional contract testing](#consumer-flow-for-pact-bi-directional-contract-testing)
+    - [Provider flow for Pact Bi-directional contract testing](#provider-flow-for-pact-bi-directional-contract-testing)
+    - [How does it work in the CI](#how-does-it-work-in-the-ci)
+
 ## Setup
 
 ```bash
@@ -556,27 +587,13 @@ Here is how it goes:
 
    Dredd: executes its own tests (magic!) against your openapi spec (needs your local server, has hooks for things like auth.)
 
-3. **Publish the OpenAPI spec to the pact broker**.
+3. **Publish the OpenAPI spec to the pact broker at the provider**.
 
    ```bash
-   pactflow publish-provider-contract
-     src/api-docs/openapi.json # path to OpenAPI spec
-     # if you also have classic CDCT in the same provider,
-     # make sure to label the Bi-directional provider name differently
-     --provider MoviesAPI-bi-directional
-     --provider-app-version=$GITHUB_SHA # best practice
-     --branch=$GITHUB_BRANCH # best practice
-     --content-type application/json # yml ok too if you prefer
-     --verification-exit-code=0 # needs it
-      # can be anything, we just generate a file on e2e success to make Pact happy
-     --verification-results ./cypress/verification-result.txt
-     --verification-results-content-type text/plain # can be anything
-     --verifier cypress # can be anything
+      npm run publish:pact-openapi
    ```
 
-   Note that verification arguments are optional, and without them you get a warning at Pact broker that the OpenAPI spec is untested.
-
-4. **Record the provider bi-directional deployment**.
+4. **Record the provider bi-directional deployment at the provider**.
 
    We still have to record the provider bi-directional, similar to how we do it in CDCT.
    Otherwise the consumers will have nothing to compare against.
@@ -585,9 +602,17 @@ Here is how it goes:
    npm run record:provider:bidirectional:deployment --env=dev
    ```
 
-5. **Execute the consumer contract tests**
+5. **Execute the consumer contract tests at the consumer**
 
    Execution on the Consumer side works exactly the same as classic CDCT.
+
+   ```bash
+    npm run test:consumer
+    npm run publish:pact
+    npm run can:i:deploy:consumer
+    # only on main
+    npm run record:consumer:deployment --env=dev
+   ```
 
 As you can notice, there is nothing about running the consumer tests on the provider side ( `test:provider`), can-i-deploy checks (`can:i:deploy:provider`),. All you do is get the OpenAPI spec right, publish it to Pact Broker, and record the deployment
 
@@ -603,12 +628,22 @@ Consumer        -> CDCT  -> Provider
 Consumer-React  <- BDCT  <- Provider
 ```
 
-BDCT Scripts on the provider:
+#### Consumer flow for Pact Bi-directional contract testing
 
 ```bash
-npm run generate:openapi # generates an OpenAPI doc from Zod schemas
-npm run publish:pact-openapi # publishes the open api spec to Pact Broker for BDCT
-npm run record:provider:bidirectional:deployment --env=dev # we still have to record the provider deployment
+npm run test:consumer # (4)
+npm run publish:pact # (5)
+npm run can:i:deploy:consumer #(6)
+# only on main
+npm run record:consumer:deployment --env=dev # (7) change the env param as needed
+```
+
+#### Provider flow for Pact Bi-directional contract testing
+
+```bash
+npm run generate:openapi # (1) generates an OpenAPI doc from Zod schemas
+npm run publish:pact-openapi # (2) on main, publish the open api spec to Pact Broker for BDCT
+npm run record:provider:bidirectional:deployment --env=dev # (3) on main record the bi-directional provider deployment
 ```
 
 ### How does it work in the CI
