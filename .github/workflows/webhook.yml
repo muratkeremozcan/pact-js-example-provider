@@ -38,6 +38,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Log Payload Variables
+        run: |
+          echo "PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}; GITHUB_SHA: ${{ env.GITHUB_SHA }}; GITHUB_BRANCH: ${{ env.GITHUB_BRANCH }}"
+
       - name: Install dependencies
         run: npm ci
 
