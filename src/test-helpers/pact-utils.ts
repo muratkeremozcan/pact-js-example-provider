@@ -11,6 +11,11 @@ import type {
 } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
 import { noOpRequestFilter } from './pact-request-filter'
 
+// test the webhook failure at
+// https://github.com/muratkeremozcan/pact-js-example-provider/actions/runs/11354888840/job/31583091638
+process.env.PACT_PAYLOAD_URL =
+  'https://ozcan.pactflow.io/pacts/provider/MoviesAPI/consumer/WebConsumer/pact-version/4002f4d5a3357b233a2dc3666d713f9136ec2088/metadata/Y3ZuPTM5NjIzMWMmdz10cnVl'
+
 /**
  * Builds a `VerifierOptions` object for Pact verification, encapsulating
  * common provider test setup options, including conditional handling for
