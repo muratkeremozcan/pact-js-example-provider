@@ -13,7 +13,7 @@ const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'local'
 describe('Pact Verification', () => {
   const options = buildMessageProviderPact({
     provider: 'MoviesAPI-event-producer', // ensure unique provider name for message pacts
-    consumer: 'MoviesAPI-event-producer', // with multiple pact test files, best to specify the consumer
+    consumer: 'WebConsumer-event-consumer', // with multiple pact test files, best to specify the consumer
     includeMainAndDeployed: PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
     enablePending: PACT_ENABLE_PENDING === 'true',
     // logLevel: 'debug',
