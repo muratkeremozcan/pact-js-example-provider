@@ -28,12 +28,20 @@ export function handlePactBrokerUrlAndSelectors({
   includeMainAndDeployed: boolean
   options: PactMessageProviderOptions | VerifierOptions
 }) {
-  // pactPayloadUrl is used when a consumer CI triggers provider tests at the provider repo
+  // If pactPayloadUrl is provided, attempt to use it
   if (pactPayloadUrl) {
-    processPactPayloadUrl(pactPayloadUrl, consumer, options)
+    const usedPayloadUrl = processPactPayloadUrl(
+      pactPayloadUrl,
+      consumer,
+      options
+    )
+    if (usedPayloadUrl) {
+      return // Successfully used the Pact payload URL, no need to proceed further
+    }
+    // If not used, continue to set up options using the Pact Broker URL and selectors
   }
 
-  // If pactPayloadUrl is not provided or doesn't match, use the Pact Broker URL and selectors (classic mode)
+  // Use the Pact Broker URL and consumer version selectors
   usePactBrokerUrlAndSelectors(
     pactBrokerUrl,
     consumer,
