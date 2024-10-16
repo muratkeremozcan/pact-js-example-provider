@@ -258,10 +258,12 @@ function buildConsumerVersionSelectors(
     { ...baseSelector, deployedOrReleased: true } // Tests against consumer's currently deployed or released versions
   ]
 
-  // Always include the matchingBranch selector
+  // tell the provider to verify pacts from all branches of the consumer, including feature branches.
+  const featureBranchSelector = { ...baseSelector, branch: '*' }
+
   // Conditionally include mainBranch and deployedOrReleased selectors
   return [
-    { ...baseSelector, matchingBranch: true }, // Used for coordinated development between consumer and provider teams using matching feature branch names
+    featureBranchSelector,
     ...(includeMainAndDeployed ? mainAndDeployed : [])
   ]
 }
