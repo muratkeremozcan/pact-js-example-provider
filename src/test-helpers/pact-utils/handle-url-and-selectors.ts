@@ -152,6 +152,10 @@ function usePactBrokerUrlAndSelectors(
   includeMainAndDeployed: boolean,
   options: PactMessageProviderOptions | VerifierOptions
 ) {
+  if (!pactBrokerUrl) {
+    throw new Error('PACT_BROKER_BASE_URL is required but not set.')
+  }
+
   console.log(`Using Pact Broker Base URL: ${pactBrokerUrl}`)
 
   options.pactBrokerUrl = pactBrokerUrl

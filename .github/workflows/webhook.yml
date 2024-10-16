@@ -13,7 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }} # PACT_BROKER_BASE_URL is missing and replaced with PACT_PAYLOAD_URL. This is because we want to verify the newly published contract from the consumer that caused the contract_requiring_verification_published event to be triggered
+  PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }} # This is because we want to verify the newly published contract from the consumer that caused the contract_requiring_verification_published event to be triggered
+  PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
   GITHUB_SHA: ${{ github.event.client_payload.sha }}
   GITHUB_BRANCH: ${{ github.event.client_payload.branch }}
