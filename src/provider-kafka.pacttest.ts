@@ -1,6 +1,6 @@
 import { MessageProviderPact } from '@pact-foundation/pact'
 import { messageProviders } from './test-helpers/message-providers'
-import { buildMessageProviderPact } from './test-helpers/pact-utils'
+import { buildMessageVerifierOptions } from './test-helpers/pact-utils/build-verifier-options'
 
 // 1) Run the provider service, optionally start the kafka cluster (if you want to see the console logs)
 // 2) Setup the provider message verifier options
@@ -11,7 +11,7 @@ const PACT_ENABLE_PENDING = process.env.PACT_ENABLE_PENDING || 'false'
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'local'
 
 describe('Pact Verification', () => {
-  const options = buildMessageProviderPact({
+  const options = buildMessageVerifierOptions({
     provider: 'MoviesAPI-event-producer', // ensure unique provider name for message pacts
     consumer: 'WebConsumer-event-consumer', // with multiple pact test files, best to specify the consumer
     includeMainAndDeployed: PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
@@ -70,9 +70,6 @@ PACT_DESCRIPTION="a request to a specific movie" PACT_PROVIDER_STATE="Has a movi
 PACT_DESCRIPTION="a request to delete a movie that exists" PACT_PROVIDER_STATE="Has a movie with a specific ID" npm run test:provider
 
 PACT_PROVIDER_NO_STATE=true npm run test:provider
-
-# to run tests from a certain consumer
-PACT_CONSUMER="WebConsumer-event-consumer" npm run test:provider
 
 # to relax the can:i:deploy and only check against matching branches
 PACT_BREAKING_CHANGE=true npm run test:provider

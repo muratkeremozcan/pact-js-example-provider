@@ -4,12 +4,12 @@ import type {
   PactMessageProviderOptions,
   VerifierOptions
 } from '@pact-foundation/pact'
-import type { ConsumerVersionSelector } from '@pact-foundation/pact-core'
 import type {
   ProxyOptions,
   StateHandlers
 } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
-import { noOpRequestFilter } from './pact-request-filter'
+import { noOpRequestFilter } from '../pact-request-filter'
+import { handlePactBrokerUrlAndSelectors } from './handle-url-and-selectors'
 
 /**
  * Builds a `VerifierOptions` object for Pact verification, encapsulating
@@ -143,91 +143,6 @@ export function buildVerifierOptions({
 }
 
 /**
- * Builds an array of `ConsumerVersionSelector` objects for Pact verification.
- *
- * Generates selectors to determine which consumer pacts should be verified against the provider.
- * Controls inclusion of pacts from the consumer's `main` branch and deployed or released versions,
- * which is useful when introducing breaking changes on the provider side.
- *
- * **Default Behavior:**
- * - **Consumers**: If `consumer` is `undefined`, selectors apply to all consumers.
- * - **Selectors**: `includeMainAndDeployed` defaults to `true`, including `mainBranch` and `deployedOrReleased` selectors.
- *
- * **Selectors Included:**
- * - `matchingBranch`: Always included. Selects pacts from consumer branches matching the provider's branch.
- * - `mainBranch`: Included when `includeMainAndDeployed` is `true`. Selects pacts from the consumer's main branch.
- * - `deployedOrReleased`: Included when `includeMainAndDeployed` is `true`. Selects pacts from the consumer's deployed or released versions.
- *
- * **Usage Scenarios:**
- * - **Regular Verification**: Use default parameters to verify against all relevant consumer versions across all consumers.
- * - **Specifying a Consumer**: Provide a `consumer` name to verify pacts for a specific consumer only.
- * - **Introducing Breaking Changes**: Set `includeMainAndDeployed` to `false` to exclude `mainBranch` and `deployedOrReleased` selectors, verifying only against matching branches to avoid failures due to incompatible pacts.
- *
- * @param consumer - The name of the consumer to verify against. If `undefined`, applies to all consumers.
- * @param includeMainAndDeployed - When `true` (default), includes `mainBranch` and `deployedOrReleased` selectors.
- * @returns An array of `ConsumerVersionSelector` objects for Pact verification.
- *
- * @example
- * // Run verification for a specific consumer, including all selectors (default behavior)
- * const selectors = buildConsumerVersionSelectors('MoviesAPI')
- * // Result:
- * // [
- * //   { consumer: 'MoviesAPI', matchingBranch: true },
- * //   { consumer: 'MoviesAPI', mainBranch: true },
- * //   { consumer: 'MoviesAPI', deployedOrReleased: true }
- * // ]
- *
- * @example
- * // Run verification for a specific consumer, excluding mainBranch and deployedOrReleased (e.g., when introducing breaking changes)
- * const selectors = buildConsumerVersionSelectors('MoviesAPI', false)
- * // Result:
- * // [
- * //   { consumer: 'MoviesAPI', matchingBranch: true }
- * // ]
- *
- * @example
- * // Run verification for all consumers, including all selectors
- * const selectors = buildConsumerVersionSelectors(undefined)
- * // Result:
- * // [
- * //   { matchingBranch: true },
- * //   { mainBranch: true },
- * //   { deployedOrReleased: true }
- * // ]
- *
- * @example
- * // Run verification for all consumers, excluding mainBranch and deployedOrReleased
- * const selectors = buildConsumerVersionSelectors(undefined, false)
- * // Result:
- * // [
- * //   { matchingBranch: true }
- * // ]
- *
- * @see https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors
- */
-function buildConsumerVersionSelectors(
-  consumer: string | undefined,
-  includeMainAndDeployed = true
-): ConsumerVersionSelector[] {
-  // Base selector includes the consumer if provided
-  const baseSelector: Partial<ConsumerVersionSelector> = consumer
-    ? { consumer }
-    : {}
-
-  const mainAndDeployed = [
-    { ...baseSelector, mainBranch: true }, // Tests against consumer's main branch
-    { ...baseSelector, deployedOrReleased: true } // Tests against consumer's currently deployed or released versions
-  ]
-
-  // Always include the matchingBranch selector
-  // Conditionally include mainBranch and deployedOrReleased selectors
-  return [
-    { ...baseSelector, matchingBranch: true }, // Used for coordinated development between consumer and provider teams using matching feature branch names
-    ...(includeMainAndDeployed ? mainAndDeployed : [])
-  ]
-}
-
-/**
  * Builds a `PactMessageProviderOptions` object for message-based Pact verification,
  * encapsulating common provider test setup options for message handlers, Pact Broker options,
  * and dynamically generated consumer version selectors for message interactions.
@@ -255,7 +170,7 @@ function buildConsumerVersionSelectors(
  *   pactBrokerUrl: process.env.PACT_BROKER_BASE_URL
  * })
  */
-export function buildMessageProviderPact({
+export function buildMessageVerifierOptions({
   provider,
   messageProviders,
   includeMainAndDeployed,
@@ -316,59 +231,4 @@ export function buildMessageProviderPact({
   })
 
   return options
-}
-
-/**
- * Handles the conditional logic for selecting the Pact Broker URL and consumer version selectors.
- * It updates the verifier options accordingly based on the availability of the Pact payload URL or
- * Pact Broker base URL and includes relevant consumer version selectors if needed.
- *
- * @param pactPayloadUrl - The URL for Pact payloads, used when CI triggers provider tests.
- * @param pactBrokerUrl - The base URL for the Pact Broker.
- * @param consumer - (Optional) A specific consumer to verify. If not provided, all consumers are verified.
- * @param includeMainAndDeployed - Flag indicating whether to include `mainBranch` and `deployedOrReleased` selectors.
- * @param options - The options object to update with Pact URL or Pact Broker information.
- */
-function handlePactBrokerUrlAndSelectors({
-  pactPayloadUrl,
-  pactBrokerUrl,
-  consumer,
-  includeMainAndDeployed,
-  options
-}: {
-  pactPayloadUrl?: string
-  pactBrokerUrl?: string
-  consumer?: string
-  includeMainAndDeployed: boolean
-  options: PactMessageProviderOptions | VerifierOptions
-}): void {
-  // When the CI triggers the provider tests, we need to use the PACT_PAYLOAD_URL
-  if (pactPayloadUrl) {
-    console.log(`Pact payload URL specified: ${process.env.PACT_PAYLOAD_URL}`)
-    options.pactUrls = [pactPayloadUrl as string]
-  } else {
-    console.log(`Using Pact Broker Base URL: ${pactBrokerUrl}`)
-    options.pactBrokerUrl = pactBrokerUrl
-
-    options.consumerVersionSelectors = buildConsumerVersionSelectors(
-      consumer,
-      includeMainAndDeployed
-    )
-
-    if (consumer) {
-      console.log(`Running verification for consumer: ${consumer}`)
-    } else {
-      console.log('Running verification for all consumers')
-    }
-
-    if (includeMainAndDeployed) {
-      console.log(
-        'Including main branch and deployedOrReleased in the verification'
-      )
-    } else {
-      console.log(
-        'Only running the matching branch, this is useful when introducing breaking changes'
-      )
-    }
-  }
 }

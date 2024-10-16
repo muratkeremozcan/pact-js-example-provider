@@ -1,6 +1,6 @@
 import { Verifier } from '@pact-foundation/pact'
 import { stateHandlers } from './test-helpers/state-handlers'
-import { buildVerifierOptions } from './test-helpers/pact-utils'
+import { buildVerifierOptions } from './test-helpers/pact-utils/build-verifier-options'
 import { truncateTables } from '../scripts/truncate-tables'
 import { requestFilter } from './test-helpers/pact-request-filter'
 
@@ -35,6 +35,16 @@ describe('Pact Verification', () => {
     // }
   })
   const verifier = new Verifier(options)
+
+  // our produceMovieEvent has some console.logs which we don't need during tests
+  // but you can comment these out if you want to see them.
+  beforeAll(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {})
+    jest.spyOn(console, 'error').mockImplementation(() => {})
+  })
+  afterAll(() => {
+    jest.restoreAllMocks()
+  })
 
   it('should validate the expectations of movie-consumer', async () => {
     // 3) Write & execute the provider contract test
@@ -76,9 +86,6 @@ PACT_DESCRIPTION="a request to a specific movie" PACT_PROVIDER_STATE="Has a movi
 PACT_DESCRIPTION="a request to delete a movie that exists" PACT_PROVIDER_STATE="Has a movie with a specific ID" npm run test:provider
 
 PACT_PROVIDER_NO_STATE=true npm run test:provider
-
-# to run tests from a certain consumer
-PACT_CONSUMER="WebConsumer" npm run test:provider
 
 # to relax the can:i:deploy and only check against matching branches
 PACT_BREAKING_CHANGE=true npm run test:provider
