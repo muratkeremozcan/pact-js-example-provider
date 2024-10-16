@@ -71,9 +71,6 @@ PACT_DESCRIPTION="a request to delete a movie that exists" PACT_PROVIDER_STATE="
 
 PACT_PROVIDER_NO_STATE=true npm run test:provider
 
-# to run tests from a certain consumer
-PACT_CONSUMER="WebConsumer-event-consumer" npm run test:provider
-
 # to relax the can:i:deploy and only check against matching branches
 PACT_BREAKING_CHANGE=true npm run test:provider
 */

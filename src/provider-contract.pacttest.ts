@@ -74,15 +74,19 @@ describe('Pact Verification', () => {
 // PACT_PROVIDER_STATE:	   select all tests that contain this string in one of its providerState
 // PACT_PROVIDER_NO_STATE: set to TRUE to select all tests what don't have any providerState
 /*
+
 examples:
+
 PACT_DESCRIPTION="a request to get all movies" npm run test:provider
 PACT_DESCRIPTION="a request to get all movies" PACT_PROVIDER_STATE="An existing movie exists" npm run test:provider
+
 PACT_PROVIDER_STATE="Has a movie with a specific ID" npm run test:provider
 PACT_DESCRIPTION="a request to a specific movie" PACT_PROVIDER_STATE="Has a movie with a specific ID" npm run test:provider
+
 PACT_DESCRIPTION="a request to delete a movie that exists" PACT_PROVIDER_STATE="Has a movie with a specific ID" npm run test:provider
+
 PACT_PROVIDER_NO_STATE=true npm run test:provider
-# to run tests from a certain consumer
-PACT_CONSUMER="WebConsumer" npm run test:provider
+
 # to relax the can:i:deploy and only check against matching branches
 PACT_BREAKING_CHANGE=true npm run test:provider
 */

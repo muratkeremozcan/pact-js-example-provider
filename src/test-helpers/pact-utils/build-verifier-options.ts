@@ -9,7 +9,7 @@ import type {
   StateHandlers
 } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
 import { noOpRequestFilter } from '../pact-request-filter'
-import { handlePactBrokerUrlAndSelectors } from './handle-pact-urls-selectors'
+import { handlePactBrokerUrlAndSelectors } from './handle-url-and-selectors'
 
 /**
  * Builds a `VerifierOptions` object for Pact verification, encapsulating
