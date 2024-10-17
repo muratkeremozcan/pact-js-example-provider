@@ -14,7 +14,51 @@ datasource db {
 }
 
 model Movie {
-  id    Int     @id @default(autoincrement())
-  name  String
-  year  Int
+  id         Int          @id @default(autoincrement())
+  name       String
+  year       Int
+  director   Director?    @relation(fields: [directorId], references: [id])
+  directorId Int?
+  genres     MovieGenre[] // A many-to-many relationship with Genre
+  actors     MovieActor[] // A many-to-many relationship with Actor
+}
+
+model Director {
+  id     Int     @id @default(autoincrement())
+  name   String
+  movies Movie[] // One-to-many relationship with Movie
+}
+
+model Actor {
+  id     Int          @id @default(autoincrement())
+  name   String
+  movies MovieActor[] // A many-to-many relationship with Movie
+}
+
+model Genre {
+  id     Int          @id @default(autoincrement())
+  name   String
+  movies MovieGenre[] // A many-to-many relationship with Movie
+}
+
+// Internal Join Tables: MovieActor and MovieGenre are internal join tables used by Prisma 
+// to manage the many-to-many relationships between Movie and Actor, and Movie and Genre, respectively.
+// Exposing join tables adds unnecessary complexity to your API.
+
+model MovieActor {
+  movie   Movie @relation(fields: [movieId], references: [id])
+  movieId Int
+  actor   Actor @relation(fields: [actorId], references: [id])
+  actorId Int
+
+  @@id([movieId, actorId]) // Composite primary key for the relation table
+}
+
+model MovieGenre {
+  movie   Movie @relation(fields: [movieId], references: [id])
+  movieId Int
+  genre   Genre @relation(fields: [genreId], references: [id])
+  genreId Int
+
+  @@id([movieId, genreId]) // Composite primary key for the relation table
 }

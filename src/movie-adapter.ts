@@ -7,11 +7,10 @@ import type {
   ConflictMovieResponse,
   DeleteMovieResponse,
   UpdateMovieRequest,
-  UpdateMovieResponse
+  UpdateMovieResponse,
+  GetMoviesResponse
 } from './@types'
 import type { MovieRepository } from './movie-repository'
-import { CreateMovieSchema, UpdateMovieSchema } from './@types/schema'
-import type { ZodSchema } from 'zod'
 
 // ports & adapters (hexagonal) pattern refactor:
 // movies.ts (now called movie-service) has been split into two parts,
@@ -67,7 +66,7 @@ export class MovieAdapter implements MovieRepository {
   }
 
   // Get all movies
-  async getMovies(): Promise<GetMovieResponse> {
+  async getMovies(): Promise<GetMoviesResponse> {
     try {
       const movies = await this.prisma.movie.findMany()
 
@@ -89,7 +88,7 @@ export class MovieAdapter implements MovieRepository {
 
       return {
         status: 500,
-        data: null,
+        data: [],
         error: 'Failed to retrieve movies'
       }
     }
@@ -186,14 +185,6 @@ export class MovieAdapter implements MovieRepository {
     id?: number
   ): Promise<CreateMovieResponse | ConflictMovieResponse> {
     try {
-      // Zod Key feature 3: safeParse
-      // Zod note: if you have a frontend, you can use the schema + safeParse there
-      // in order to perform form validation before sending the data to the server
-      const validationResult = validateSchema(CreateMovieSchema, data)
-      if (!validationResult.success) {
-        return { status: 400, error: validationResult.error }
-      }
-
       // Check if the movie already exists
       const existingMovie = await this.prisma.movie.findFirst({
         where: { name: data.name }
@@ -225,19 +216,6 @@ export class MovieAdapter implements MovieRepository {
     UpdateMovieResponse | MovieNotFoundResponse | ConflictMovieResponse
   > {
     try {
-      // Zod Key feature 3: safeParse
-      // Zod note: if you have a frontend, you can use the schema + safeParse there
-      // in order to perform form validation before sending the data to the server
-      const validationResult = validateSchema(UpdateMovieSchema, data)
-      if (!validationResult.success)
-        return { status: 400, error: validationResult.error }
-
-      const existingMovie = await this.prisma.movie.findUnique({
-        where: { id }
-      })
-      if (!existingMovie)
-        return { status: 404, error: `Movie with ID ${id} not found` }
-
       const updatedMovie = await this.prisma.movie.update({
         where: { id },
         data
@@ -248,24 +226,17 @@ export class MovieAdapter implements MovieRepository {
         data: updatedMovie
       }
     } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        return {
+          status: 404,
+          error: `Movie with ID ${id} not found`
+        }
+      }
       this.handleError(error)
       return { status: 500, error: 'Internal server error' }
     }
-  }
-}
-
-// helper function for schema validation
-function validateSchema<T>(
-  schema: ZodSchema<T>,
-  data: unknown
-): { success: true; data: T } | { success: false; error: string } {
-  const result = schema.safeParse(data)
-  if (result.success) {
-    return { success: true, data: result.data }
-  } else {
-    const errorMessages = result.error.errors
-      .map((err) => err.message)
-      .join(', ')
-    return { success: false, error: errorMessages }
   }
 }

@@ -6,7 +6,8 @@ import type {
   ConflictMovieResponse,
   DeleteMovieResponse,
   UpdateMovieRequest,
-  UpdateMovieResponse
+  UpdateMovieResponse,
+  GetMoviesResponse
 } from './@types'
 
 // MovieRepository: this is the interface/contract that defines the methods
@@ -14,7 +15,7 @@ import type {
 // It's a port in hexagonal architecture.
 
 export interface MovieRepository {
-  getMovies(): Promise<GetMovieResponse>
+  getMovies(): Promise<GetMoviesResponse>
   getMovieById(id: number): Promise<GetMovieResponse | MovieNotFoundResponse>
   getMovieByName(
     name: string

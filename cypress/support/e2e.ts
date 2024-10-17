@@ -2,7 +2,7 @@ import './commands'
 import './get-token'
 import 'cypress-map'
 import '@bahmutov/cy-api'
-import type { Movie } from '@prisma/client'
+import type { Movie } from '../../src/@types'
 
 const commonHeaders = (token: string) => ({
   Authorization: token

@@ -1,6 +1,6 @@
 import { MovieService } from './movie-service'
 import type { MovieRepository } from './movie-repository'
-import type { Movie } from '@prisma/client'
+import type { Movie } from './@types'
 
 // because we use ports & adapters / hex pattern,
 // the data layer (MovieRepository) is a dependency we can mock
@@ -19,7 +19,20 @@ describe('MovieService', () => {
   let movieService: MovieService
   let mockMovieRepository: jest.Mocked<MovieRepository>
   const id = 1
-  const mockMovie: Movie = { id, name: 'Inception', year: 2020 }
+  const mockMovieNoId: Omit<Movie, 'id'> = {
+    name: 'Inception',
+    year: 2010,
+    director: { id: 1, name: 'Christopher Nolan' },
+    actors: [
+      { id: 1, name: 'Leonardo DiCaprio' },
+      { id: 2, name: 'Joseph Gordon-Levitt' }
+    ],
+    genres: [
+      { id: 1, name: 'Sci-Fi' },
+      { id: 2, name: 'Action' }
+    ]
+  }
+  const mockMovie: Movie = { id, ...mockMovieNoId }
   const mockMovieResponse = { status: 200, data: mockMovie, error: null }
   const mockMoviesResponse = {
     status: 200,
@@ -94,41 +107,109 @@ describe('MovieService', () => {
     expect(mockMovieRepository.getMovieByName).toHaveBeenCalledWith(name)
   })
 
-  it('should add a new movie', async () => {
+  it('should add a new movie successfully', async () => {
+    const newMovieData = { ...mockMovieNoId, name: 'New Movie', year: 2021 }
     const expectedResult = {
       status: 200,
-      data: mockMovie,
-      error: undefined
+      data: { id: 2, ...newMovieData }
     }
+
+    // Mock getMovieByName to return 404 (movie does not exist)
+    mockMovieRepository.getMovieByName.mockResolvedValue({
+      status: 404,
+      data: null,
+      error: null
+    })
+
+    // Mock addMovie to return the expected result
     mockMovieRepository.addMovie.mockResolvedValue(expectedResult)
 
-    const result = await movieService.addMovie(mockMovie)
+    const result = await movieService.addMovie(newMovieData)
 
     expect(result).toEqual(expectedResult)
+    expect(mockMovieRepository.getMovieByName).toHaveBeenCalledWith('New Movie')
     expect(mockMovieRepository.addMovie).toHaveBeenCalledWith(
-      mockMovie,
+      newMovieData,
       undefined
     )
   })
 
-  it('should update a movie', async () => {
+  it('should not add a movie if it already exists', async () => {
+    const existingMovieData = {
+      ...mockMovieNoId,
+      name: 'Inception',
+      year: 2010
+    }
+
+    // Mock getMovieByName to return the existing movie
+    mockMovieRepository.getMovieByName.mockResolvedValue(mockMovieResponse)
+
+    const result = await movieService.addMovie(existingMovieData)
+
+    expect(result).toEqual({
+      status: 409,
+      error: 'Movie "Inception" already exists'
+    })
+    expect(mockMovieRepository.getMovieByName).toHaveBeenCalledWith('Inception')
+    expect(mockMovieRepository.addMovie).not.toHaveBeenCalled()
+  })
+
+  it('should update a movie successfully', async () => {
+    const updateData = {
+      ...mockMovieNoId,
+      name: 'Inception Updated',
+      year: 2011
+    }
     const expectedResult = {
       status: 200,
-      data: mockMovie,
-      error: undefined
+      data: { id, ...updateData }
     }
+
+    // Mock getMovieById to return the existing movie (movie exists)
+    mockMovieRepository.getMovieById.mockResolvedValue(mockMovieResponse)
+
+    // Mock updateMovie to return the expected result
     mockMovieRepository.updateMovie.mockResolvedValue(expectedResult)
 
-    const result = await movieService.updateMovie(
-      { name: mockMovie.name, year: mockMovie.year },
-      id
-    )
+    const result = await movieService.updateMovie(updateData, id)
 
     expect(result).toEqual(expectedResult)
-    expect(mockMovieRepository.updateMovie).toHaveBeenCalledWith(
-      { name: mockMovie.name, year: mockMovie.year },
-      id
-    )
+    expect(mockMovieRepository.getMovieById).toHaveBeenCalledWith(id)
+    expect(mockMovieRepository.updateMovie).toHaveBeenCalledWith(updateData, id)
+  })
+
+  it('should return 404 if the movie to update does not exist', async () => {
+    const updateData = {
+      ...mockMovieNoId,
+      name: 'Non-existent Movie',
+      year: 2021
+    }
+
+    // Mock getMovieById to return 404 (movie does not exist)
+    mockMovieRepository.getMovieById.mockResolvedValue(notFoundResponse)
+
+    const result = await movieService.updateMovie(updateData, id)
+
+    expect(result).toEqual({
+      status: 404,
+      error: `Movie with ID ${id} not found`
+    })
+    expect(mockMovieRepository.getMovieById).toHaveBeenCalledWith(id)
+    expect(mockMovieRepository.updateMovie).not.toHaveBeenCalled()
+  })
+
+  it('should return validation errors if input is invalid for updateMovie', async () => {
+    const invalidUpdateData = { ...mockMovieNoId, name: '', year: 1800 } // Invalid data
+
+    const result = await movieService.updateMovie(invalidUpdateData, id)
+
+    expect(result).toEqual({
+      status: 400,
+      error:
+        'String must contain at least 1 character(s), Number must be greater than or equal to 1900'
+    })
+    expect(mockMovieRepository.getMovieById).not.toHaveBeenCalled()
+    expect(mockMovieRepository.updateMovie).not.toHaveBeenCalled()
   })
 
   it('should delete a movie by id', async () => {
@@ -146,6 +227,7 @@ describe('MovieService', () => {
 
   it('should try to delete and not find a movie', async () => {
     const expectedResult = {
+      ...mockMovieNoId,
       status: 404,
       message: 'Movie not found'
     }

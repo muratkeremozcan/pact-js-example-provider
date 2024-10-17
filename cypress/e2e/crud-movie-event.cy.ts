@@ -1,13 +1,13 @@
 import '@cypress/skip-test/support'
 import 'cypress-ajv-schema-validator'
 
-import type { Movie } from '@prisma/client'
 import spok from 'cy-spok'
 import schema from '../../src/api-docs/openapi.json'
 import { generateMovie } from '../../src/test-helpers/factories'
 import { parseKafkaEvent } from '../support/parse-kafka-event'
 import { retryableBefore } from '../support/retryable-before'
 import { recurse } from 'cypress-recurse'
+import type { Movie } from '../../src/@types'
 
 describe('CRUD movie', () => {
   const movie = generateMovie()

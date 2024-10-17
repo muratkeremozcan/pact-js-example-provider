@@ -1,37 +1,51 @@
 import type { z } from 'zod'
 import type {
-  CreateMovieResponseSchema,
+  // Schemas for entities
+  DirectorSchema,
+  ActorSchema,
+  GenreSchema,
+  MovieSchema,
+  // Request Schemas
   CreateMovieSchema,
-  GetMovieResponseUnionSchema,
-  MovieNotFoundResponseSchema,
-  DeleteMovieResponseSchema,
-  ConflictMovieResponseSchema,
   UpdateMovieSchema,
-  UpdateMovieResponseSchema
+  // Response Schemas
+  CreateMovieResponseSchema,
+  UpdateMovieResponseSchema,
+  GetMovieResponseSchema,
+  GetMoviesResponseSchema,
+  DeleteMovieResponseSchema,
+  // Error Schemas
+  ConflictMovieResponseSchema,
+  MovieNotFoundResponseSchema,
+  DirectorNotFoundResponseSchema,
+  ActorNotFoundResponseSchema,
+  GenreNotFoundResponseSchema
 } from './schema'
-// import type { Movie } from '@prisma/client'
 
 // Zod Key feature 2: link the schemas to the types
 
+// Entity Types
+export type Director = z.infer<typeof DirectorSchema>
+export type Actor = z.infer<typeof ActorSchema>
+export type Genre = z.infer<typeof GenreSchema>
+export type Movie = z.infer<typeof MovieSchema>
+
+// Request Types
 export type CreateMovieRequest = z.infer<typeof CreateMovieSchema>
-// export type CreateMovieRequest = Omit<Movie, 'id'>
-
-export type CreateMovieResponse = z.infer<typeof CreateMovieResponseSchema>
-// export type CreateMovieResponse = {
-//   status: number
-//   error?: string
-//   movie?: Movie
-// }
-
-export type ConflictMovieResponse = z.infer<typeof ConflictMovieResponseSchema>
-
-export type GetMovieResponse = z.infer<typeof GetMovieResponseUnionSchema>
-// export type GetMovieResponse = Movie | null
-
-export type MovieNotFoundResponse = z.infer<typeof MovieNotFoundResponseSchema>
-
-export type DeleteMovieResponse = z.infer<typeof DeleteMovieResponseSchema>
-
 export type UpdateMovieRequest = z.infer<typeof UpdateMovieSchema>
 
+// Response Types
+export type CreateMovieResponse = z.infer<typeof CreateMovieResponseSchema>
 export type UpdateMovieResponse = z.infer<typeof UpdateMovieResponseSchema>
+export type GetMovieResponse = z.infer<typeof GetMovieResponseSchema>
+export type GetMoviesResponse = z.infer<typeof GetMoviesResponseSchema>
+export type DeleteMovieResponse = z.infer<typeof DeleteMovieResponseSchema>
+
+// Error Response Types
+export type ConflictMovieResponse = z.infer<typeof ConflictMovieResponseSchema>
+export type MovieNotFoundResponse = z.infer<typeof MovieNotFoundResponseSchema>
+export type DirectorNotFoundResponse = z.infer<
+  typeof DirectorNotFoundResponseSchema
+>
+export type ActorNotFoundResponse = z.infer<typeof ActorNotFoundResponseSchema>
+export type GenreNotFoundResponse = z.infer<typeof GenreNotFoundResponseSchema>

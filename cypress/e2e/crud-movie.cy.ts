@@ -1,6 +1,6 @@
 import 'cypress-ajv-schema-validator'
 
-import type { Movie } from '@prisma/client'
+import type { Movie } from '../../src/@types'
 import { generateMovie } from '../../src/test-helpers/factories'
 import spok from 'cy-spok'
 import schema from '../../src/api-docs/openapi.json'
