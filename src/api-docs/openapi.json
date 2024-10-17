@@ -17,14 +17,128 @@
   ],
   "components": {
     "schemas": {
-      "CreateMovieRequest": {
+      "Director": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Director ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Director name",
+            "example": "Christopher Nolan"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "description": "Director of the movie",
+        "example": {
+          "id": 1,
+          "name": "Christopher Nolan"
+        }
+      },
+      "Actor": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "number",
+            "type": "integer",
+            "description": "Actor ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Actor name",
+            "example": "Leonardo DiCaprio"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "Genre": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Genre ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Genre name",
+            "example": "Sci-Fi"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "Movie": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
             "description": "Movie ID",
             "example": 1
           },
+          "name": {
+            "type": "string",
+            "description": "Movie name",
+            "example": "Inception"
+          },
+          "year": {
+            "type": "integer",
+            "description": "Release year",
+            "example": 2010
+          },
+          "director": {
+            "$ref": "#/components/schemas/Director"
+          },
+          "actors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Actor"
+            },
+            "description": "List of actors in the movie",
+            "example": [
+              {
+                "id": 1,
+                "name": "Leonardo DiCaprio"
+              }
+            ]
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Genre"
+            },
+            "description": "Genres associated with the movie",
+            "example": [
+              {
+                "id": 1,
+                "name": "Sci-Fi"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "year"
+        ]
+      },
+      "CreateMovieRequest": {
+        "type": "object",
+        "properties": {
           "name": {
             "type": "string",
             "minLength": 1,
@@ -37,6 +151,33 @@
             "maximum": 2024,
             "description": "Release year",
             "example": 2010
+          },
+          "directorId": {
+            "type": "integer",
+            "description": "Director ID",
+            "example": 1
+          },
+          "actorIds": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of Actor IDs",
+            "example": [
+              1,
+              2
+            ]
+          },
+          "genreIds": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of Genre IDs",
+            "example": [
+              1,
+              2
+            ]
           }
         },
         "required": [
@@ -44,19 +185,70 @@
           "year"
         ]
       },
-      "CreateMovieResponse": {
+      "UpdateMovieRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Movie name",
+            "example": "Inception"
+          },
+          "year": {
+            "type": "integer",
+            "minimum": 1900,
+            "maximum": 2024,
+            "description": "Release year",
+            "example": 2010
+          },
+          "directorId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Director ID",
+            "example": 1
+          },
+          "actorIds": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of Actor IDs",
+            "example": [
+              1,
+              2
+            ]
+          },
+          "genreIds": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of Genre IDs",
+            "example": [
+              1,
+              2
+            ]
+          }
+        }
+      },
+      "GetMovieResponse": {
         "type": "object",
         "properties": {
           "status": {
             "type": "integer",
-            "description": "Response status code",
+            "description": "OK status code",
             "example": 200
           },
           "data": {
-            "type": "object",
+            "type": [
+              "object",
+              "null"
+            ],
             "properties": {
               "id": {
-                "type": "number",
+                "type": "integer",
                 "description": "Movie ID",
                 "example": 1
               },
@@ -66,9 +258,38 @@
                 "example": "Inception"
               },
               "year": {
-                "type": "number",
+                "type": "integer",
                 "description": "Release year",
                 "example": 2010
+              },
+              "director": {
+                "$ref": "#/components/schemas/Director"
+              },
+              "actors": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Actor"
+                },
+                "description": "List of actors in the movie",
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Leonardo DiCaprio"
+                  }
+                ]
+              },
+              "genres": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Genre"
+                },
+                "description": "Genres associated with the movie",
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Sci-Fi"
+                  }
+                ]
               }
             },
             "required": [
@@ -76,11 +297,35 @@
               "name",
               "year"
             ],
-            "description": "Movie data"
+            "description": "Movie details or null if not found",
+            "example": {
+              "id": 1,
+              "name": "Inception",
+              "year": 2010,
+              "director": {
+                "id": 1,
+                "name": "Christopher Nolan"
+              },
+              "actors": [
+                {
+                  "id": 1,
+                  "name": "Leonardo DiCaprio"
+                }
+              ],
+              "genres": [
+                {
+                  "id": 1,
+                  "name": "Sci-Fi"
+                }
+              ]
+            }
           },
           "error": {
-            "type": "string",
-            "description": "Error message, if any"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Error message if an error occurred, otherwise null"
           }
         },
         "required": [
@@ -88,73 +333,41 @@
           "data"
         ]
       },
-      "GetMovieResponse": {
+      "GetMoviesResponse": {
         "type": "object",
         "properties": {
           "status": {
             "type": "integer",
-            "description": "Response status code",
+            "description": "OK status code",
             "example": 200
           },
           "data": {
-            "anyOf": [
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Movie"
+            },
+            "description": "List of movies or an empty array if no movies exist",
+            "example": [
               {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "number",
-                    "description": "Movie ID",
-                    "example": 1
-                  },
-                  "name": {
-                    "type": "string",
-                    "description": "Movie name",
-                    "example": "Inception"
-                  },
-                  "year": {
-                    "type": "number",
-                    "description": "Release year",
-                    "example": 2010
+                "id": 1,
+                "name": "Inception",
+                "year": 2010,
+                "director": {
+                  "id": 1,
+                  "name": "Christopher Nolan"
+                },
+                "actors": [
+                  {
+                    "id": 1,
+                    "name": "Leonardo DiCaprio"
                   }
-                },
-                "required": [
-                  "id",
-                  "name",
-                  "year"
+                ],
+                "genres": [
+                  {
+                    "id": 1,
+                    "name": "Sci-Fi"
+                  }
                 ]
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "number",
-                      "description": "Movie ID",
-                      "example": 1
-                    },
-                    "name": {
-                      "type": "string",
-                      "description": "Movie name",
-                      "example": "Inception"
-                    },
-                    "year": {
-                      "type": "number",
-                      "description": "Release year",
-                      "example": 2010
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "name",
-                    "year"
-                  ]
-                },
-                "description": "List of movies or an empty array if no movies exist",
-                "example": []
-              },
-              {
-                "type": "null"
               }
             ]
           },
@@ -171,76 +384,19 @@
           "data"
         ]
       },
-      "MovieNotFound": {
+      "CreateMovieResponse": {
         "type": "object",
         "properties": {
           "status": {
             "type": "integer",
-            "description": "Response status code",
-            "example": 404
-          },
-          "error": {
-            "type": "string",
-            "description": "Error message",
-            "example": "Movie not found"
-          }
-        },
-        "required": [
-          "status",
-          "error"
-        ]
-      },
-      "DeleteMovieMessage": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "integer",
-            "description": "Response status code",
-            "example": 200
-          },
-          "message": {
-            "type": "string",
-            "description": "Success message for the deleted movie",
-            "example": "Movie {id} has been deleted"
-          }
-        },
-        "required": [
-          "status",
-          "message"
-        ]
-      },
-      "DeleteMovieResponse": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "integer",
-            "description": "Response status code",
-            "example": 200
-          },
-          "message": {
-            "type": "string",
-            "description": "Success message for the deleted movie",
-            "example": "Movie {id} has been deleted"
-          }
-        },
-        "required": [
-          "status",
-          "message"
-        ]
-      },
-      "UpdateMovieResponse": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "integer",
-            "description": "Response status code",
-            "example": 200
+            "description": "Created status code",
+            "example": 201
           },
           "data": {
             "type": "object",
             "properties": {
               "id": {
-                "type": "number",
+                "type": "integer",
                 "description": "Movie ID",
                 "example": 1
               },
@@ -250,9 +406,111 @@
                 "example": "Inception"
               },
               "year": {
-                "type": "number",
+                "type": "integer",
                 "description": "Release year",
                 "example": 2010
+              },
+              "director": {
+                "$ref": "#/components/schemas/Director"
+              },
+              "actors": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Actor"
+                },
+                "description": "List of actors in the movie",
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Leonardo DiCaprio"
+                  }
+                ]
+              },
+              "genres": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Genre"
+                },
+                "description": "Genres associated with the movie",
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Sci-Fi"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "year"
+            ],
+            "description": "Created movie data"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message, if any"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateMovieResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "OK status code",
+            "example": 200
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "Movie ID",
+                "example": 1
+              },
+              "name": {
+                "type": "string",
+                "description": "Movie name",
+                "example": "Inception"
+              },
+              "year": {
+                "type": "integer",
+                "description": "Release year",
+                "example": 2010
+              },
+              "director": {
+                "$ref": "#/components/schemas/Director"
+              },
+              "actors": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Actor"
+                },
+                "description": "List of actors in the movie",
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Leonardo DiCaprio"
+                  }
+                ]
+              },
+              "genres": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Genre"
+                },
+                "description": "Genres associated with the movie",
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Sci-Fi"
+                  }
+                ]
               }
             },
             "required": [
@@ -272,28 +530,62 @@
           "data"
         ]
       },
-      "UpdateMovieRequest": {
+      "DeleteMovieResponse": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "number",
-            "description": "Movie ID",
-            "example": 1
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Movie name",
-            "example": "Inception"
-          },
-          "year": {
+          "status": {
             "type": "integer",
-            "minimum": 1900,
-            "maximum": 2024,
-            "description": "Release year",
-            "example": 2010
+            "description": "OK status code",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "Success message for the deleted movie",
+            "example": "Movie {id} has been deleted"
           }
-        }
+        },
+        "required": [
+          "status",
+          "message"
+        ]
+      },
+      "ConflictMovieResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "Conflict status code",
+            "example": 409
+          },
+          "error": {
+            "type": "string",
+            "description": "Conflict error message",
+            "example": "Movie already exists with the same name and year"
+          }
+        },
+        "required": [
+          "status",
+          "error"
+        ]
+      },
+      "MovieNotFoundResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "Not Found status code",
+            "example": 404
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Movie not found"
+          }
+        },
+        "required": [
+          "status",
+          "error"
+        ]
       }
     },
     "parameters": {}
@@ -343,7 +635,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetMovieResponse"
+                  "$ref": "#/components/schemas/GetMoviesResponse"
                 }
               }
             }
@@ -353,23 +645,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "integer",
-                      "description": "Response status code",
-                      "example": 404
-                    },
-                    "error": {
-                      "type": "string",
-                      "description": "Error message",
-                      "example": "Movie not found"
-                    }
-                  },
-                  "required": [
-                    "status",
-                    "error"
-                  ]
+                  "$ref": "#/components/schemas/MovieNotFoundResponse"
                 }
               }
             }
@@ -389,7 +665,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Movie created successfully",
             "content": {
               "application/json": {
@@ -407,23 +683,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "integer",
-                      "description": "Conflict status code",
-                      "example": 409
-                    },
-                    "error": {
-                      "type": "string",
-                      "description": "Error message",
-                      "example": "Movie already exists"
-                    }
-                  },
-                  "required": [
-                    "status",
-                    "error"
-                  ]
+                  "$ref": "#/components/schemas/ConflictMovieResponse"
                 }
               }
             }
@@ -465,75 +725,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "integer",
-                      "description": "Response status code",
-                      "example": 404
-                    },
-                    "error": {
-                      "type": "string",
-                      "description": "Error message",
-                      "example": "Movie not found"
-                    }
-                  },
-                  "required": [
-                    "status",
-                    "error"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a movie by ID",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Movie ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Movie {id} has been deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteMovieResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Movie not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "integer",
-                      "description": "Response status code",
-                      "example": 404
-                    },
-                    "error": {
-                      "type": "string",
-                      "description": "Error message",
-                      "example": "Movie not found"
-                    }
-                  },
-                  "required": [
-                    "status",
-                    "error"
-                  ]
+                  "$ref": "#/components/schemas/MovieNotFoundResponse"
                 }
               }
             }
@@ -574,28 +766,54 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid request body or validation error"
+          },
           "404": {
             "description": "Movie not found",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "integer",
-                      "description": "Response status code",
-                      "example": 404
-                    },
-                    "error": {
-                      "type": "string",
-                      "description": "Error message",
-                      "example": "Movie not found"
-                    }
-                  },
-                  "required": [
-                    "status",
-                    "error"
-                  ]
+                  "$ref": "#/components/schemas/MovieNotFoundResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a movie by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Movie ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Movie deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteMovieResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Movie not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovieNotFoundResponse"
                 }
               }
             }
