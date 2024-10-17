@@ -10,13 +10,74 @@ servers:
     description: Production server
 components:
   schemas:
-    CreateMovieRequest:
+    Actor:
       type: object
       properties:
         id:
-          type: number
+          type: integer
+          description: Actor ID
+          example: 1
+        name:
+          type: string
+          description: Actor name
+          example: Leonardo DiCaprio
+      required:
+        - id
+        - name
+    Genre:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Genre ID
+          example: 1
+        name:
+          type: string
+          description: Genre name
+          example: Sci-Fi
+      required:
+        - id
+        - name
+    Movie:
+      type: object
+      properties:
+        id:
+          type: integer
           description: Movie ID
           example: 1
+        name:
+          type: string
+          description: Movie name
+          example: Inception
+        year:
+          type: integer
+          description: Release year
+          example: 2010
+        actors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Actor"
+          description: List of actors in the movie
+          example:
+            - id: 1
+              name: Leonardo DiCaprio
+        genres:
+          type: array
+          items:
+            $ref: "#/components/schemas/Genre"
+          description: Genres associated with the movie
+          example:
+            - id: 1
+              name: Sci-Fi
+      required:
+        - id
+        - name
+        - year
+        - actors
+        - genres
+    CreateMovieRequest:
+      type: object
+      properties:
         name:
           type: string
           minLength: 1
@@ -28,92 +89,81 @@ components:
           maximum: 2024
           description: Release year
           example: 2010
+        actors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Actor"
+          description: List of actor objects
+          example:
+            - id: 1
+              name: Leonardo DiCaprio
+        genres:
+          type: array
+          items:
+            $ref: "#/components/schemas/Genre"
+          description: List of genre objects
+          example:
+            - id: 1
+              name: Sci-Fi
       required:
         - name
         - year
-    CreateMovieResponse:
+        - actors
+        - genres
+    UpdateMovieRequest:
       type: object
       properties:
-        status:
-          type: integer
-          description: Response status code
-          example: 200
-        data:
-          type: object
-          properties:
-            id:
-              type: number
-              description: Movie ID
-              example: 1
-            name:
-              type: string
-              description: Movie name
-              example: Inception
-            year:
-              type: number
-              description: Release year
-              example: 2010
-          required:
-            - id
-            - name
-            - year
-          description: Movie data
-        error:
+        name:
           type: string
-          description: Error message, if any
-      required:
-        - status
-        - data
+          minLength: 1
+          description: Movie name
+          example: Inception
+        year:
+          type: integer
+          minimum: 1900
+          maximum: 2024
+          description: Release year
+          example: 2010
+        actors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Actor"
+          description: List of updated actor objects
+          example:
+            - id: 1
+              name: Leonardo DiCaprio
+        genres:
+          type: array
+          items:
+            $ref: "#/components/schemas/Genre"
+          description: List of updated genre objects
+          example:
+            - id: 1
+              name: Sci-Fi
     GetMovieResponse:
       type: object
       properties:
         status:
           type: integer
-          description: Response status code
+          description: OK status code
           example: 200
         data:
-          anyOf:
-            - type: object
-              properties:
-                id:
-                  type: number
-                  description: Movie ID
-                  example: 1
-                name:
-                  type: string
-                  description: Movie name
-                  example: Inception
-                year:
-                  type: number
-                  description: Release year
-                  example: 2010
-              required:
-                - id
-                - name
-                - year
-            - type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: number
-                    description: Movie ID
-                    example: 1
-                  name:
-                    type: string
-                    description: Movie name
-                    example: Inception
-                  year:
-                    type: number
-                    description: Release year
-                    example: 2010
-                required:
-                  - id
-                  - name
-                  - year
-              description: List of movies or an empty array if no movies exist
-              example: []
-            - type: "null"
+          allOf:
+            - $ref: "#/components/schemas/Movie"
+            - type:
+                - object
+                - "null"
+              description: Movie details or null if not found
+              example:
+                id: 1
+                name: Inception
+                year: 2010
+                actors:
+                  - id: 1
+                    name: Leonardo DiCaprio
+                genres:
+                  - id: 1
+                    name: Sci-Fi
         error:
           type:
             - string
@@ -122,12 +172,104 @@ components:
       required:
         - status
         - data
-    MovieNotFound:
+    GetMoviesResponse:
       type: object
       properties:
         status:
           type: integer
-          description: Response status code
+          description: OK status code
+          example: 200
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Movie"
+          description: List of movies or an empty array if no movies exist
+          example:
+            - id: 1
+              name: Inception
+              year: 2010
+              actors:
+                - id: 1
+                  name: Leonardo DiCaprio
+              genres:
+                - id: 1
+                  name: Sci-Fi
+        error:
+          type:
+            - string
+            - "null"
+          description: Error message if an error occurred, otherwise null
+      required:
+        - status
+        - data
+    CreateMovieResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: Created status code
+          example: 201
+        data:
+          allOf:
+            - $ref: "#/components/schemas/Movie"
+            - description: Created movie data
+        error:
+          type: string
+          description: Error message, if any
+      required:
+        - status
+        - data
+    UpdateMovieResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: OK status code
+          example: 200
+        data:
+          allOf:
+            - $ref: "#/components/schemas/Movie"
+            - description: Updated movie data
+        error:
+          type: string
+          description: Error message, if any
+      required:
+        - status
+        - data
+    DeleteMovieResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: OK status code
+          example: 200
+        message:
+          type: string
+          description: Success message for the deleted movie
+          example: Movie {id} has been deleted
+      required:
+        - status
+        - message
+    ConflictMovieResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: Conflict status code
+          example: 409
+        error:
+          type: string
+          description: Conflict error message
+          example: Movie already exists with the same name and year
+      required:
+        - status
+        - error
+    MovieNotFoundResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: Not Found status code
           example: 404
         error:
           type: string
@@ -136,85 +278,6 @@ components:
       required:
         - status
         - error
-    DeleteMovieMessage:
-      type: object
-      properties:
-        status:
-          type: integer
-          description: Response status code
-          example: 200
-        message:
-          type: string
-          description: Success message for the deleted movie
-          example: Movie {id} has been deleted
-      required:
-        - status
-        - message
-    DeleteMovieResponse:
-      type: object
-      properties:
-        status:
-          type: integer
-          description: Response status code
-          example: 200
-        message:
-          type: string
-          description: Success message for the deleted movie
-          example: Movie {id} has been deleted
-      required:
-        - status
-        - message
-    UpdateMovieResponse:
-      type: object
-      properties:
-        status:
-          type: integer
-          description: Response status code
-          example: 200
-        data:
-          type: object
-          properties:
-            id:
-              type: number
-              description: Movie ID
-              example: 1
-            name:
-              type: string
-              description: Movie name
-              example: Inception
-            year:
-              type: number
-              description: Release year
-              example: 2010
-          required:
-            - id
-            - name
-            - year
-          description: Updated movie data
-        error:
-          type: string
-          description: Error message, if any
-      required:
-        - status
-        - data
-    UpdateMovieRequest:
-      type: object
-      properties:
-        id:
-          type: number
-          description: Movie ID
-          example: 1
-        name:
-          type: string
-          minLength: 1
-          description: Movie name
-          example: Inception
-        year:
-          type: integer
-          minimum: 1900
-          maximum: 2024
-          description: Release year
-          example: 2010
   parameters: {}
 paths:
   /:
@@ -250,25 +313,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GetMovieResponse"
+                $ref: "#/components/schemas/GetMoviesResponse"
         "404":
           description: Movie not found if the name is provided and does not match any movie
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: Response status code
-                    example: 404
-                  error:
-                    type: string
-                    description: Error message
-                    example: Movie not found
-                required:
-                  - status
-                  - error
+                $ref: "#/components/schemas/MovieNotFoundResponse"
     post:
       summary: Create a new movie
       description: Create a new movie in the system
@@ -278,7 +329,7 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateMovieRequest"
       responses:
-        "200":
+        "201":
           description: Movie created successfully
           content:
             application/json:
@@ -291,19 +342,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: Conflict status code
-                    example: 409
-                  error:
-                    type: string
-                    description: Error message
-                    example: Movie already exists
-                required:
-                  - status
-                  - error
+                $ref: "#/components/schemas/ConflictMovieResponse"
         "500":
           description: Unexpected error occurred
   /movies/{id}:
@@ -330,48 +369,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: Response status code
-                    example: 404
-                  error:
-                    type: string
-                    description: Error message
-                    example: Movie not found
-                required:
-                  - status
-                  - error
-    delete:
-      summary: Delete a movie by ID
-      parameters:
-        - *a1
-      responses:
-        "200":
-          description: Movie {id} has been deleted
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DeleteMovieResponse"
-        "404":
-          description: Movie not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: Response status code
-                    example: 404
-                  error:
-                    type: string
-                    description: Error message
-                    example: Movie not found
-                required:
-                  - status
-                  - error
+                $ref: "#/components/schemas/MovieNotFoundResponse"
     put:
       summary: Update a movie by ID
       description: Update the details of an existing movie by providing a movie ID
@@ -389,24 +387,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UpdateMovieResponse"
+        "400":
+          description: Invalid request body or validation error
         "404":
           description: Movie not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    description: Response status code
-                    example: 404
-                  error:
-                    type: string
-                    description: Error message
-                    example: Movie not found
-                required:
-                  - status
-                  - error
+                $ref: "#/components/schemas/MovieNotFoundResponse"
+        "500":
+          description: Internal server error
+    delete:
+      summary: Delete a movie by ID
+      parameters:
+        - *a1
+      responses:
+        "200":
+          description: Movie deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteMovieResponse"
+        "404":
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieNotFoundResponse"
         "500":
           description: Internal server error
 webhooks: {}

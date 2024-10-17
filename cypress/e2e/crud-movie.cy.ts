@@ -1,6 +1,6 @@
 import 'cypress-ajv-schema-validator'
 
-import type { Movie } from '@prisma/client'
+import type { Movie } from '../../src/@types'
 import { generateMovie } from '../../src/test-helpers/factories'
 import spok from 'cy-spok'
 import schema from '../../src/api-docs/openapi.json'
@@ -11,7 +11,13 @@ describe('CRUD movie', () => {
   const updatedMovie = generateMovie()
   const movieProps: Omit<Movie, 'id'> = {
     name: spok.string,
-    year: spok.number
+    year: spok.number,
+    actors: spok.array.items(
+      spok.object({ id: spok.number, name: spok.string })
+    ),
+    genres: spok.array.items(
+      spok.object({ id: spok.number, name: spok.string })
+    )
   }
 
   let token: string

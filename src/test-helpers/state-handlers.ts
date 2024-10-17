@@ -1,10 +1,11 @@
 import type { MessageStateHandlers } from '@pact-foundation/pact'
 import type { AnyJson } from '@pact-foundation/pact/src/common/jsonTypes'
 import type { StateHandlers } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
-import { PrismaClient, type Movie } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import { MovieService } from '../movie-service'
 import { MovieAdapter } from '../movie-adapter'
 import { truncateTables } from '../../scripts/truncate-tables'
+import type { Movie } from '../@types/movie-types'
 
 // define the shape of the params passed in from the consumer
 type HasMovieWithSpecificIDParams = Omit<Movie, 'name' | 'year'>
@@ -23,9 +24,14 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
 
     if (res.status !== 200) {
       // If the movie doesn't exist, create it
-      const movieData: Omit<Movie, 'id'> = {
+      const actors = [{ id: 1, name: 'Actor One' }]
+      const genres = [{ id: 1, name: 'Genre One' }]
+
+      const movieData = {
         name: `Movie Title ${Math.random().toString(36).substring(7)}`,
-        year: 2022
+        year: 2022,
+        actors,
+        genres
       }
 
       await movieService.addMovie(movieData, id)
@@ -41,12 +47,21 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
   'An existing movie exists': async (params: AnyJson) => {
     const { name, year } = params as ExistingMovieParams
 
+    const actors = [{ id: 1, name: 'Actor One' }]
+    const genres = [{ id: 1, name: 'Genre One' }]
+
     // Check if the movie already exists by name
     const res = await movieService.getMovieByName(name)
 
     if (res.status !== 200) {
       // Insert the movie if it doesn't exist
-      await movieService.addMovie({ name, year })
+      const movieData = {
+        name,
+        year,
+        actors,
+        genres
+      }
+      await movieService.addMovie(movieData)
       console.log(`Movie with name "${name}" added.`)
     } else {
       console.log(
