@@ -1,7 +1,6 @@
 import type { z } from 'zod'
 import type {
   // Schemas for entities
-  DirectorSchema,
   ActorSchema,
   GenreSchema,
   MovieSchema,
@@ -17,7 +16,6 @@ import type {
   // Error Schemas
   ConflictMovieResponseSchema,
   MovieNotFoundResponseSchema,
-  DirectorNotFoundResponseSchema,
   ActorNotFoundResponseSchema,
   GenreNotFoundResponseSchema
 } from './schema'
@@ -25,7 +23,6 @@ import type {
 // Zod Key feature 2: link the schemas to the types
 
 // Entity Types
-export type Director = z.infer<typeof DirectorSchema>
 export type Actor = z.infer<typeof ActorSchema>
 export type Genre = z.infer<typeof GenreSchema>
 export type Movie = z.infer<typeof MovieSchema>
@@ -44,8 +41,5 @@ export type DeleteMovieResponse = z.infer<typeof DeleteMovieResponseSchema>
 // Error Response Types
 export type ConflictMovieResponse = z.infer<typeof ConflictMovieResponseSchema>
 export type MovieNotFoundResponse = z.infer<typeof MovieNotFoundResponseSchema>
-export type DirectorNotFoundResponse = z.infer<
-  typeof DirectorNotFoundResponseSchema
->
 export type ActorNotFoundResponse = z.infer<typeof ActorNotFoundResponseSchema>
 export type GenreNotFoundResponse = z.infer<typeof GenreNotFoundResponseSchema>

@@ -9,16 +9,6 @@ import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
 // extends Zod with OpenAPI support
 extendZodWithOpenApi(z)
 
-// Director Schema
-export const DirectorSchema = z
-  .object({
-    id: z.number().int().openapi({ example: 1, description: 'Director ID' }),
-    name: z
-      .string()
-      .openapi({ example: 'Christopher Nolan', description: 'Director name' })
-  })
-  .openapi('Director')
-
 // Actor Schema
 export const ActorSchema = z
   .object({
@@ -38,37 +28,26 @@ export const GenreSchema = z
   .openapi('Genre')
 
 // Movie Schema (used in responses)
-const movieObj = {
-  id: z.number().int().openapi({ example: 1, description: 'Movie ID' }),
-  name: z.string().openapi({ example: 'Inception', description: 'Movie name' }),
-  year: z
-    .number()
-    .int()
-    .openapi({ example: 2010, description: 'Release year' }),
-  director: DirectorSchema.nullable()
-    .optional()
-    .openapi({
-      description: 'Director of the movie',
-      example: { id: 1, name: 'Christopher Nolan' }
-    }),
-  actors: z
-    .array(ActorSchema)
-    .optional()
-    .openapi({
+export const MovieSchema = z
+  .object({
+    id: z.number().int().openapi({ example: 1, description: 'Movie ID' }),
+    name: z
+      .string()
+      .openapi({ example: 'Inception', description: 'Movie name' }),
+    year: z
+      .number()
+      .int()
+      .openapi({ example: 2010, description: 'Release year' }),
+    actors: z.array(ActorSchema).openapi({
       description: 'List of actors in the movie',
       example: [{ id: 1, name: 'Leonardo DiCaprio' }]
     }),
-  genres: z
-    .array(GenreSchema)
-    .optional()
-    .openapi({
+    genres: z.array(GenreSchema).openapi({
       description: 'Genres associated with the movie',
       example: [{ id: 1, name: 'Sci-Fi' }]
     })
-}
-
-// Create the MovieSchema by wrapping movieObj with z.object()
-export const MovieSchema = z.object(movieObj).openapi('Movie')
+  })
+  .openapi('Movie')
 
 // Create Movie Request Schema
 export const CreateMovieSchema = z
@@ -83,36 +62,24 @@ export const CreateMovieSchema = z
       .min(1900)
       .max(2024)
       .openapi({ example: 2010, description: 'Release year' }),
-    directorId: z
-      .number()
-      .int()
-      .optional()
-      .openapi({ example: 1, description: 'Director ID' }),
-    actorIds: z
-      .array(z.number().int())
-      .optional()
-      .openapi({
-        description: 'List of Actor IDs',
-        example: [1, 2]
-      }),
-    genreIds: z
-      .array(z.number().int())
-      .optional()
-      .openapi({
-        description: 'List of Genre IDs',
-        example: [1, 2]
-      })
+    actors: z.array(ActorSchema).openapi({
+      description: 'List of actor objects',
+      example: [{ id: 1, name: 'Leonardo DiCaprio' }]
+    }),
+    genres: z.array(GenreSchema).openapi({
+      description: 'List of genre objects',
+      example: [{ id: 1, name: 'Sci-Fi' }]
+    })
   })
   .openapi('CreateMovieRequest')
 
-// Create Movie Response Schema
 export const CreateMovieResponseSchema = z
   .object({
     status: z
       .number()
       .int()
       .openapi({ example: 201, description: 'Created status code' }),
-    data: z.object(movieObj).openapi({ description: 'Created movie data' }),
+    data: MovieSchema.openapi({ description: 'Created movie data' }),
     error: z
       .string()
       .optional()
@@ -141,20 +108,16 @@ export const GetMovieResponseSchema = z
       .number()
       .int()
       .openapi({ example: 200, description: 'OK status code' }),
-    data: z
-      .object(movieObj)
-      .nullable()
-      .openapi({
-        description: 'Movie details or null if not found',
-        example: {
-          id: 1,
-          name: 'Inception',
-          year: 2010,
-          director: { id: 1, name: 'Christopher Nolan' },
-          actors: [{ id: 1, name: 'Leonardo DiCaprio' }],
-          genres: [{ id: 1, name: 'Sci-Fi' }]
-        }
-      }),
+    data: MovieSchema.nullable().openapi({
+      description: 'Movie details or null if not found',
+      example: {
+        id: 1,
+        name: 'Inception',
+        year: 2010,
+        actors: [{ id: 1, name: 'Leonardo DiCaprio' }],
+        genres: [{ id: 1, name: 'Sci-Fi' }]
+      }
+    }),
     error: z.string().nullable().optional().openapi({
       description: 'Error message if an error occurred, otherwise null',
       example: null
@@ -176,7 +139,6 @@ export const GetMoviesResponseSchema = z
           id: 1,
           name: 'Inception',
           year: 2010,
-          director: { id: 1, name: 'Christopher Nolan' },
           actors: [{ id: 1, name: 'Leonardo DiCaprio' }],
           genres: [{ id: 1, name: 'Sci-Fi' }]
         }
@@ -231,25 +193,19 @@ export const UpdateMovieSchema = z
       .max(2024)
       .optional()
       .openapi({ example: 2010, description: 'Release year' }),
-    directorId: z
-      .number()
-      .int()
-      .nullable()
-      .optional()
-      .openapi({ example: 1, description: 'Director ID' }),
-    actorIds: z
-      .array(z.number().int())
+    actors: z
+      .array(ActorSchema)
       .optional()
       .openapi({
-        description: 'List of Actor IDs',
-        example: [1, 2]
+        description: 'List of updated actor objects',
+        example: [{ id: 1, name: 'Leonardo DiCaprio' }]
       }),
-    genreIds: z
-      .array(z.number().int())
+    genres: z
+      .array(GenreSchema)
       .optional()
       .openapi({
-        description: 'List of Genre IDs',
-        example: [1, 2]
+        description: 'List of updated genre objects',
+        example: [{ id: 1, name: 'Sci-Fi' }]
       })
   })
   .openapi('UpdateMovieRequest')
@@ -261,7 +217,7 @@ export const UpdateMovieResponseSchema = z
       .number()
       .int()
       .openapi({ example: 200, description: 'OK status code' }),
-    data: z.object(movieObj).openapi({ description: 'Updated movie data' }),
+    data: MovieSchema.openapi({ description: 'Updated movie data' }),
     error: z
       .string()
       .optional()
@@ -270,17 +226,6 @@ export const UpdateMovieResponseSchema = z
   .openapi('UpdateMovieResponse')
 
 // Additional Error Schemas
-export const DirectorNotFoundResponseSchema = z
-  .object({
-    status: z
-      .number()
-      .int()
-      .openapi({ example: 404, description: 'Not Found status code' }),
-    error: z
-      .string()
-      .openapi({ example: 'Director not found', description: 'Error message' })
-  })
-  .openapi('DirectorNotFoundResponse')
 
 export const ActorNotFoundResponseSchema = z
   .object({

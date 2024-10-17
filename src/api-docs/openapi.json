@@ -17,33 +17,6 @@
   ],
   "components": {
     "schemas": {
-      "Director": {
-        "type": [
-          "object",
-          "null"
-        ],
-        "properties": {
-          "id": {
-            "type": "integer",
-            "description": "Director ID",
-            "example": 1
-          },
-          "name": {
-            "type": "string",
-            "description": "Director name",
-            "example": "Christopher Nolan"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ],
-        "description": "Director of the movie",
-        "example": {
-          "id": 1,
-          "name": "Christopher Nolan"
-        }
-      },
       "Actor": {
         "type": "object",
         "properties": {
@@ -100,9 +73,6 @@
             "description": "Release year",
             "example": 2010
           },
-          "director": {
-            "$ref": "#/components/schemas/Director"
-          },
           "actors": {
             "type": "array",
             "items": {
@@ -133,7 +103,9 @@
         "required": [
           "id",
           "name",
-          "year"
+          "year",
+          "actors",
+          "genres"
         ]
       },
       "CreateMovieRequest": {
@@ -152,37 +124,38 @@
             "description": "Release year",
             "example": 2010
           },
-          "directorId": {
-            "type": "integer",
-            "description": "Director ID",
-            "example": 1
-          },
-          "actorIds": {
+          "actors": {
             "type": "array",
             "items": {
-              "type": "integer"
+              "$ref": "#/components/schemas/Actor"
             },
-            "description": "List of Actor IDs",
+            "description": "List of actor objects",
             "example": [
-              1,
-              2
+              {
+                "id": 1,
+                "name": "Leonardo DiCaprio"
+              }
             ]
           },
-          "genreIds": {
+          "genres": {
             "type": "array",
             "items": {
-              "type": "integer"
+              "$ref": "#/components/schemas/Genre"
             },
-            "description": "List of Genre IDs",
+            "description": "List of genre objects",
             "example": [
-              1,
-              2
+              {
+                "id": 1,
+                "name": "Sci-Fi"
+              }
             ]
           }
         },
         "required": [
           "name",
-          "year"
+          "year",
+          "actors",
+          "genres"
         ]
       },
       "UpdateMovieRequest": {
@@ -201,34 +174,30 @@
             "description": "Release year",
             "example": 2010
           },
-          "directorId": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "description": "Director ID",
-            "example": 1
-          },
-          "actorIds": {
+          "actors": {
             "type": "array",
             "items": {
-              "type": "integer"
+              "$ref": "#/components/schemas/Actor"
             },
-            "description": "List of Actor IDs",
+            "description": "List of updated actor objects",
             "example": [
-              1,
-              2
+              {
+                "id": 1,
+                "name": "Leonardo DiCaprio"
+              }
             ]
           },
-          "genreIds": {
+          "genres": {
             "type": "array",
             "items": {
-              "type": "integer"
+              "$ref": "#/components/schemas/Genre"
             },
-            "description": "List of Genre IDs",
+            "description": "List of updated genre objects",
             "example": [
-              1,
-              2
+              {
+                "id": 1,
+                "name": "Sci-Fi"
+              }
             ]
           }
         }
@@ -242,83 +211,35 @@
             "example": 200
           },
           "data": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "properties": {
-              "id": {
-                "type": "integer",
-                "description": "Movie ID",
-                "example": 1
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Movie"
               },
-              "name": {
-                "type": "string",
-                "description": "Movie name",
-                "example": "Inception"
-              },
-              "year": {
-                "type": "integer",
-                "description": "Release year",
-                "example": 2010
-              },
-              "director": {
-                "$ref": "#/components/schemas/Director"
-              },
-              "actors": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Actor"
-                },
-                "description": "List of actors in the movie",
-                "example": [
-                  {
-                    "id": 1,
-                    "name": "Leonardo DiCaprio"
-                  }
-                ]
-              },
-              "genres": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Genre"
-                },
-                "description": "Genres associated with the movie",
-                "example": [
-                  {
-                    "id": 1,
-                    "name": "Sci-Fi"
-                  }
-                ]
+              {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "Movie details or null if not found",
+                "example": {
+                  "id": 1,
+                  "name": "Inception",
+                  "year": 2010,
+                  "actors": [
+                    {
+                      "id": 1,
+                      "name": "Leonardo DiCaprio"
+                    }
+                  ],
+                  "genres": [
+                    {
+                      "id": 1,
+                      "name": "Sci-Fi"
+                    }
+                  ]
+                }
               }
-            },
-            "required": [
-              "id",
-              "name",
-              "year"
-            ],
-            "description": "Movie details or null if not found",
-            "example": {
-              "id": 1,
-              "name": "Inception",
-              "year": 2010,
-              "director": {
-                "id": 1,
-                "name": "Christopher Nolan"
-              },
-              "actors": [
-                {
-                  "id": 1,
-                  "name": "Leonardo DiCaprio"
-                }
-              ],
-              "genres": [
-                {
-                  "id": 1,
-                  "name": "Sci-Fi"
-                }
-              ]
-            }
+            ]
           },
           "error": {
             "type": [
@@ -352,10 +273,6 @@
                 "id": 1,
                 "name": "Inception",
                 "year": 2010,
-                "director": {
-                  "id": 1,
-                  "name": "Christopher Nolan"
-                },
                 "actors": [
                   {
                     "id": 1,
@@ -393,59 +310,14 @@
             "example": 201
           },
           "data": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "integer",
-                "description": "Movie ID",
-                "example": 1
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Movie"
               },
-              "name": {
-                "type": "string",
-                "description": "Movie name",
-                "example": "Inception"
-              },
-              "year": {
-                "type": "integer",
-                "description": "Release year",
-                "example": 2010
-              },
-              "director": {
-                "$ref": "#/components/schemas/Director"
-              },
-              "actors": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Actor"
-                },
-                "description": "List of actors in the movie",
-                "example": [
-                  {
-                    "id": 1,
-                    "name": "Leonardo DiCaprio"
-                  }
-                ]
-              },
-              "genres": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Genre"
-                },
-                "description": "Genres associated with the movie",
-                "example": [
-                  {
-                    "id": 1,
-                    "name": "Sci-Fi"
-                  }
-                ]
+              {
+                "description": "Created movie data"
               }
-            },
-            "required": [
-              "id",
-              "name",
-              "year"
-            ],
-            "description": "Created movie data"
+            ]
           },
           "error": {
             "type": "string",
@@ -466,59 +338,14 @@
             "example": 200
           },
           "data": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "integer",
-                "description": "Movie ID",
-                "example": 1
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Movie"
               },
-              "name": {
-                "type": "string",
-                "description": "Movie name",
-                "example": "Inception"
-              },
-              "year": {
-                "type": "integer",
-                "description": "Release year",
-                "example": 2010
-              },
-              "director": {
-                "$ref": "#/components/schemas/Director"
-              },
-              "actors": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Actor"
-                },
-                "description": "List of actors in the movie",
-                "example": [
-                  {
-                    "id": 1,
-                    "name": "Leonardo DiCaprio"
-                  }
-                ]
-              },
-              "genres": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Genre"
-                },
-                "description": "Genres associated with the movie",
-                "example": [
-                  {
-                    "id": 1,
-                    "name": "Sci-Fi"
-                  }
-                ]
+              {
+                "description": "Updated movie data"
               }
-            },
-            "required": [
-              "id",
-              "name",
-              "year"
-            ],
-            "description": "Updated movie data"
+            ]
           },
           "error": {
             "type": "string",

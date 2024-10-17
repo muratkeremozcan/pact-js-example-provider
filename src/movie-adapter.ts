@@ -32,11 +32,29 @@ import type { MovieRepository } from './movie-repository'
 // responsible for interacting with a specific data source (like Prisma).
 // It's an adapter in hexagonal architecture.
 
+// Define a type for movies with relations
+type MovieWithRelations = Prisma.MovieGetPayload<{
+  include: {
+    actors: { include: { actor: true } }
+    genres: { include: { genre: true } }
+  }
+}>
+
 export class MovieAdapter implements MovieRepository {
   private readonly prisma: PrismaClient
 
-  constructor(prisma: PrismaClient) {
-    this.prisma = prisma
+  // Extracted 'include' object to avoid repetition
+  private readonly movieInclude = {
+    actors: {
+      include: {
+        actor: true
+      }
+    },
+    genres: {
+      include: {
+        genre: true
+      }
+    }
   }
 
   /*
@@ -65,23 +83,73 @@ export class MovieAdapter implements MovieRepository {
     }
   }
 
+  /**
+   * Transforms a Prisma Movie object into a simplified movie representation.
+   * This helper function is used to format movie data for API responses.
+   *
+   * @param movie - The Prisma Movie object with included relations
+   * @returns A simplified movie object with nested actor and genre information
+   */
+  private transformMovie(movie: MovieWithRelations) {
+    return {
+      id: movie.id,
+      name: movie.name,
+      year: movie.year,
+      actors: movie.actors.map(({ actor }) => ({
+        id: actor.id,
+        name: actor.name
+      })),
+      genres: movie.genres.map(({ genre }) => ({
+        id: genre.id,
+        name: genre.name
+      }))
+    }
+  }
+
+  /**
+   * Helper method to generate relation data for genres and actors.
+   *
+   * @param items - An array of objects containing the `id` of genres or actors to connect.
+   * @param relationKey - The key name ('genre' or 'actor') to specify which relation is being connected.
+   * @returns A Prisma relation input for connecting the items.
+   */
+  private generateRelationData<T extends 'genre' | 'actor'>(
+    items: Array<{ id: number }>,
+    relationKey: T
+  ): {
+    create: Array<{ [K in T]: { connect: { id: number } } }>
+  } {
+    return {
+      create: items.map((item) => ({
+        [relationKey]: { connect: { id: item.id } }
+      })) as Array<{ [K in T]: { connect: { id: number } } }>
+    }
+  }
+
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma
+  }
+
   // Get all movies
   async getMovies(): Promise<GetMoviesResponse> {
     try {
-      const movies = await this.prisma.movie.findMany()
+      // Use findMany with include to retrieve all movies along with their related data
+      // This is necessary because:
+      // 1. We want to fetch multiple movies (hence findMany)
+      // 2. We need to include related entities (actors, genres) for each movie
+      // 3. The include option allows us to specify which related data to fetch in a single query,
+      //    reducing the number of database roundtrips and improving performance
+      // 4. This approach ensures we have all the necessary data to transform into our API response format
+      const movies = await this.prisma.movie.findMany({
+        include: this.movieInclude
+      })
 
-      if (movies.length > 0) {
-        return {
-          status: 200,
-          data: movies,
-          error: null
-        }
-      } else {
-        return {
-          status: 200,
-          data: [],
-          error: null
-        }
+      const transformedMovies = movies.map(this.transformMovie)
+
+      return {
+        status: 200,
+        data: transformedMovies,
+        error: null
       }
     } catch (error) {
       this.handleError(error)
@@ -99,24 +167,31 @@ export class MovieAdapter implements MovieRepository {
     id: number
   ): Promise<GetMovieResponse | MovieNotFoundResponse> {
     try {
-      const movie = await this.prisma.movie.findUnique({ where: { id } })
+      const movie = await this.prisma.movie.findUnique({
+        where: { id },
+        include: this.movieInclude
+      })
+
       if (movie) {
+        const transformedMovie = this.transformMovie(movie)
+
         return {
           status: 200,
-          data: movie, // return the movie object
-          error: null // no error if successful
+          data: transformedMovie,
+          error: null
         }
       }
+
       return {
         status: 404,
-        data: null, // return null if not found
+        data: null,
         error: `Movie with ID ${id} not found`
       }
     } catch (error) {
       this.handleError(error)
       return {
         status: 500,
-        data: null, // return null in case of failure
+        data: null,
         error: 'Internal server error'
       }
     }
@@ -125,12 +200,16 @@ export class MovieAdapter implements MovieRepository {
   // Get a movie by its name
   async getMovieByName(name: string): Promise<GetMovieResponse> {
     try {
-      const movie = await this.prisma.movie.findFirst({ where: { name } })
+      const movie = await this.prisma.movie.findFirst({
+        where: { name },
+        include: this.movieInclude
+      })
 
       if (movie) {
+        const transformedMovie = this.transformMovie(movie)
         return {
           status: 200,
-          data: movie,
+          data: transformedMovie,
           error: null
         }
       } else {
@@ -158,6 +237,7 @@ export class MovieAdapter implements MovieRepository {
     try {
       await this.prisma.movie.delete({
         where: { id }
+        // include: this.movieInclude // not necessary since we do not return the deleted movie
       })
       return {
         status: 200,
@@ -175,33 +255,80 @@ export class MovieAdapter implements MovieRepository {
         }
       }
       this.handleError(error)
-      throw error // Re-throw other errors
+      // Instead of re-throwing the error, return a consistent error response
+      return {
+        status: 500,
+        error: 'Internal server error'
+      }
     }
   }
 
   // Add a new movie with validation
   async addMovie(
-    data: CreateMovieRequest,
-    id?: number
+    data: CreateMovieRequest
   ): Promise<CreateMovieResponse | ConflictMovieResponse> {
     try {
       // Check if the movie already exists
       const existingMovie = await this.prisma.movie.findFirst({
-        where: { name: data.name }
+        where: { name: data.name },
+        include: this.movieInclude
       })
 
       if (existingMovie) {
         return { status: 409, error: `Movie ${data.name} already exists` }
       }
 
+      // Ensure all actors exist, create if missing (or handle as needed)
+      const actorIds = data.actors.map((actor) => actor.id)
+      const existingActors = await this.prisma.actor.findMany({
+        where: { id: { in: actorIds } }
+      })
+
+      if (existingActors.length !== actorIds.length) {
+        const missingActorIds = actorIds.filter(
+          (id) => !existingActors.some((actor) => actor.id === id)
+        )
+        // You can either throw an error or create the missing actors
+        // Option 1: Return an error
+        return {
+          status: 400,
+          error: `Actors with IDs ${missingActorIds.join(', ')} do not exist.`
+        }
+
+        // Option 2: Create missing actors (comment out if not needed)
+        // await this.prisma.actor.createMany({ data: missingActorIds.map(id => ({ id, name: '' })) });
+      }
+
+      // Ensure all genres exist, create if missing (or handle as needed)
+      const genreIds = data.genres.map((genre) => genre.id)
+      const existingGenres = await this.prisma.genre.findMany({
+        where: { id: { in: genreIds } }
+      })
+
+      if (existingGenres.length !== genreIds.length) {
+        const missingGenreIds = genreIds.filter(
+          (id) => !existingGenres.some((genre) => genre.id === id)
+        )
+        return {
+          status: 400,
+          error: `Genres with IDs ${missingGenreIds.join(', ')} do not exist.`
+        }
+      }
+
       // Create the new movie
       const movie = await this.prisma.movie.create({
-        data: id ? { id, ...data } : data
+        data: {
+          name: data.name,
+          year: data.year,
+          genres: this.generateRelationData(data.genres, 'genre'),
+          actors: this.generateRelationData(data.actors, 'actor')
+        },
+        include: this.movieInclude
       })
 
       return {
         status: 200,
-        data: movie
+        data: this.transformMovie(movie)
       }
     } catch (error) {
       this.handleError(error)
@@ -209,6 +336,7 @@ export class MovieAdapter implements MovieRepository {
     }
   }
 
+  // Update an existing movie
   async updateMovie(
     data: Partial<UpdateMovieRequest>,
     id: number
@@ -216,14 +344,41 @@ export class MovieAdapter implements MovieRepository {
     UpdateMovieResponse | MovieNotFoundResponse | ConflictMovieResponse
   > {
     try {
+      const updateData: Prisma.MovieUpdateInput = {
+        ...(data.name && { name: data.name }),
+        ...(data.year && { year: data.year }),
+        ...(data.genres && {
+          genres: {
+            deleteMany: {}, // Remove existing relationships
+            ...this.generateRelationData(data.genres, 'genre') // Add new relationships
+          }
+        }),
+        ...(data.actors && {
+          actors: {
+            deleteMany: {}, // Remove existing relationships
+            ...this.generateRelationData(data.actors, 'actor') // Add new relationships
+          }
+        })
+      }
+
+      if (data.actors !== undefined) {
+        updateData.actors = {
+          deleteMany: {},
+          create: data.actors.map((actor) => ({
+            actor: { connect: { id: actor.id } }
+          }))
+        }
+      }
+
       const updatedMovie = await this.prisma.movie.update({
         where: { id },
-        data
+        data: updateData,
+        include: this.movieInclude
       })
 
       return {
         status: 200,
-        data: updatedMovie
+        data: this.transformMovie(updatedMovie)
       }
     } catch (error) {
       if (

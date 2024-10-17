@@ -14,7 +14,13 @@ describe('CRUD movie', () => {
   const updatedMovie = generateMovie()
   const movieProps: Omit<Movie, 'id'> = {
     name: spok.string,
-    year: spok.number
+    year: spok.number,
+    actors: spok.array.items(
+      spok.object({ id: spok.number, name: spok.string })
+    ),
+    genres: spok.array.items(
+      spok.object({ id: spok.number, name: spok.string })
+    )
   }
 
   let token: string

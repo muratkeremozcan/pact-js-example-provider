@@ -5,7 +5,6 @@ import {
 import {
   // Entity Schemas
   MovieSchema,
-  DirectorSchema,
   ActorSchema,
   GenreSchema,
   // Request Schemas
@@ -31,7 +30,6 @@ import type { ParameterObject } from 'openapi3-ts/oas31'
 const registry = new OpenAPIRegistry()
 // Register entity schemas
 registry.register('Movie', MovieSchema)
-registry.register('Director', DirectorSchema)
 registry.register('Actor', ActorSchema)
 registry.register('Genre', GenreSchema)
 

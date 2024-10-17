@@ -22,7 +22,6 @@ describe('MovieService', () => {
   const mockMovieNoId: Omit<Movie, 'id'> = {
     name: 'Inception',
     year: 2010,
-    director: { id: 1, name: 'Christopher Nolan' },
     actors: [
       { id: 1, name: 'Leonardo DiCaprio' },
       { id: 2, name: 'Joseph Gordon-Levitt' }

@@ -19,8 +19,28 @@ Content-Type: application/json
 Authorization: {{token}}
 
 {
-    "name": "Inception",
-    "year": 2010
+  "name": "Inception",
+  "year": 2010,
+  "actors": [
+    {
+      "id": 1,
+      "name": "Leonardo DiCaprio"
+    },
+    {
+      "id": 2,
+      "name": "Joseph Gordon-Levitt"
+    }
+  ],
+  "genres": [
+    {
+      "id": 1,
+      "name": "Sci-Fi"
+    },
+    {
+      "id": 2,
+      "name": "Thriller"
+    }
+  ]
 }
 
 ###
@@ -45,13 +65,33 @@ Authorization: {{token}}
 
 ###
 # @name addDuplicateMovie
-POST {{baseUrl}}/movies/
+POST {{baseUrl}}/movies
 Content-Type: application/json
 Authorization: {{token}}
 
 {
-    "name": "Inception",
-    "year": 2010
+  "name": "Inception",
+  "year": 2010,
+  "actors": [
+    {
+      "id": 1,
+      "name": "Leonardo DiCaprio"
+    },
+    {
+      "id": 2,
+      "name": "Joseph Gordon-Levitt"
+    }
+  ],
+  "genres": [
+    {
+      "id": 1,
+      "name": "Sci-Fi"
+    },
+    {
+      "id": 2,
+      "name": "Thriller"
+    }
+  ]
 }
 
 ###
@@ -62,7 +102,27 @@ Authorization: {{token}}
 
 {
     "name": "Invalid Year Movie",
-    "year": 1800
+    "year": 1800,
+    "actors": [
+    {
+       "id": 1,
+       "name": "Leonardo DiCaprio"
+    },
+     {
+       "id": 2,
+       "name": "Joseph Gordon-Levitt"
+     }
+   ],
+   "genres": [
+     {
+       "id": 1,
+       "name": "Sci-Fi"
+     },
+     {
+       "id": 2,
+       "name": "Thriller"
+     }
+   ]
 }
 
 ###
@@ -73,8 +133,29 @@ Authorization: {{token}}
 
 {
     "name": "Inception Updated",
-    "year": 2015
+    "year": 2015,
+    "actors": [
+    {
+       "id": 1,
+       "name": "Leonardo DiCaprio"
+    },
+     {
+       "id": 2,
+       "name": "Joseph Gordon-Levitt"
+     }
+   ],
+   "genres": [
+     {
+       "id": 1,
+       "name": "Sci-Fi"
+     },
+     {
+       "id": 2,
+       "name": "Thriller"
+     }
+   ]
 }
+
 
 ###
 # @name deleteMovie
@@ -85,7 +166,6 @@ Authorization: {{token}}
 # @name getNonExistentMovie
 GET {{baseUrl}}/movies/999
 Authorization: {{token}}
-
 
 ###
 # @name deleteNonExistentMovie

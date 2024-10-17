@@ -10,26 +10,6 @@ servers:
     description: Production server
 components:
   schemas:
-    Director:
-      type:
-        - object
-        - "null"
-      properties:
-        id:
-          type: integer
-          description: Director ID
-          example: 1
-        name:
-          type: string
-          description: Director name
-          example: Christopher Nolan
-      required:
-        - id
-        - name
-      description: Director of the movie
-      example:
-        id: 1
-        name: Christopher Nolan
     Actor:
       type: object
       properties:
@@ -73,14 +53,12 @@ components:
           type: integer
           description: Release year
           example: 2010
-        director:
-          $ref: "#/components/schemas/Director"
         actors:
           type: array
           items:
             $ref: "#/components/schemas/Actor"
           description: List of actors in the movie
-          example: &a1
+          example:
             - id: 1
               name: Leonardo DiCaprio
         genres:
@@ -88,13 +66,15 @@ components:
           items:
             $ref: "#/components/schemas/Genre"
           description: Genres associated with the movie
-          example: &a2
+          example:
             - id: 1
               name: Sci-Fi
       required:
         - id
         - name
         - year
+        - actors
+        - genres
     CreateMovieRequest:
       type: object
       properties:
@@ -109,29 +89,27 @@ components:
           maximum: 2024
           description: Release year
           example: 2010
-        directorId:
-          type: integer
-          description: Director ID
-          example: 1
-        actorIds:
+        actors:
           type: array
           items:
-            type: integer
-          description: List of Actor IDs
+            $ref: "#/components/schemas/Actor"
+          description: List of actor objects
           example:
-            - 1
-            - 2
-        genreIds:
+            - id: 1
+              name: Leonardo DiCaprio
+        genres:
           type: array
           items:
-            type: integer
-          description: List of Genre IDs
+            $ref: "#/components/schemas/Genre"
+          description: List of genre objects
           example:
-            - 1
-            - 2
+            - id: 1
+              name: Sci-Fi
       required:
         - name
         - year
+        - actors
+        - genres
     UpdateMovieRequest:
       type: object
       properties:
@@ -146,28 +124,22 @@ components:
           maximum: 2024
           description: Release year
           example: 2010
-        directorId:
-          type:
-            - integer
-            - "null"
-          description: Director ID
-          example: 1
-        actorIds:
+        actors:
           type: array
           items:
-            type: integer
-          description: List of Actor IDs
+            $ref: "#/components/schemas/Actor"
+          description: List of updated actor objects
           example:
-            - 1
-            - 2
-        genreIds:
+            - id: 1
+              name: Leonardo DiCaprio
+        genres:
           type: array
           items:
-            type: integer
-          description: List of Genre IDs
+            $ref: "#/components/schemas/Genre"
+          description: List of updated genre objects
           example:
-            - 1
-            - 2
+            - id: 1
+              name: Sci-Fi
     GetMovieResponse:
       type: object
       properties:
@@ -176,54 +148,22 @@ components:
           description: OK status code
           example: 200
         data:
-          type:
-            - object
-            - "null"
-          properties:
-            id:
-              type: integer
-              description: Movie ID
-              example: 1
-            name:
-              type: string
-              description: Movie name
-              example: Inception
-            year:
-              type: integer
-              description: Release year
-              example: 2010
-            director:
-              $ref: "#/components/schemas/Director"
-            actors:
-              type: array
-              items:
-                $ref: "#/components/schemas/Actor"
-              description: List of actors in the movie
-              example: *a1
-            genres:
-              type: array
-              items:
-                $ref: "#/components/schemas/Genre"
-              description: Genres associated with the movie
-              example: *a2
-          required:
-            - id
-            - name
-            - year
-          description: Movie details or null if not found
-          example:
-            id: 1
-            name: Inception
-            year: 2010
-            director:
-              id: 1
-              name: Christopher Nolan
-            actors:
-              - id: 1
-                name: Leonardo DiCaprio
-            genres:
-              - id: 1
-                name: Sci-Fi
+          allOf:
+            - $ref: "#/components/schemas/Movie"
+            - type:
+                - object
+                - "null"
+              description: Movie details or null if not found
+              example:
+                id: 1
+                name: Inception
+                year: 2010
+                actors:
+                  - id: 1
+                    name: Leonardo DiCaprio
+                genres:
+                  - id: 1
+                    name: Sci-Fi
         error:
           type:
             - string
@@ -248,9 +188,6 @@ components:
             - id: 1
               name: Inception
               year: 2010
-              director:
-                id: 1
-                name: Christopher Nolan
               actors:
                 - id: 1
                   name: Leonardo DiCaprio
@@ -273,39 +210,9 @@ components:
           description: Created status code
           example: 201
         data:
-          type: object
-          properties:
-            id:
-              type: integer
-              description: Movie ID
-              example: 1
-            name:
-              type: string
-              description: Movie name
-              example: Inception
-            year:
-              type: integer
-              description: Release year
-              example: 2010
-            director:
-              $ref: "#/components/schemas/Director"
-            actors:
-              type: array
-              items:
-                $ref: "#/components/schemas/Actor"
-              description: List of actors in the movie
-              example: *a1
-            genres:
-              type: array
-              items:
-                $ref: "#/components/schemas/Genre"
-              description: Genres associated with the movie
-              example: *a2
-          required:
-            - id
-            - name
-            - year
-          description: Created movie data
+          allOf:
+            - $ref: "#/components/schemas/Movie"
+            - description: Created movie data
         error:
           type: string
           description: Error message, if any
@@ -320,39 +227,9 @@ components:
           description: OK status code
           example: 200
         data:
-          type: object
-          properties:
-            id:
-              type: integer
-              description: Movie ID
-              example: 1
-            name:
-              type: string
-              description: Movie name
-              example: Inception
-            year:
-              type: integer
-              description: Release year
-              example: 2010
-            director:
-              $ref: "#/components/schemas/Director"
-            actors:
-              type: array
-              items:
-                $ref: "#/components/schemas/Actor"
-              description: List of actors in the movie
-              example: *a1
-            genres:
-              type: array
-              items:
-                $ref: "#/components/schemas/Genre"
-              description: Genres associated with the movie
-              example: *a2
-          required:
-            - id
-            - name
-            - year
-          description: Updated movie data
+          allOf:
+            - $ref: "#/components/schemas/Movie"
+            - description: Updated movie data
         error:
           type: string
           description: Error message, if any
@@ -473,7 +350,7 @@ paths:
       summary: Get a movie by ID
       description: Retrieve a single movie by its ID
       parameters:
-        - &a3
+        - &a1
           name: id
           in: path
           required: true
@@ -497,7 +374,7 @@ paths:
       summary: Update a movie by ID
       description: Update the details of an existing movie by providing a movie ID
       parameters:
-        - *a3
+        - *a1
       requestBody:
         content:
           application/json:
@@ -523,7 +400,7 @@ paths:
     delete:
       summary: Delete a movie by ID
       parameters:
-        - *a3
+        - *a1
       responses:
         "200":
           description: Movie deleted successfully

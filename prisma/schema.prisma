@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -17,17 +11,10 @@ model Movie {
   id         Int          @id @default(autoincrement())
   name       String
   year       Int
-  director   Director?    @relation(fields: [directorId], references: [id])
-  directorId Int?
-  genres     MovieGenre[] // A many-to-many relationship with Genre
-  actors     MovieActor[] // A many-to-many relationship with Actor
+  genres     MovieGenre[]
+  actors     MovieActor[]
 }
 
-model Director {
-  id     Int     @id @default(autoincrement())
-  name   String
-  movies Movie[] // One-to-many relationship with Movie
-}
 
 model Actor {
   id     Int          @id @default(autoincrement())
@@ -46,19 +33,19 @@ model Genre {
 // Exposing join tables adds unnecessary complexity to your API.
 
 model MovieActor {
-  movie   Movie @relation(fields: [movieId], references: [id])
-  movieId Int
-  actor   Actor @relation(fields: [actorId], references: [id])
-  actorId Int
+  movie     Movie  @relation(fields: [movieId], references: [id])
+  movieId   Int    @map("movie_id")
+  actor     Actor  @relation(fields: [actorId], references: [id])
+  actorId   Int    @map("actor_id")
 
-  @@id([movieId, actorId]) // Composite primary key for the relation table
+  @@id([movieId, actorId])
 }
 
 model MovieGenre {
-  movie   Movie @relation(fields: [movieId], references: [id])
-  movieId Int
-  genre   Genre @relation(fields: [genreId], references: [id])
-  genreId Int
+  movie     Movie  @relation(fields: [movieId], references: [id])
+  movieId   Int    @map("movie_id")
+  genre     Genre  @relation(fields: [genreId], references: [id])
+  genreId   Int    @map("genre_id")
 
   @@id([movieId, genreId]) // Composite primary key for the relation table
 }
