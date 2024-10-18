@@ -1,12 +1,13 @@
-import type { Movie } from '@prisma/client'
-import { PrismaClient } from '@prisma/client'
-import { Router } from 'express'
 import type {
+  Movie,
   CreateMovieResponse,
   DeleteMovieResponse,
   GetMovieResponse,
+  GetMoviesResponse,
   UpdateMovieResponse
 } from './@types'
+import { PrismaClient } from '@prisma/client'
+import { Router } from 'express'
 import { authMiddleware } from './middleware/auth-middleware'
 import { validateId } from './middleware/validate-movie-id'
 import { MovieAdapter } from './movie-adapter'
@@ -38,7 +39,7 @@ moviesRoute.get('/', async (req, res) => {
     return res.status(400).json({ error: 'Invalid movie name provided' })
   } else {
     const allMovies = await movieService.getMovies()
-    return formatResponse(res, allMovies as GetMovieResponse)
+    return formatResponse(res, allMovies as GetMoviesResponse)
   }
 })
 

@@ -4,6 +4,7 @@ import type {
   CreateMovieResponse,
   DeleteMovieResponse,
   GetMovieResponse,
+  GetMoviesResponse,
   MovieNotFoundResponse,
   UpdateMovieResponse
 } from '../@types'
@@ -11,6 +12,7 @@ import type {
 type MovieResponse =
   | DeleteMovieResponse
   | GetMovieResponse
+  | GetMoviesResponse
   | UpdateMovieResponse
   | CreateMovieResponse
   | MovieNotFoundResponse
