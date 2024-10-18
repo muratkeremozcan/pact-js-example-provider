@@ -11,6 +11,7 @@
     "cy:run-local-fast": "CYPRESS_NO_COMMAND_LOG=1 npm run cy:run-local-base -- --config video=false screenshot=false",
     "cy:open-local": "cypress open --e2e --browser chrome --config-file cypress/config/local.config.ts",
     "db:migrate": "npx prisma migrate reset --force --skip-seed generate",
+    "db:sync": "npx prisma db push --force-reset && npx prisma generate",
     "db:migrate-prod": "npx prisma migrate deploy",
     "reset:db": "tsx ./scripts/global-setup.ts",
     "start": "npm run db:migrate && npm run reset:db && npm run kafka:reset-logs && nodemon",

@@ -42,6 +42,9 @@ React consumer repo for bi-directional contract testing: https://github.com/mura
     - [Consumer flow for Pact Bi-directional contract testing](#consumer-flow-for-pact-bi-directional-contract-testing)
     - [Provider flow for Pact Bi-directional contract testing](#provider-flow-for-pact-bi-directional-contract-testing)
     - [How does it work in the CI](#how-does-it-work-in-the-ci)
+  - [Database Management](#database-management)
+    - [`npm run db:migrate`](#npm-run-dbmigrate)
+    - [`npm run db:sync`](#npm-run-dbsync)
 
 ## Setup
 
@@ -685,3 +688,25 @@ When the PR runs, `e2e-test.yml` executes and tests the schema. `contract-commit
 The merge to main happens on a passing PR.
 
 Finally, on main. we have `contract-publish-openapi.yml` , which publishes the OpenAPI spec to Pact broker with `npm run publish:pact-openapi` and records the bi-directional provider deployment with `npm run record:provider:bidirectional:deployment --env=dev`.
+
+## Database Management
+
+This project uses Prisma for database operations. Two main scripts are available:
+
+### `npm run db:migrate`
+
+Resets the database using Prisma migrations. Use this to apply all migrations and reset to a clean state.
+
+### `npm run db:sync`
+
+Synchronizes the database schema with the current Prisma schema. Use this for quick updates during development.
+
+**Note:** Both scripts will reset your database. Use with caution in production environments.
+
+To start the application with a fresh database, after making changes to `schema.prisma`:
+
+```bash
+npm run db:migrate
+npm run db:sync
+npm run reset:db
+```
