@@ -9,6 +9,8 @@ import type {
   UpdateMovieRequest,
   UpdateMovieResponse
 } from './@types'
+import type { ZodSchema } from 'zod'
+import { CreateMovieSchema, UpdateMovieSchema } from './@types/schema'
 
 // In the context of the MovieService, what you care about is the contract/interface
 // (i.e., the methods defined by the MovieRepository interface).
@@ -46,6 +48,13 @@ export class MovieService {
     data: CreateMovieRequest,
     id?: number
   ): Promise<CreateMovieResponse | ConflictMovieResponse> {
+    // Zod Key feature 3: safeParse
+    // Zod note: if you have a frontend, you can use the schema + safeParse there
+    // in order to perform form validation before sending the data to the server
+    const validationResult = validateSchema(CreateMovieSchema, data)
+    if (!validationResult.success)
+      return { status: 400, error: validationResult.error }
+
     return this.movieRepository.addMovie(data, id)
   }
 
@@ -55,6 +64,29 @@ export class MovieService {
   ): Promise<
     UpdateMovieResponse | MovieNotFoundResponse | ConflictMovieResponse
   > {
+    // Zod Key feature 3: safeParse
+    // Zod note: if you have a frontend, you can use the schema + safeParse there
+    // in order to perform form validation before sending the data to the server
+    const validationResult = validateSchema(UpdateMovieSchema, data)
+    if (!validationResult.success)
+      return { status: 400, error: validationResult.error }
+
     return this.movieRepository.updateMovie(data, id)
+  }
+}
+
+// helper function for schema validation
+function validateSchema<T>(
+  schema: ZodSchema<T>,
+  data: unknown
+): { success: true; data: T } | { success: false; error: string } {
+  const result = schema.safeParse(data)
+  if (result.success) {
+    return { success: true, data: result.data }
+  } else {
+    const errorMessages = result.error.errors
+      .map((err) => err.message)
+      .join(', ')
+    return { success: false, error: errorMessages }
   }
 }

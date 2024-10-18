@@ -18,24 +18,13 @@ import { mockDeep } from 'jest-mock-extended'
 // These tests do not touch the real database, making them unit tests that ensure correctness
 // of the adapter's interaction with the mocked data layer.
 
-jest.mock('@prisma/client', () => ({
-  PrismaClient: jest.fn(() => mockDeep<PrismaClient>()),
-  Prisma: {
-    PrismaClientKnownRequestError: class extends Error {
-      code: string
-      clientVersion: string
-
-      constructor(
-        message: string,
-        { code, clientVersion }: { code: string; clientVersion: string }
-      ) {
-        super(message)
-        this.code = code
-        this.clientVersion = clientVersion
-      }
-    }
+jest.mock('@prisma/client', () => {
+  const actualPrisma = jest.requireActual('@prisma/client')
+  return {
+    ...actualPrisma,
+    PrismaClient: jest.fn(() => mockDeep<PrismaClient>())
   }
-}))
+})
 
 describe('MovieAdapter', () => {
   let prismaMock: DeepMockProxy<PrismaClient>
@@ -231,19 +220,6 @@ describe('MovieAdapter', () => {
       })
     })
 
-    it('should return 400 if validation fails', async () => {
-      const invalidMovieData = { name: '', year: 1899 } // Invalid year, empty name
-
-      const result = await movieAdapter.addMovie(invalidMovieData)
-      expect(result).toEqual(
-        expect.objectContaining({
-          status: 400,
-          error:
-            'String must contain at least 1 character(s), Number must be greater than or equal to 1900'
-        })
-      )
-    })
-
     it('should return 409 if the movie already exists', async () => {
       prismaMock.movie.findFirst.mockResolvedValue({ id, ...movieData }) // existing movie
 
@@ -313,20 +289,6 @@ describe('MovieAdapter', () => {
         where: { id }
       })
       expect(prismaMock.movie.update).not.toHaveBeenCalled()
-    })
-
-    it('should return 400 if validation fails', async () => {
-      prismaMock.movie.findUnique.mockResolvedValue(existingMovie)
-      const invalidMovieData = { name: '', year: 1899 } // Invalid year, empty name
-
-      const result = await movieAdapter.updateMovie(invalidMovieData, id)
-      expect(result).toEqual(
-        expect.objectContaining({
-          status: 400,
-          error:
-            'String must contain at least 1 character(s), Number must be greater than or equal to 1900'
-        })
-      )
     })
 
     it('should return 500 if an unexpected error occurs', async () => {
