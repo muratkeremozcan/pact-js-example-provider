@@ -28,9 +28,14 @@ components:
           maximum: 2024
           description: Release year
           example: 2010
+        rating:
+          type: number
+          description: Rating
+          example: 7.5
       required:
         - name
         - year
+        - rating
     CreateMovieResponse:
       type: object
       properties:
@@ -53,10 +58,15 @@ components:
               type: number
               description: Release year
               example: 2010
+            rating:
+              type: number
+              description: Rating
+              example: 7.5
           required:
             - id
             - name
             - year
+            - rating
           description: Movie data
         error:
           type: string
@@ -87,10 +97,15 @@ components:
                   type: number
                   description: Release year
                   example: 2010
+                rating:
+                  type: number
+                  description: Rating
+                  example: 7.5
               required:
                 - id
                 - name
                 - year
+                - rating
             - type: array
               items:
                 type: object
@@ -107,10 +122,15 @@ components:
                     type: number
                     description: Release year
                     example: 2010
+                  rating:
+                    type: number
+                    description: Rating
+                    example: 7.5
                 required:
                   - id
                   - name
                   - year
+                  - rating
               description: List of movies or an empty array if no movies exist
               example: []
             - type: "null"
@@ -186,10 +206,15 @@ components:
               type: number
               description: Release year
               example: 2010
+            rating:
+              type: number
+              description: Rating
+              example: 7.5
           required:
             - id
             - name
             - year
+            - rating
           description: Updated movie data
         error:
           type: string
@@ -215,6 +240,10 @@ components:
           maximum: 2024
           description: Release year
           example: 2010
+        rating:
+          type: number
+          description: Rating
+          example: 7.5
   parameters: {}
 paths:
   /:

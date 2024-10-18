@@ -37,11 +37,17 @@
             "maximum": 2024,
             "description": "Release year",
             "example": 2010
+          },
+          "rating": {
+            "type": "number",
+            "description": "Rating",
+            "example": 7.5
           }
         },
         "required": [
           "name",
-          "year"
+          "year",
+          "rating"
         ]
       },
       "CreateMovieResponse": {
@@ -69,12 +75,18 @@
                 "type": "number",
                 "description": "Release year",
                 "example": 2010
+              },
+              "rating": {
+                "type": "number",
+                "description": "Rating",
+                "example": 7.5
               }
             },
             "required": [
               "id",
               "name",
-              "year"
+              "year",
+              "rating"
             ],
             "description": "Movie data"
           },
@@ -115,12 +127,18 @@
                     "type": "number",
                     "description": "Release year",
                     "example": 2010
+                  },
+                  "rating": {
+                    "type": "number",
+                    "description": "Rating",
+                    "example": 7.5
                   }
                 },
                 "required": [
                   "id",
                   "name",
-                  "year"
+                  "year",
+                  "rating"
                 ]
               },
               {
@@ -142,12 +160,18 @@
                       "type": "number",
                       "description": "Release year",
                       "example": 2010
+                    },
+                    "rating": {
+                      "type": "number",
+                      "description": "Rating",
+                      "example": 7.5
                     }
                   },
                   "required": [
                     "id",
                     "name",
-                    "year"
+                    "year",
+                    "rating"
                   ]
                 },
                 "description": "List of movies or an empty array if no movies exist",
@@ -253,12 +277,18 @@
                 "type": "number",
                 "description": "Release year",
                 "example": 2010
+              },
+              "rating": {
+                "type": "number",
+                "description": "Rating",
+                "example": 7.5
               }
             },
             "required": [
               "id",
               "name",
-              "year"
+              "year",
+              "rating"
             ],
             "description": "Updated movie data"
           },
@@ -292,6 +322,11 @@
             "maximum": 2024,
             "description": "Release year",
             "example": 2010
+          },
+          "rating": {
+            "type": "number",
+            "description": "Rating",
+            "example": 7.5
           }
         }
       }
