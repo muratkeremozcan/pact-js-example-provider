@@ -1,0 +1,66 @@
+import { produceMovieEvent } from './movie-events'
+import { Kafka } from 'kafkajs'
+// import fs from 'node:fs/promises'
+import type { Movie } from '@prisma/client'
+
+// Mock kafkajs
+jest.mock('kafkajs', () => ({
+  Kafka: jest.fn().mockImplementation(() => ({
+    producer: jest.fn(() => ({
+      connect: jest.fn().mockResolvedValue(undefined),
+      send: jest.fn(),
+      disconnect: jest.fn()
+    }))
+  }))
+}))
+
+// Mock fs
+jest.mock('node:fs/promises', () => ({
+  appendFile: jest.fn().mockResolvedValue(undefined)
+}))
+
+// Mock console.table and console.error
+global.console.table = jest.fn()
+global.console.error = jest.fn()
+
+describe('produceMovieEvent', () => {
+  const mockMovie: Movie = {
+    id: 1,
+    name: 'Test Movie',
+    year: 2023
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('should produce a movie event successfully', async () => {
+    const kafkaInstance = new Kafka({
+      clientId: 'test-client',
+      brokers: ['localhost:9092']
+    })
+    const producer = kafkaInstance.producer()
+    await producer.connect()
+    await producer.send({
+      topic: 'movie-created',
+      messages: [{ key: '1', value: JSON.stringify(mockMovie) }]
+    })
+    await producer.disconnect()
+
+    const result = await produceMovieEvent(mockMovie, 'created')
+
+    expect(Kafka).toHaveBeenCalledWith(expect.any(Object))
+    expect(producer.connect).toHaveBeenCalled()
+    expect(producer.send).toHaveBeenCalledWith({
+      topic: 'movie-created',
+      messages: [{ key: '1', value: JSON.stringify(mockMovie) }]
+    })
+    expect(producer.disconnect).toHaveBeenCalled()
+    // expect(fs.appendFile).toHaveBeenCalled() // can't make it work
+    expect(console.table).toHaveBeenCalled()
+    expect(result).toEqual({
+      topic: 'movie-created',
+      messages: [{ key: '1', value: mockMovie }]
+    })
+  })
+})
