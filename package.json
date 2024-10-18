@@ -14,7 +14,7 @@
     "db:sync": "npx prisma db push --force-reset && npx prisma generate",
     "db:migrate-prod": "npx prisma migrate deploy",
     "reset:db": "tsx ./scripts/global-setup.ts",
-    "start": "npm run db:migrate && npm run reset:db && npm run kafka:reset-logs && nodemon",
+    "start": "npm run db:sync && npm run reset:db && npm run kafka:reset-logs && nodemon",
     "kafka:reset-logs": "rm -rf cypress/movie-events.log",
     "kafka:start": "docker compose -f ./src/events/kafka-cluster.yml up -d --no-recreate",
     "kafka:stop": "docker compose -f ./src/events/kafka-cluster.yml down",
