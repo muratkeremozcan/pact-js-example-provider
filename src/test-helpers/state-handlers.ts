@@ -25,7 +25,8 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
       // If the movie doesn't exist, create it
       const movieData: Omit<Movie, 'id'> = {
         name: `Movie Title ${Math.random().toString(36).substring(7)}`,
-        year: 2022
+        year: 2022,
+        rating: 7.5
       }
 
       await movieService.addMovie(movieData, id)
@@ -39,14 +40,14 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
     }
   },
   'An existing movie exists': async (params: AnyJson) => {
-    const { name, year } = params as ExistingMovieParams
+    const { name, year, rating } = params as ExistingMovieParams
 
     // Check if the movie already exists by name
     const res = await movieService.getMovieByName(name)
 
     if (res.status !== 200) {
       // Insert the movie if it doesn't exist
-      await movieService.addMovie({ name, year })
+      await movieService.addMovie({ name, year, rating })
       console.log(`Movie with name "${name}" added.`)
     } else {
       console.log(

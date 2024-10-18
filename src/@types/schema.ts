@@ -21,7 +21,8 @@ export const CreateMovieSchema = z
       .int()
       .min(1900)
       .max(2024)
-      .openapi({ example: 2010, description: 'Release year' })
+      .openapi({ example: 2010, description: 'Release year' }),
+    rating: z.number().openapi({ example: 7.5, description: 'Rating' })
   })
   .openapi('CreateMovieRequest')
 
@@ -37,7 +38,10 @@ export const CreateMovieResponseSchema = z
         name: z
           .string()
           .openapi({ example: 'Inception', description: 'Movie name' }),
-        year: z.number().openapi({ example: 2010, description: 'Release year' })
+        year: z
+          .number()
+          .openapi({ example: 2010, description: 'Release year' }),
+        rating: z.number().openapi({ example: 7.5, description: 'Rating' })
       })
       .openapi({ description: 'Movie data' }),
     error: z
@@ -60,7 +64,8 @@ export const ConflictMovieResponseSchema = z.object({
 const movieObj = {
   id: z.number().openapi({ example: 1, description: 'Movie ID' }),
   name: z.string().openapi({ example: 'Inception', description: 'Movie name' }),
-  year: z.number().openapi({ example: 2010, description: 'Release year' })
+  year: z.number().openapi({ example: 2010, description: 'Release year' }),
+  rating: z.number().openapi({ example: 7.5, description: 'Rating' })
 }
 
 export const GetMovieResponseUnionSchema = z
@@ -75,7 +80,7 @@ export const GetMovieResponseUnionSchema = z
         .nullable()
         .openapi({
           description: 'Movie details or null if not found',
-          example: { id: 1, name: 'Inception', year: 2010 }
+          example: { id: 1, name: 'Inception', year: 2010, rating: 7.5 }
         }),
       z.array(z.object(movieObj)).openapi({
         description: 'List of movies or an empty array if no movies exist',
@@ -126,7 +131,11 @@ export const UpdateMovieSchema = z
       .min(1900)
       .max(2024)
       .optional()
-      .openapi({ example: 2010, description: 'Release year' })
+      .openapi({ example: 2010, description: 'Release year' }),
+    rating: z
+      .number()
+      .optional()
+      .openapi({ example: 7.5, description: 'Rating' })
   })
   .openapi('UpdateMovieRequest')
 
@@ -142,7 +151,10 @@ export const UpdateMovieResponseSchema = z
         name: z
           .string()
           .openapi({ example: 'Inception', description: 'Movie name' }),
-        year: z.number().openapi({ example: 2010, description: 'Release year' })
+        year: z
+          .number()
+          .openapi({ example: 2010, description: 'Release year' }),
+        rating: z.number().openapi({ example: 7.5, description: 'Rating' })
       })
       .openapi({ description: 'Updated movie data' }),
     error: z

@@ -1,6 +1,7 @@
 import { MovieService } from './movie-service'
 import type { MovieRepository } from './movie-repository'
 import type { Movie } from '@prisma/client'
+import { generateMovieWithoutId } from './test-helpers/factories'
 
 // because we use ports & adapters / hex pattern,
 // the data layer (MovieRepository) is a dependency we can mock
@@ -19,7 +20,7 @@ describe('MovieService', () => {
   let movieService: MovieService
   let mockMovieRepository: jest.Mocked<MovieRepository>
   const id = 1
-  const mockMovie: Movie = { id, name: 'Inception', year: 2020 }
+  const mockMovie: Movie = { id, ...generateMovieWithoutId() }
   const mockMovieResponse = { status: 200, data: mockMovie, error: null }
   const mockMoviesResponse = {
     status: 200,
@@ -145,7 +146,7 @@ describe('MovieService', () => {
   })
 
   it('should return 400 if addMovie validation fails', async () => {
-    const invalidMovieData = { name: '', year: 1899 } // Invalid year, empty name
+    const invalidMovieData = { name: '', year: 1899, rating: 7.5 } // Invalid year, empty name
 
     const result = await movieService.addMovie(invalidMovieData)
     expect(result).toEqual(
