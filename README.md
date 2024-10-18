@@ -723,6 +723,21 @@ This project uses Zod and zod-to-openapi to generate OpenAPI documentation. The 
      - Detects breaking changes, which we should communicate to API consumers.
      - The only way through a breaking change is incrementing the major version of the OpenAPI spec.
 
+   ```bash
+      npm run optic:diff # breaking change detected
+
+     # update the OpenAPI doc version at src/api-docs/openapi-generator.ts
+
+     npm run generate:openapi # rewrite/update the OpenAPI document
+
+     npm run optic:diff # rerun Optic to ensure the breaking change is okay to be merged
+
+     # communicate with the API consumers about the breaking change
+
+     # note: generate:openapi & optic:diff are all done in the CI pipeline
+     # .github/workflows/contract-test-commit-openapi.yml
+   ```
+
 5. **Runtime Schema Validation**:
    - We use the `cypress-ajv-schema-validator` plugin in our API E2E tests.
    - This ensures that we test our schema during E2E testing.
