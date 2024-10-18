@@ -746,6 +746,8 @@ This project uses Zod and zod-to-openapi to generate OpenAPI documentation. The 
 
 This comprehensive approach ensures that our API documentation is always in sync with our schema definitions, provides flexibility in how we serve and distribute the documentation, and maintains strict governance over schema changes. It also helps us proactively identify and communicate breaking changes to our API consumers.
 
+Mind that, if we are only doing bi-directional contract testing, the only information that should alert us and in turn our consumers about a breaking change is the `optic:diff` and the OpenAPI spec update. Bi-directional contract testing does not block Provider PRs, it only blocks Consumer PRs. As soon as our breaking change from the Provider is merged to main, all consumers are blocked until they accommodate the breaking changes.
+
 ## Database Management
 
 This project uses Prisma for database operations. Two main scripts are available:
