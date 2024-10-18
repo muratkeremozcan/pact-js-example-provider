@@ -45,6 +45,8 @@ moviesRoute.get('/', async (req, res) => {
 moviesRoute.post('/', async (req, res) => {
   const result = await movieService.addMovie(req.body)
 
+  console.log('Received body:', req.body)
+
   if ('data' in result) {
     const movie = result.data
     await produceMovieEvent(movie, 'created')

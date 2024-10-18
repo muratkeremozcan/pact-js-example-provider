@@ -189,12 +189,12 @@ function usePactBrokerUrlAndSelectors(
  * Optionally includes pacts from the consumer's `main` branch and deployed or released versions.
  *
  * @param consumer - The name of the consumer to verify against. If `undefined`, applies to all consumers.
- * @param includeMainAndDeployed - When `true` (default), includes `mainBranch` and `deployedOrReleased` selectors.
+ * @param includeMainAndDeployed - When `true` (default), includes `mainBranch` and `deployedOrReleased` selectors for broader verification. When `false`, only verifies pacts from branches matching the provider's branch.
  * @returns An array of `ConsumerVersionSelector` objects for Pact verification.
  *
  * @example
  * // Verify pacts for a specific consumer, including all selectors (default behavior)
- * const selectors = buildConsumerVersionSelectors('MoviesAPI')
+ * const selectors = buildConsumerVersionSelectors('MoviesAPI');
  * // Result:
  * // [
  * //   { consumer: 'MoviesAPI', branch: '*' },
@@ -204,15 +204,15 @@ function usePactBrokerUrlAndSelectors(
  *
  * @example
  * // Verify pacts for a specific consumer, excluding mainBranch and deployedOrReleased
- * const selectors = buildConsumerVersionSelectors('MoviesAPI', false)
+ * const selectors = buildConsumerVersionSelectors('MoviesAPI', false);
  * // Result:
  * // [
- * //   { consumer: 'MoviesAPI', branch: '*' }
+ * //   { consumer: 'MoviesAPI', matchingBranch: true }
  * // ]
  *
  * @example
  * // Verify pacts for all consumers, including all selectors
- * const selectors = buildConsumerVersionSelectors(undefined)
+ * const selectors = buildConsumerVersionSelectors(undefined);
  * // Result:
  * // [
  * //   { branch: '*' },
@@ -222,7 +222,7 @@ function usePactBrokerUrlAndSelectors(
  *
  * @example
  * // Verify pacts for all consumers, excluding mainBranch and deployedOrReleased
- * const selectors = buildConsumerVersionSelectors(undefined, false)
+ * const selectors = buildConsumerVersionSelectors(undefined, false);
  * // Result:
  * // [
  * //   { branch: '*' }
@@ -230,28 +230,29 @@ function usePactBrokerUrlAndSelectors(
  *
  * @see https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors
  */
-
 function buildConsumerVersionSelectors(
   consumer: string | undefined,
   includeMainAndDeployed = true
 ): ConsumerVersionSelector[] {
-  // Base selector includes the consumer if provided
+  // Create the base selector object. If a specific consumer is provided, include it in the selector.
   const baseSelector: Partial<ConsumerVersionSelector> = consumer
     ? { consumer }
     : {}
 
-  const mainAndDeployed = [
-    { ...baseSelector, mainBranch: true }, // Tests against consumer's main branch
-    { ...baseSelector, deployedOrReleased: true } // Tests against consumer's currently deployed or released versions
-  ]
-
-  // Tell the provider to verify pacts from all branches of the consumer, including feature branches.
-  const featureBranchSelector = { ...baseSelector, branch: '*' }
-
-  // Always include the featureBranchSelector
-  // Conditionally include mainBranch and deployedOrReleased selectors
-  return [
-    featureBranchSelector,
-    ...(includeMainAndDeployed ? mainAndDeployed : [])
-  ]
+  // If 'includeMainAndDeployed' is true (default case), include selectors for:
+  // - All branches of the consumer (branch: '*')
+  // - The main branch of the consumer (mainBranch: true)
+  // - Deployed or released versions of the consumer (deployedOrReleased: true)
+  if (includeMainAndDeployed) {
+    return [
+      { ...baseSelector, branch: '*' }, // Includes all feature branches of the consumer
+      { ...baseSelector, mainBranch: true }, // Includes the main branch of the consumer
+      { ...baseSelector, deployedOrReleased: true } // Includes deployed or released consumer versions
+    ]
+  } else {
+    // If 'includeMainAndDeployed' is false, restrict the verification to the matching branch,
+    // which matches the provider's branch. This is useful when working with feature branches
+    // where both consumer and provider are working on the same feature.
+    return [{ ...baseSelector, matchingBranch: true }]
+  }
 }

@@ -28,6 +28,7 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
         year: 2022,
         rating: 7.5
       }
+      console.log('MOVIE DATA:', movieData)
 
       await movieService.addMovie(movieData, id)
       console.log(`Movie with ID ${id} successfully created.`)

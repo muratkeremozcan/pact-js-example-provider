@@ -52,6 +52,7 @@ export class MovieService {
     // Zod note: if you have a frontend, you can use the schema + safeParse there
     // in order to perform form validation before sending the data to the server
     const validationResult = validateSchema(CreateMovieSchema, data)
+    console.log({ validationResult })
     if (!validationResult.success)
       return { status: 400, error: validationResult.error }
 

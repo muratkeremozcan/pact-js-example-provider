@@ -16,5 +16,5 @@ model Movie {
   id     Int    @id @default(autoincrement())
   name   String
   year   Int
-  rating Int
+  rating Float
 }
