@@ -144,6 +144,32 @@ describe('MovieService', () => {
     expect(mockMovieRepository.deleteMovieById).toHaveBeenCalledWith(1)
   })
 
+  it('should return 400 if addMovie validation fails', async () => {
+    const invalidMovieData = { name: '', year: 1899 } // Invalid year, empty name
+
+    const result = await movieService.addMovie(invalidMovieData)
+    expect(result).toEqual(
+      expect.objectContaining({
+        status: 400,
+        error:
+          'String must contain at least 1 character(s), Number must be greater than or equal to 1900'
+      })
+    )
+  })
+
+  it('should return 400 if updateMovie validation fails', async () => {
+    const invalidMovieData = { name: '', year: 1899 } // Invalid year, empty name
+
+    const result = await movieService.updateMovie(invalidMovieData, id)
+    expect(result).toEqual(
+      expect.objectContaining({
+        status: 400,
+        error:
+          'String must contain at least 1 character(s), Number must be greater than or equal to 1900'
+      })
+    )
+  })
+
   it('should try to delete and not find a movie', async () => {
     const expectedResult = {
       status: 404,
