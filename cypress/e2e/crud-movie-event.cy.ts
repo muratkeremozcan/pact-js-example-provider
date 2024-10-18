@@ -4,17 +4,18 @@ import 'cypress-ajv-schema-validator'
 import type { Movie } from '@prisma/client'
 import spok from 'cy-spok'
 import schema from '../../src/api-docs/openapi.json'
-import { generateMovie } from '../../src/test-helpers/factories'
+import { generateMovieWithoutId } from '../../src/test-helpers/factories'
 import { parseKafkaEvent } from '../support/parse-kafka-event'
 import { retryableBefore } from '../support/retryable-before'
 import { recurse } from 'cypress-recurse'
 
 describe('CRUD movie', () => {
-  const movie = generateMovie()
-  const updatedMovie = generateMovie()
+  const movie = generateMovieWithoutId()
+  const updatedMovie = generateMovieWithoutId()
   const movieProps: Omit<Movie, 'id'> = {
     name: spok.string,
-    year: spok.number
+    year: spok.number,
+    rating: spok.number
   }
 
   let token: string

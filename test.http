@@ -20,7 +20,8 @@ Authorization: {{token}}
 
 {
     "name": "Inception",
-    "year": 2010
+    "year": 2010,
+    "rating": 7.5
 }
 
 ###
@@ -51,7 +52,8 @@ Authorization: {{token}}
 
 {
     "name": "Inception",
-    "year": 2010
+    "year": 2010,
+    "rating": 7.5
 }
 
 ###
@@ -62,7 +64,8 @@ Authorization: {{token}}
 
 {
     "name": "Invalid Year Movie",
-    "year": 1800
+    "year": 1800,
+    "rating": 7.5
 }
 
 ###
@@ -73,7 +76,8 @@ Authorization: {{token}}
 
 {
     "name": "Inception Updated",
-    "year": 2015
+    "year": 2015,
+    "rating": 8.0
 }
 
 ###

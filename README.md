@@ -42,6 +42,8 @@ React consumer repo for bi-directional contract testing: https://github.com/mura
     - [Consumer flow for Pact Bi-directional contract testing](#consumer-flow-for-pact-bi-directional-contract-testing)
     - [Provider flow for Pact Bi-directional contract testing](#provider-flow-for-pact-bi-directional-contract-testing)
     - [How does it work in the CI](#how-does-it-work-in-the-ci)
+  - [OpenAPI Documentation and Schema Validation](#openapi-documentation-and-schema-validation)
+  - [Database Management](#database-management)
 
 ## Setup
 
@@ -685,3 +687,85 @@ When the PR runs, `e2e-test.yml` executes and tests the schema. `contract-commit
 The merge to main happens on a passing PR.
 
 Finally, on main. we have `contract-publish-openapi.yml` , which publishes the OpenAPI spec to Pact broker with `npm run publish:pact-openapi` and records the bi-directional provider deployment with `npm run record:provider:bidirectional:deployment --env=dev`.
+
+## OpenAPI Documentation and Schema Validation
+
+This project uses Zod and zod-to-openapi to generate OpenAPI documentation. The process involves the following steps:
+
+1. **Schema Definition**:
+
+   - Define schemas using Zod and zod-to-openapi.
+   - Link schemas with TypeScript types using `z.infer`.
+   - Utilize zod's `safeParse` for runtime type checking.
+
+> `src/@types/schema.ts` contains the schema definitions.
+
+2. **Schema Registration**:
+
+   - Register all schemas with the OpenAPI Registry `OpenAPIRegistry` from `@asteasolutions/zod-to-openapi`.
+
+> `src/api-docs/openapi-generator.ts` contains the schema registration.
+
+3. **OpenAPI Document Generation**:
+
+   - Use `OpenApiGeneratorV31` from `@asteasolutions/zod-to-openapi` to generate the full OpenAPI document.
+   - This document can be serialized to JSON or YAML.
+   - The script `generate:openapi` creates `openapi.json` and `openapi.yaml` files in the `api-docs` directory.
+
+> `src/api-docs/openapi-writer.ts` contains the OpenAPI document generation.
+
+4. **Schema Governance with Optic**:
+
+   - We use Optic for schema governance.
+   - The `optic:diff` command:
+     - Lints and verifies the OpenAPI doc for validity.
+     - Compares the OpenAPI spec on the main branch with the one in the PR.
+     - Detects breaking changes, which we should communicate to API consumers.
+     - The only way through a breaking change is incrementing the major version of the OpenAPI spec.
+
+   ```bash
+      npm run optic:diff # breaking change detected
+
+     # update the OpenAPI doc version at src/api-docs/openapi-generator.ts
+
+     npm run generate:openapi # rewrite/update the OpenAPI document
+
+     npm run optic:diff # rerun Optic to ensure the breaking change is okay to be merged
+
+     # communicate with the API consumers about the breaking change
+
+     # note: generate:openapi & optic:diff are all done in the CI pipeline
+     # .github/workflows/contract-test-commit-openapi.yml
+   ```
+
+5. **Runtime Schema Validation**:
+   - We use the `cypress-ajv-schema-validator` plugin in our API E2E tests.
+   - This ensures that we test our schema during E2E testing.
+   - It helps identify potential breaking changes that might pass our tests but could fail for API consumers.
+   - The result of these tests are used in Bi-directional contract testing, to ensure that the OpenAPI spec the bi-directional contract consumers test against is always up to spec. If the tests pass, they get merged in main, published to the Pact Broker, and then recorded.
+
+This comprehensive approach ensures that our API documentation is always in sync with our schema definitions, provides flexibility in how we serve and distribute the documentation, and maintains strict governance over schema changes. It also helps us proactively identify and communicate breaking changes to our API consumers.
+
+Mind that, if we are only doing bi-directional contract testing, the only information that should alert us and in turn our consumers about a breaking change is the `optic:diff` and the OpenAPI spec update. Bi-directional contract testing does not block Provider PRs, it only blocks Consumer PRs. As soon as our breaking change from the Provider is merged to main, all consumers are blocked until they accommodate the breaking changes.
+
+## Database Management
+
+This project uses Prisma for database operations. Two main scripts are available:
+
+`npm run db:migrate`
+
+Resets the database using Prisma migrations. Use this to apply all migrations and reset to a clean state.
+
+`npm run db:sync`
+
+Synchronizes the database schema with the current Prisma schema. Use this for quick updates during development.
+
+**Note:** Both scripts will reset your database. Use with caution in production environments.
+
+To start the application with a fresh database, after making changes to `schema.prisma`:
+
+```bash
+npm run db:migrate
+npm run db:sync
+npm run reset:db
+```

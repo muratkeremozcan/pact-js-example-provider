@@ -1,8 +1,9 @@
-import { Prisma, PrismaClient } from '@prisma/client'
 import type { Movie } from '@prisma/client'
-import { MovieAdapter } from './movie-adapter'
+import { Prisma, PrismaClient } from '@prisma/client'
 import type { DeepMockProxy } from 'jest-mock-extended'
 import { mockDeep } from 'jest-mock-extended'
+import { MovieAdapter } from './movie-adapter'
+import { generateMovieWithId } from './test-helpers/factories'
 
 // In this test suite, we are testing the Adapter,
 // which is responsible for interacting with the data source (Prisma).
@@ -30,7 +31,7 @@ describe('MovieAdapter', () => {
   let prismaMock: DeepMockProxy<PrismaClient>
   let movieAdapter: MovieAdapter
 
-  const mockMovie: Movie = { id: 1, name: 'Inception', year: 2020 }
+  const mockMovie: Movie = generateMovieWithId()
 
   beforeEach(() => {
     prismaMock = new PrismaClient() as DeepMockProxy<PrismaClient>
@@ -188,7 +189,7 @@ describe('MovieAdapter', () => {
   })
 
   describe('addMovie', () => {
-    const movieData = { name: 'Inception', year: 2020 }
+    const movieData = { name: 'Inception', year: 2020, rating: 7.5 }
     const id = 1
 
     it('should successfully add a movie without specifying id', async () => {
@@ -198,7 +199,7 @@ describe('MovieAdapter', () => {
       const result = await movieAdapter.addMovie(movieData)
       expect(result).toEqual({
         status: 200,
-        data: { id, name: 'Inception', year: 2020 }
+        data: { id, ...movieData }
       })
       expect(prismaMock.movie.create).toHaveBeenCalledWith({ data: movieData })
     })
@@ -252,8 +253,8 @@ describe('MovieAdapter', () => {
 
   describe('updateMovie', () => {
     const id = 1
-    const existingMovie = { name: 'Inception', year: 2020, id }
-    const updateMovieData = { name: 'The Dark Knight', year: 2008 }
+    const existingMovie = { name: 'Inception', year: 2020, id, rating: 7.5 }
+    const updateMovieData = { name: 'The Dark Knight', year: 2008, rating: 8.5 }
     const updatedMovie = { id, ...updateMovieData }
 
     it('should successfully update a movie', async () => {
