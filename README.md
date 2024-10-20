@@ -8,11 +8,13 @@ An example test framework using Pact-js to validate contract testing between con
 
 The biggest selling point of Consumer Driven Contract Testing (CDCT) in simple terms is the entities do not have to be in a common deployment; the contract / pact / json file instead binds them together. Which means we can work on the consumer in isolation, we can work on the provider in isolation, and we can test their integration without having to have them both running on the same machine or the same deployment.
 
-Consumer repo: https://github.com/muratkeremozcan/pact-js-example-consumer
+Provider service: https://github.com/muratkeremozcan/pact-js-example-provider
 
-Provider repo: https://github.com/muratkeremozcan/pact-js-example-provider
+Consumer service: https://github.com/muratkeremozcan/pact-js-example-consumer
 
-React consumer repo for bi-directional contract testing: https://github.com/muratkeremozcan/pact-js-example-react-consumer
+React consumer app for bi-directional contract testing: https://github.com/muratkeremozcan/pact-js-example-react-consumer
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/lxvhm3whvq36023haozh.png)
 
 - [PactJS Contract Testing Example](#pactjs-contract-testing-example)
   - [Setup](#setup)
