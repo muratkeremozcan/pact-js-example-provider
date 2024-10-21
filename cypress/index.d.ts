@@ -1,11 +1,7 @@
-import type { UserData } from './support/register-login-user'
 import type { Movie } from '@prisma/client'
-import type { OpenAPIV31 } from 'openapi-types'
 import type {
   UpdateMovieResponse,
   CreateMovieResponse,
-  MovieNotFoundResponse,
-  ConflictMovieResponse,
   GetMovieResponse,
   DeleteMovieResponse
 } from './@types'
