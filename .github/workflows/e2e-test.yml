@@ -50,7 +50,7 @@ jobs:
         id: cypress-tests
         uses: cypress-io/github-action@v6.7.6
         with:
-          start: npm run start
+          start: npm start
           config-file: cypress/config/local.config.ts
           record: true
           group: local
