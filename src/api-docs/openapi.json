@@ -22,7 +22,7 @@
         "properties": {
           "id": {
             "type": "integer",
-            "description": "Movie ID",
+            "description": "Movie ID ",
             "example": 1
           },
           "name": {
@@ -62,7 +62,7 @@
             "type": "object",
             "properties": {
               "id": {
-                "type": "number",
+                "type": "integer",
                 "description": "Movie ID",
                 "example": 1
               },
@@ -72,7 +72,7 @@
                 "example": "Inception"
               },
               "year": {
-                "type": "number",
+                "type": "integer",
                 "description": "Release year",
                 "example": 2010
               },
@@ -87,8 +87,7 @@
               "name",
               "year",
               "rating"
-            ],
-            "description": "Movie data"
+            ]
           },
           "error": {
             "type": "string",
@@ -233,26 +232,7 @@
           "message"
         ]
       },
-      "DeleteMovieResponse": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "integer",
-            "description": "Response status code",
-            "example": 200
-          },
-          "message": {
-            "type": "string",
-            "description": "Success message for the deleted movie",
-            "example": "Movie {id} has been deleted"
-          }
-        },
-        "required": [
-          "status",
-          "message"
-        ]
-      },
-      "UpdateMovieResponse": {
+      "UpdatedMovieResponse": {
         "type": "object",
         "properties": {
           "status": {
@@ -542,7 +522,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DeleteMovieResponse"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "description": "Response status code",
+                      "example": 200
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Success message for the deleted movie",
+                      "example": "Movie {id} has been deleted"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "message"
+                  ]
                 }
               }
             }
@@ -604,7 +600,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdateMovieResponse"
+                  "$ref": "#/components/schemas/UpdatedMovieResponse"
                 }
               }
             }

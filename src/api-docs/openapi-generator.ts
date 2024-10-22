@@ -189,7 +189,7 @@ export const openApiDoc = generator.generateDocument({
   openapi: '3.1.0',
   info: {
     title: 'Movies API',
-    version: '7.0.0',
+    version: '8.0.0',
     description: 'API for managing movies'
   },
   servers: [

@@ -15,7 +15,7 @@ components:
       properties:
         id:
           type: integer
-          description: Movie ID
+          description: "Movie ID "
           example: 1
         name:
           type: string
@@ -47,7 +47,7 @@ components:
           type: object
           properties:
             id:
-              type: number
+              type: integer
               description: Movie ID
               example: 1
             name:
@@ -55,7 +55,7 @@ components:
               description: Movie name
               example: Inception
             year:
-              type: number
+              type: integer
               description: Release year
               example: 2010
             rating:
@@ -67,7 +67,6 @@ components:
             - name
             - year
             - rating
-          description: Movie data
         error:
           type: string
           description: Error message, if any
@@ -170,21 +169,7 @@ components:
       required:
         - status
         - message
-    DeleteMovieResponse:
-      type: object
-      properties:
-        status:
-          type: integer
-          description: Response status code
-          example: 200
-        message:
-          type: string
-          description: Success message for the deleted movie
-          example: Movie {id} has been deleted
-      required:
-        - status
-        - message
-    UpdateMovieResponse:
+    UpdatedMovieResponse:
       type: object
       properties:
         status:
@@ -382,7 +367,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DeleteMovieResponse"
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: Response status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Success message for the deleted movie
+                    example: Movie {id} has been deleted
+                required:
+                  - status
+                  - message
         "404":
           description: Movie not found
           content:
@@ -417,7 +414,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UpdateMovieResponse"
+                $ref: "#/components/schemas/UpdatedMovieResponse"
         "404":
           description: Movie not found
           content:

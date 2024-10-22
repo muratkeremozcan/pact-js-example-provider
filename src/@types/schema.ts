@@ -11,7 +11,11 @@ extendZodWithOpenApi(z)
 
 export const CreateMovieSchema = z
   .object({
-    id: z.number().int().optional().openapi({ example: 1, description: 'Movie ID' }),
+    id: z
+      .number()
+      .int()
+      .optional()
+      .openapi({ example: 1, description: 'Movie ID ' }),
     name: z
       .string()
       .min(1)
@@ -32,18 +36,17 @@ export const CreateMovieResponseSchema = z
       .number()
       .int()
       .openapi({ example: 200, description: 'Response status code' }),
-    data: z
-      .object({
-        id: z.number().openapi({ example: 1, description: 'Movie ID' }),
-        name: z
-          .string()
-          .openapi({ example: 'Inception', description: 'Movie name' }),
-        year: z
-          .number()
-          .openapi({ example: 2010, description: 'Release year' }),
-        rating: z.number().openapi({ example: 7.5, description: 'Rating' })
-      })
-      .openapi({ description: 'Movie data' }),
+    data: z.object({
+      id: z.number().int().openapi({ example: 1, description: 'Movie ID' }),
+      name: z
+        .string()
+        .openapi({ example: 'Inception', description: 'Movie name' }),
+      year: z
+        .number()
+        .int()
+        .openapi({ example: 2010, description: 'Release year' }),
+      rating: z.number().openapi({ example: 7.5, description: 'Rating' })
+    }),
     error: z
       .string()
       .optional()
@@ -104,18 +107,16 @@ export const MovieNotFoundResponseSchema = z.object({
     .openapi({ example: 'Movie not found', description: 'Error message' })
 })
 
-export const DeleteMovieResponseSchema = z
-  .object({
-    status: z
-      .number()
-      .int()
-      .openapi({ example: 200, description: 'Response status code' }),
-    message: z.string().openapi({
-      example: 'Movie {id} has been deleted',
-      description: 'Success message for the deleted movie'
-    })
+export const DeleteMovieResponseSchema = z.object({
+  status: z
+    .number()
+    .int()
+    .openapi({ example: 200, description: 'Response status code' }),
+  message: z.string().openapi({
+    example: 'Movie {id} has been deleted',
+    description: 'Success message for the deleted movie'
   })
-  .openapi('DeleteMovieResponse')
+})
 
 export const UpdateMovieSchema = z
   .object({
@@ -162,4 +163,4 @@ export const UpdateMovieResponseSchema = z
       .optional()
       .openapi({ description: 'Error message, if any' })
   })
-  .openapi('UpdateMovieResponse')
+  .openapi('UpdatedMovieResponse')
