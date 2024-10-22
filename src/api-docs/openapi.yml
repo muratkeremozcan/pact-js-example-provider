@@ -20,10 +20,14 @@ components:
         name:
           type: string
           minLength: 1
+          description: Movie name
+          example: Inception
         year:
           type: integer
           minimum: 1900
           maximum: 2024
+          description: Release year
+          example: 2010
         rating:
           type: number
           description: Rating

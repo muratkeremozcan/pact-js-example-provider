@@ -25,8 +25,8 @@ export const CreateMovieSchema = z
   .object({
     ...movieFields,
     id: movieFields.id.optional(),
-    name: z.string().min(1),
-    year: z.number().int().min(1900).max(2024)
+    name: movieFields.name.min(1),
+    year: movieFields.year.min(1900).max(2024)
   })
   .openapi('CreateMovieRequest')
 
