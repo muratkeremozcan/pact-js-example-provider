@@ -11,9 +11,12 @@ extendZodWithOpenApi(z)
 
 // Define common fields
 const movieFields = {
-  id: z.number().openapi({ example: 1, description: 'Movie ID' }),
+  id: z.number().int().openapi({ example: 1, description: 'Movie ID' }),
   name: z.string().openapi({ example: 'Inception', description: 'Movie name' }),
-  year: z.number().openapi({ example: 2010, description: 'Release year' }),
+  year: z
+    .number()
+    .int()
+    .openapi({ example: 2010, description: 'Release year' }),
   rating: z.number().openapi({ example: 7.5, description: 'Rating' })
 }
 
