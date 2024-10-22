@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Movies API",
-    "version": "6.0.0",
+    "version": "7.0.0",
     "description": "API for managing movies"
   },
   "servers": [
@@ -21,7 +21,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "number",
+            "type": "integer",
             "description": "Movie ID",
             "example": 1
           },

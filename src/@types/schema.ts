@@ -11,7 +11,7 @@ extendZodWithOpenApi(z)
 
 export const CreateMovieSchema = z
   .object({
-    id: z.number().optional().openapi({ example: 1, description: 'Movie ID' }),
+    id: z.number().int().optional().openapi({ example: 1, description: 'Movie ID' }),
     name: z
       .string()
       .min(1)
