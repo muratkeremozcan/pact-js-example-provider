@@ -1,10 +1,7 @@
 // all Kafka events are logged to a file, so we can somewhat verify them
 // in the real world, you might check db, other services, or any other external side effects
 
-import type {
-  MovieEvent,
-  MovieAction
-} from '../../src/@types/movie-event-types'
+import type { MovieEvent, MovieAction } from '../../src/@types'
 import { logFilePath } from '../../src/events/log-file-path'
 
 /**
