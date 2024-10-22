@@ -20,14 +20,10 @@ components:
         name:
           type: string
           minLength: 1
-          description: Movie name
-          example: Inception
         year:
           type: integer
           minimum: 1900
           maximum: 2024
-          description: Release year
-          example: 2010
         rating:
           type: number
           description: Rating
@@ -131,9 +127,13 @@ components:
                   - name
                   - year
                   - rating
-              description: List of movies or an empty array if no movies exist
-              example: []
             - type: "null"
+          description: Movie details, list of movies, or null if not found
+          example:
+            id: 1
+            name: Inception
+            year: 2010
+            rating: 7.5
         error:
           type:
             - string
@@ -232,14 +232,10 @@ components:
         name:
           type: string
           minLength: 1
-          description: Movie name
-          example: Inception
         year:
           type: integer
           minimum: 1900
           maximum: 2024
-          description: Release year
-          example: 2010
         rating:
           type: number
           description: Rating
