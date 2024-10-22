@@ -14,7 +14,7 @@ components:
       type: object
       properties:
         id:
-          type: number
+          type: integer
           description: Movie ID
           example: 1
         name:
@@ -43,7 +43,7 @@ components:
           type: object
           properties:
             id:
-              type: number
+              type: integer
               description: Movie ID
               example: 1
             name:
@@ -51,7 +51,7 @@ components:
               description: Movie name
               example: Inception
             year:
-              type: number
+              type: integer
               description: Release year
               example: 2010
             rating:
@@ -82,7 +82,7 @@ components:
             - type: object
               properties:
                 id:
-                  type: number
+                  type: integer
                   description: Movie ID
                   example: 1
                 name:
@@ -90,7 +90,7 @@ components:
                   description: Movie name
                   example: Inception
                 year:
-                  type: number
+                  type: integer
                   description: Release year
                   example: 2010
                 rating:
@@ -107,7 +107,7 @@ components:
                 type: object
                 properties:
                   id:
-                    type: number
+                    type: integer
                     description: Movie ID
                     example: 1
                   name:
@@ -115,7 +115,7 @@ components:
                     description: Movie name
                     example: Inception
                   year:
-                    type: number
+                    type: integer
                     description: Release year
                     example: 2010
                   rating:
@@ -195,7 +195,7 @@ components:
           type: object
           properties:
             id:
-              type: number
+              type: integer
               description: Movie ID
               example: 1
             name:
@@ -203,7 +203,7 @@ components:
               description: Movie name
               example: Inception
             year:
-              type: number
+              type: integer
               description: Release year
               example: 2010
             rating:
@@ -226,7 +226,7 @@ components:
       type: object
       properties:
         id:
-          type: number
+          type: integer
           description: Movie ID
           example: 1
         name:

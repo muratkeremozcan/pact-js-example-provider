@@ -21,7 +21,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "number",
+            "type": "integer",
             "description": "Movie ID",
             "example": 1
           },
@@ -58,7 +58,7 @@
             "type": "object",
             "properties": {
               "id": {
-                "type": "number",
+                "type": "integer",
                 "description": "Movie ID",
                 "example": 1
               },
@@ -68,7 +68,7 @@
                 "example": "Inception"
               },
               "year": {
-                "type": "number",
+                "type": "integer",
                 "description": "Release year",
                 "example": 2010
               },
@@ -110,7 +110,7 @@
                 "type": "object",
                 "properties": {
                   "id": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "Movie ID",
                     "example": 1
                   },
@@ -120,7 +120,7 @@
                     "example": "Inception"
                   },
                   "year": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "Release year",
                     "example": 2010
                   },
@@ -143,7 +143,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
-                      "type": "number",
+                      "type": "integer",
                       "description": "Movie ID",
                       "example": 1
                     },
@@ -153,7 +153,7 @@
                       "example": "Inception"
                     },
                     "year": {
-                      "type": "number",
+                      "type": "integer",
                       "description": "Release year",
                       "example": 2010
                     },
@@ -265,7 +265,7 @@
             "type": "object",
             "properties": {
               "id": {
-                "type": "number",
+                "type": "integer",
                 "description": "Movie ID",
                 "example": 1
               },
@@ -275,7 +275,7 @@
                 "example": "Inception"
               },
               "year": {
-                "type": "number",
+                "type": "integer",
                 "description": "Release year",
                 "example": 2010
               },
@@ -307,7 +307,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "number",
+            "type": "integer",
             "description": "Movie ID",
             "example": 1
           },
