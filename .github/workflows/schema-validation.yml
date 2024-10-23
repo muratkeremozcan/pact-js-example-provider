@@ -1,4 +1,4 @@
-name: Run schema test
+name: Run schema validation
 on:
   pull_request:
   workflow_dispatch:
@@ -9,11 +9,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pr-check:
+  schema-validation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
       - name: Read Node version from .nvmrc
         id: node_version
         run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
@@ -25,7 +26,40 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Fetch main branch for optic
+      # This workflow exists so we do not have to locally generate the OpenAPI spec.
+      # If the OpenAPI spec has changed, it commits and pushes those changes back to the PR branch
+      - name: Generate OpenAPI docs from code
+        run: npm run generate:openapi
+
+      - name: Check if OpenAPI docs have changed
+        id: check_changes
+        run: |
+          if git diff --quiet src/api-docs/openapi.yml src/api-docs/openapi.json; then
+            echo "changes=false" >> $GITHUB_ENV
+          else
+            echo "changes=true" >> $GITHUB_ENV
+          fi
+
+      - name: Commit and push OpenAPI changes
+        if: env.changes == 'true'
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: 'GitHub Actions'
+          author_email: 'actions@github.com'
+          message: 'Update OpenAPI spec'
+          add: 'src/api-docs/openapi.yml src/api-docs/openapi.json'
+          push: true
+          github_token: ${{ secrets.PAT_TOKEN }} # need a personal access token with workflow scope, so that the rerun triggers everything
+
+      - name: Create empty commit to re-run checks
+        if: env.changes == 'true'
+        run: |
+          git commit --allow-empty -m "Re-run checks after OpenAPI update"
+          git push
+
+      # Schema validation
+
+      - name: Fetch main branch for Optic
         run: git fetch --depth=1 origin main:main
 
       - name: Optic diff
