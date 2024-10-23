@@ -169,6 +169,80 @@ components:
       required:
         - status
         - message
+    ConflictMovieResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: Conflict status code
+          example: 409
+        error:
+          type: string
+          description: Error message
+          example: Movie already exists
+      required:
+        - status
+        - error
+    UpdateMovieRequest:
+      type: object
+      properties:
+        id:
+          type: number
+          description: Movie ID
+          example: 1
+        name:
+          type: string
+          minLength: 1
+          description: Movie name
+          example: Inception
+        year:
+          type: integer
+          minimum: 1900
+          maximum: 2024
+          description: Release year
+          example: 2010
+        rating:
+          type: number
+          description: Rating
+          example: 7.5
+    UpdateMovieResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: Response status code
+          example: 200
+        data:
+          type: object
+          properties:
+            id:
+              type: number
+              description: Movie ID
+              example: 1
+            name:
+              type: string
+              description: Movie name
+              example: Inception
+            year:
+              type: number
+              description: Release year
+              example: 2010
+            rating:
+              type: number
+              description: Rating
+              example: 7.5
+          required:
+            - id
+            - name
+            - year
+            - rating
+          description: Updated movie data
+        error:
+          type: string
+          description: Error message, if any
+      required:
+        - status
+        - data
     UpdatedMovieResponse:
       type: object
       properties:
@@ -207,28 +281,6 @@ components:
       required:
         - status
         - data
-    UpdateMovieRequest:
-      type: object
-      properties:
-        id:
-          type: number
-          description: Movie ID
-          example: 1
-        name:
-          type: string
-          minLength: 1
-          description: Movie name
-          example: Inception
-        year:
-          type: integer
-          minimum: 1900
-          maximum: 2024
-          description: Release year
-          example: 2010
-        rating:
-          type: number
-          description: Rating
-          example: 7.5
   parameters: {}
 paths:
   /:

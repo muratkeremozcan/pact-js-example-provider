@@ -25,6 +25,9 @@ registry.register('CreateMovieResponse', CreateMovieResponseSchema)
 registry.register('GetMovieResponse', GetMovieResponseUnionSchema)
 registry.register('MovieNotFound', MovieNotFoundResponseSchema)
 registry.register('DeleteMovieMessage', DeleteMovieResponseSchema)
+registry.register('ConflictMovieResponse', ConflictMovieResponseSchema)
+registry.register('UpdateMovieRequest', UpdateMovieSchema)
+registry.register('UpdateMovieResponse', UpdateMovieResponseSchema)
 
 // Constants to avoid repetition
 const MOVIE_ID_PARAM: ParameterObject = {
