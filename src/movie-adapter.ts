@@ -11,25 +11,18 @@ import type {
 } from './@types'
 import type { MovieRepository } from './movie-repository'
 
-// ports & adapters (hexagonal) pattern refactor:
-// movies.ts (now called movie-service) has been split into two parts,
-// and movie-repository acts as the interface/port/contract between them:
-// 1) movie-adapter: almost the same as before,
-// but no longer instantiates Prisma; Prisma is injected via the constructor.
-// 2) movie-service: focuses solely on business logic
-// and delegates data access to movie-adapter through the repository interface.
-
-// The key benefits are improved flexibility and testability:
-// 1) Flexibility: the business logic (MovieService) is decoupled from the data access layer (PrismaMovieAdapter),
-// making it easier to swap or replace adapters (e.g., switch from Prisma to an API or mock implementation)
-// without changing the business logic.
-// 2) Testability: this separation allows for isolated unit tests of each component,
-// meaning you can test the business logic independently from the data layer,
-// and mock the repository for more controlled and efficient tests.
-
 // MovieAdapter: This is the implementation of the MovieRepository interface,
 // responsible for interacting with a specific data source (like Prisma).
 // It's an adapter in hexagonal architecture.
+
+// The key benefits are improved flexibility and testability:
+// 1) Flexibility: the business logic (MovieService) is decoupled from the data access layer (MovieAdapter),
+// making it easier to swap or replace adapters (e.g., switch from Prisma to an API or mock implementation)
+// without changing the business logic.
+
+// 2) Testability: this separation allows for isolated unit tests of each component,
+// meaning you can test the business logic independently from the data layer,
+// and mock the repository for more controlled and efficient tests.
 
 export class MovieAdapter implements MovieRepository {
   private readonly prisma: PrismaClient
@@ -195,7 +188,7 @@ export class MovieAdapter implements MovieRepository {
 
       // Create the new movie
       const movie = await this.prisma.movie.create({
-        data: id ? { id, ...data } : data
+        data: id ? { ...data, id } : data
       })
 
       return {
