@@ -3,8 +3,12 @@ import 'cypress-ajv-schema-validator'
 import type { Movie } from '@prisma/client'
 import { generateMovieWithoutId } from '../../src/test-helpers/factories'
 import spok from 'cy-spok'
-import schema from '../../src/api-docs/openapi.json'
+import jsonSchema from '../../src/api-docs/openapi.json'
 import { retryableBefore } from '../support/retryable-before'
+import type { OpenAPIV3_1 } from 'openapi-types'
+
+// Cast the imported schema to the correct type
+const schema: OpenAPIV3_1.Document = jsonSchema as OpenAPIV3_1.Document
 
 describe('CRUD movie', () => {
   const movie = generateMovieWithoutId()

@@ -5,6 +5,7 @@ import type {
   GetMovieResponse,
   DeleteMovieResponse
 } from './@types'
+import type { OpenAPIV3_1 } from 'openapi-types'
 
 export {}
 
@@ -101,7 +102,7 @@ declare global {
        * })
        * ``` */
       validateSchema(
-        schema: OpenAPIV3.SchemaObject,
+        schema: OpenAPIV3_1.Document,
         options: {
           path?: string
           endpoint: string

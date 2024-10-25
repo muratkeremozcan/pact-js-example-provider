@@ -3,11 +3,15 @@ import 'cypress-ajv-schema-validator'
 
 import type { Movie } from '@prisma/client'
 import spok from 'cy-spok'
-import schema from '../../src/api-docs/openapi.json'
+import jsonSchema from '../../src/api-docs/openapi.json'
+import type { OpenAPIV3_1 } from 'openapi-types'
 import { generateMovieWithoutId } from '../../src/test-helpers/factories'
 import { parseKafkaEvent } from '../support/parse-kafka-event'
 import { retryableBefore } from '../support/retryable-before'
 import { recurse } from 'cypress-recurse'
+
+// Cast the imported schema to the correct type
+const schema: OpenAPIV3_1.Document = jsonSchema as OpenAPIV3_1.Document
 
 describe('CRUD movie', () => {
   const movie = generateMovieWithoutId()
@@ -85,7 +89,14 @@ describe('CRUD movie', () => {
           .should(
             spok({
               status: 200,
-              data: spok.array
+              // test an array of objects with spok
+              data: (arr: Movie[]) =>
+                arr.map(
+                  spok({
+                    id: spok.number,
+                    ...movieProps
+                  })
+                )
             })
           )
           .findOne({ name: movie.name })
@@ -116,9 +127,7 @@ describe('CRUD movie', () => {
               .should(
                 spok({
                   status: 200,
-                  data: {
-                    ...movieProps
-                  }
+                  data: movieProps
                 })
               )
           })
@@ -161,7 +170,7 @@ describe('CRUD movie', () => {
           .should(
             spok({
               status: 200,
-              message: spok.string
+              message: `Movie ${id} has been deleted`
             })
           )
 
@@ -189,7 +198,7 @@ describe('CRUD movie', () => {
           .should(
             spok({
               status: 404,
-              error: spok.string
+              error: `Movie with ID ${id} not found`
             })
           )
       })
