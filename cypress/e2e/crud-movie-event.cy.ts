@@ -89,7 +89,14 @@ describe('CRUD movie', () => {
           .should(
             spok({
               status: 200,
-              data: spok.array
+              // test an array of objects with spok
+              data: (arr: Movie[]) =>
+                arr.map(
+                  spok({
+                    id: spok.number,
+                    ...movieProps
+                  })
+                )
             })
           )
           .findOne({ name: movie.name })
@@ -120,9 +127,7 @@ describe('CRUD movie', () => {
               .should(
                 spok({
                   status: 200,
-                  data: {
-                    ...movieProps
-                  }
+                  data: movieProps
                 })
               )
           })
@@ -165,7 +170,7 @@ describe('CRUD movie', () => {
           .should(
             spok({
               status: 200,
-              message: spok.string
+              message: `Movie ${id} has been deleted`
             })
           )
 
@@ -193,7 +198,7 @@ describe('CRUD movie', () => {
           .should(
             spok({
               status: 404,
-              error: spok.string
+              error: `Movie with ID ${id} not found`
             })
           )
       })
