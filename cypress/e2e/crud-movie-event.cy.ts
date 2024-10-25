@@ -3,7 +3,7 @@ import 'cypress-ajv-schema-validator'
 
 import type { Movie } from '@prisma/client'
 import spok from 'cy-spok'
-import schema from '../../src/api-docs/openapi.json'
+import jsonSchema from '../../src/api-docs/openapi.json'
 import type { OpenAPIV3_1 } from 'openapi-types'
 import { generateMovieWithoutId } from '../../src/test-helpers/factories'
 import { parseKafkaEvent } from '../support/parse-kafka-event'
@@ -11,7 +11,7 @@ import { retryableBefore } from '../support/retryable-before'
 import { recurse } from 'cypress-recurse'
 
 // Cast the imported schema to the correct type
-const typedSchema: OpenAPIV3_1.Document = schema as OpenAPIV3_1.Document
+const schema: OpenAPIV3_1.Document = jsonSchema as OpenAPIV3_1.Document
 
 describe('CRUD movie', () => {
   const movie = generateMovieWithoutId()
@@ -43,7 +43,7 @@ describe('CRUD movie', () => {
 
   it('should crud', () => {
     cy.addMovie(token, movie)
-      .validateSchema(typedSchema, {
+      .validateSchema(schema, {
         endpoint: '/movies',
         method: 'POST'
       })
@@ -81,7 +81,7 @@ describe('CRUD movie', () => {
         )
 
         cy.getAllMovies(token)
-          .validateSchema(typedSchema, {
+          .validateSchema(schema, {
             endpoint: '/movies',
             method: 'GET'
           })
@@ -102,7 +102,7 @@ describe('CRUD movie', () => {
           .findOne({ name: movie.name })
 
         cy.getMovieById(token, id)
-          .validateSchema(typedSchema, {
+          .validateSchema(schema, {
             endpoint: '/movies/{id}',
             method: 'GET'
           })
@@ -119,7 +119,7 @@ describe('CRUD movie', () => {
           .its('data.name')
           .then((name) => {
             cy.getMovieByName(token, name)
-              .validateSchema(typedSchema, {
+              .validateSchema(schema, {
                 endpoint: '/movies',
                 method: 'GET'
               })
@@ -133,7 +133,7 @@ describe('CRUD movie', () => {
           })
 
         cy.updateMovie(token, id, updatedMovie)
-          .validateSchema(typedSchema, {
+          .validateSchema(schema, {
             endpoint: '/movies/{id}',
             method: 'PUT',
             status: 200
@@ -161,7 +161,7 @@ describe('CRUD movie', () => {
         )
 
         cy.deleteMovie(token, id)
-          .validateSchema(typedSchema, {
+          .validateSchema(schema, {
             endpoint: '/movies/{id}',
             method: 'DELETE',
             status: 200
@@ -189,7 +189,7 @@ describe('CRUD movie', () => {
 
         cy.log('**delete non existing movie**')
         cy.deleteMovie(token, id, true)
-          .validateSchema(typedSchema, {
+          .validateSchema(schema, {
             endpoint: '/movies/{id}',
             method: 'DELETE',
             status: 404
