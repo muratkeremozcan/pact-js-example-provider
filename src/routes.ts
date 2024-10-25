@@ -64,13 +64,14 @@ moviesRoute.put('/:id', validateId, async (req, res) => {
 })
 
 moviesRoute.delete('/:id', validateId, async (req, res) => {
+  const movieId = Number(req.params.id)
   // check if the movie exists before attempting to delete it
-  const movieResponse = await movieService.getMovieById(Number(req.params.id))
+  const movieResponse = await movieService.getMovieById(movieId)
 
   // proceed only if the movie exists
   if ('data' in movieResponse && movieResponse.data) {
     const movie = movieResponse.data as Movie
-    const result = await movieService.deleteMovieById(Number(req.params.id))
+    const result = await movieService.deleteMovieById(movieId)
 
     if ('message' in result) {
       await produceMovieEvent(movie, 'deleted')
@@ -81,7 +82,7 @@ moviesRoute.delete('/:id', validateId, async (req, res) => {
     // If the movie was not found, return a 404 or an appropriate error response
     return formatResponse(res, {
       status: 404,
-      error: `Movie with ID ${Number(req.params.id)} not found`
+      error: `Movie with ID ${movieId} not found`
     })
   }
 })
