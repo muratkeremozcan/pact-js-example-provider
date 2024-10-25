@@ -1,12 +1,6 @@
 import type { Movie } from '@prisma/client'
 import { PrismaClient } from '@prisma/client'
 import { Router } from 'express'
-import type {
-  CreateMovieResponse,
-  DeleteMovieResponse,
-  GetMovieResponse,
-  UpdateMovieResponse
-} from './@types'
 import { authMiddleware } from './middleware/auth-middleware'
 import { validateId } from './middleware/validate-movie-id'
 import { MovieAdapter } from './movie-adapter'
@@ -26,38 +20,36 @@ const movieAdapter = new MovieAdapter(prisma)
 const movieService = new MovieService(movieAdapter)
 
 // Routes are focused on handling HTTP requests and responses,
-// delegating business logic to the Movies class (Separation of Concerns)
+// delegating business logic to the MoviesService (Separation of Concerns)
 
 moviesRoute.get('/', async (req, res) => {
   const name = req.query.name
 
   if (typeof name === 'string') {
-    const movie = await movieService.getMovieByName(name as string)
-    return formatResponse(res, movie as GetMovieResponse)
+    const movie = await movieService.getMovieByName(name)
+    return formatResponse(res, movie)
   } else if (name) {
     return res.status(400).json({ error: 'Invalid movie name provided' })
   } else {
     const allMovies = await movieService.getMovies()
-    return formatResponse(res, allMovies as GetMovieResponse)
+    return formatResponse(res, allMovies)
   }
 })
 
 moviesRoute.post('/', async (req, res) => {
   const result = await movieService.addMovie(req.body)
 
-  console.log('Received body:', req.body)
-
   if ('data' in result) {
     const movie = result.data
     await produceMovieEvent(movie, 'created')
   }
 
-  return formatResponse(res, result as CreateMovieResponse)
+  return formatResponse(res, result)
 })
 
 moviesRoute.get('/:id', validateId, async (req, res) => {
   const result = await movieService.getMovieById(Number(req.params.id))
-  return formatResponse(res, result as GetMovieResponse)
+  return formatResponse(res, result)
 })
 
 moviesRoute.put('/:id', validateId, async (req, res) => {
@@ -68,7 +60,7 @@ moviesRoute.put('/:id', validateId, async (req, res) => {
     await produceMovieEvent(movie, 'updated')
   }
 
-  return formatResponse(res, result as UpdateMovieResponse)
+  return formatResponse(res, result)
 })
 
 moviesRoute.delete('/:id', validateId, async (req, res) => {
@@ -84,7 +76,7 @@ moviesRoute.delete('/:id', validateId, async (req, res) => {
       await produceMovieEvent(movie, 'deleted')
     }
 
-    return formatResponse(res, result as DeleteMovieResponse)
+    return formatResponse(res, result)
   } else {
     // If the movie was not found, return a 404 or an appropriate error response
     return formatResponse(res, {

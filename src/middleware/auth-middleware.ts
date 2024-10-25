@@ -1,5 +1,10 @@
 import type { Request, Response, NextFunction } from 'express'
 
+// In Express, a middleware is a function that sits between a request and the response.
+// It checks or modifies the request as it moves along.
+// Think of it as a "checkpoint" where the request stops briefly, gets processed,
+// and then moves on to the next step or to the final response.
+
 // define a type for the token's structure, which contains the issuedAt date.
 type Token = {
   issuedAt: Date // the token contains a precise Date object
