@@ -57,7 +57,7 @@ jobs:
           message: 'Update OpenAPI spec'
           add: 'src/api-docs/openapi.yml src/api-docs/openapi.json'
           push: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PAT_TOKEN }}
 
       - name: Create empty commit to re-run checks
         if: env.changes == 'true'
