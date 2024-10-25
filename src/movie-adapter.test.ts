@@ -3,7 +3,10 @@ import { Prisma, PrismaClient } from '@prisma/client'
 import type { DeepMockProxy } from 'jest-mock-extended'
 import { mockDeep } from 'jest-mock-extended'
 import { MovieAdapter } from './movie-adapter'
-import { generateMovieWithId } from './test-helpers/factories'
+import {
+  generateMovieWithId,
+  generateMovieWithoutId
+} from './test-helpers/factories'
 
 // In this test suite, we are testing the Adapter,
 // which is responsible for interacting with the data source (Prisma).
@@ -189,47 +192,48 @@ describe('MovieAdapter', () => {
   })
 
   describe('addMovie', () => {
-    const movieData = { name: 'Inception', year: 2020, rating: 7.5 }
+    const movieData = { ...generateMovieWithoutId(), name: 'Inception' }
     const id = 1
+    const movie = { id, ...movieData }
 
-    it('should successfully add a movie without specifying id', async () => {
+    it('should successfully add a movie without specifying an id', async () => {
       prismaMock.movie.findFirst.mockResolvedValue(null) // no existing movie
-      prismaMock.movie.create.mockResolvedValue({ id, ...movieData })
+      prismaMock.movie.create.mockResolvedValue(movie)
 
       const result = await movieAdapter.addMovie(movieData)
       expect(result).toEqual({
         status: 200,
-        data: { id, ...movieData }
+        data: movie
       })
       expect(prismaMock.movie.create).toHaveBeenCalledWith({ data: movieData })
     })
 
     it('should successfully add a movie specifying id', async () => {
       prismaMock.movie.findFirst.mockResolvedValue(null) // no existing movie
-      prismaMock.movie.create.mockResolvedValue({ id, ...movieData })
+      prismaMock.movie.create.mockResolvedValue(movie)
 
       const result = await movieAdapter.addMovie(movieData, id)
 
       expect(result).toEqual(
         expect.objectContaining({
           status: 200,
-          data: { id, ...movieData }
+          data: movie
         })
       )
       expect(prismaMock.movie.create).toHaveBeenCalledWith({
-        data: { id, ...movieData }
+        data: movie
       })
     })
 
     it('should return 409 if the movie already exists', async () => {
-      prismaMock.movie.findFirst.mockResolvedValue({ id, ...movieData }) // existing movie
+      prismaMock.movie.findFirst.mockResolvedValue(movie) // existing movie
 
       const result = await movieAdapter.addMovie(movieData)
 
       expect(result).toEqual(
         expect.objectContaining({
           status: 409,
-          error: 'Movie Inception already exists'
+          error: `Movie ${movie.name} already exists`
         })
       )
     })

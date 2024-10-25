@@ -17,6 +17,25 @@ import { CreateMovieSchema, UpdateMovieSchema } from './@types/schema'
 // The service doesn't care if it's using Prisma, a REST API, or an in-memory database
 // it only cares that the object implements MovieRepository.
 
+/*
+  API (Driving Adapter - entry point)
+                  |
+                  v
+    +----------------------------+
+    |        MovieService        |
+    | (Application Core/Hexagon) |
+    +----------------------------+
+                  |
+                  v
+      MovieRepository (Port)
+                  |
+                  v
+MovieAdapter (Driven Adapter - 2ndary, interacts with outside)
+                  |
+                  v
+              Database
+*/
+
 export class MovieService {
   constructor(private readonly movieRepository: MovieRepository) {
     this.movieRepository = movieRepository
