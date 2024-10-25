@@ -55,7 +55,7 @@ Cypress.Commands.add(
     return cy.api({
       method: 'POST',
       url: '/movies',
-      body: body,
+      body,
       headers: commonHeaders(token),
       retryOnStatusCodeFailure: !allowedToFail,
       failOnStatusCode: !allowedToFail
@@ -71,7 +71,7 @@ Cypress.Commands.add(
     return cy.api({
       method: 'PUT',
       url: `/movies/${id}`,
-      body: body,
+      body,
       headers: commonHeaders(token),
       retryOnStatusCodeFailure: !allowedToFail,
       failOnStatusCode: !allowedToFail
