@@ -8,37 +8,28 @@ on:
     types:
       - contract_requiring_verification_published
 
-# Ensure that only one instance of the workflow runs per branch and workflow.
 concurrency:
   group: ${{ github.ref }} && ${{ github.workflow }}
   cancel-in-progress: true
 
 env:
-  # Environment variables accessible to all jobs
   PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }}
   PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
   GITHUB_SHA: ${{ github.event.client_payload.sha }}
-  GITHUB_BRANCH: ${{ github.event.client_payload.branch }}
   DATABASE_URL: 'file:./dev.db'
   PORT: 3001
 
 jobs:
   verify_pact:
     runs-on: ubuntu-latest
-    env:
-      # Environment variables specific to this job
-      NODE_VERSION: 20
-
     steps:
-      # Step 1: Log the payload variables for debugging and verification.
       - name: Log Payload Variables
         run: |
           echo "PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}"
           echo "GITHUB_SHA: ${{ env.GITHUB_SHA }}"
-          echo "GITHUB_BRANCH: ${{ env.GITHUB_BRANCH }}"
+          echo "GITHUB_BRANCH: ${{ github.event.client_payload.branch }}"
 
-      # Step 2: Extract the consumer's branch name from the Pact Broker API.
       - name: Extract consumer branch name
         shell: bash
         env:
@@ -46,50 +37,38 @@ jobs:
           PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
         run: |
           echo "Fetching consumer branch from Pact Broker..."
-          # Fetch the pact details from the Pact Broker.
           PACT_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$PACT_PAYLOAD_URL")
-          # Extract the consumer version URL.
+          echo "PACT_JSON: $PACT_JSON"
           CONSUMER_VERSION_URL=$(echo "$PACT_JSON" | jq -r '._links."pb:consumer-version".href')
-          # Fetch the consumer version details.
+          echo "CONSUMER_VERSION_URL: $CONSUMER_VERSION_URL"
           CONSUMER_VERSION_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$CONSUMER_VERSION_URL")
-          # Extract the branch name.
+          echo "CONSUMER_VERSION_JSON: $CONSUMER_VERSION_JSON"
           CONSUMER_BRANCH=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.branch')
           echo "Consumer branch extracted: $CONSUMER_BRANCH"
-          # Save the consumer branch to the environment.
           echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
 
-      # Step 3: Checkout the repository, attempting the consumer's branch first.
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          # Try to check out the consumer's branch; if it doesn't exist, proceed and handle it in the next step.
-          ref: ${{ env.CONSUMER_BRANCH }}
-          # Continue on error to handle non-existing branch
-          persist-credentials: false
-          clean: true
 
-      # Step 4: Verify if the checkout succeeded, else fallback to main
-      - name: Verify checkout and fallback if necessary
+      - name: Checkout matching branch or default to main
         shell: bash
         run: |
-          CURRENT_BRANCH=$(git branch --show-current)
-          if [ "$CURRENT_BRANCH" != "${{ env.CONSUMER_BRANCH }}" ]; then
-            echo "Branch '${{ env.CONSUMER_BRANCH }}' does not exist. Checking out 'main' branch."
-            git checkout main
-            echo "BRANCH_EXISTS=false" >> $GITHUB_ENV
+          git fetch origin ${{ env.CONSUMER_BRANCH }} || true
+          if git rev-parse --verify origin/${{ env.CONSUMER_BRANCH }}; then
+            git checkout ${{ env.CONSUMER_BRANCH }}
+            echo "Checked out branch '${{ env.CONSUMER_BRANCH }}'"
           else
-            echo "Checked out branch '${CURRENT_BRANCH}'."
-            echo "BRANCH_EXISTS=true" >> $GITHUB_ENV
+            git checkout main
+            echo "Branch '${{ env.CONSUMER_BRANCH }}' does not exist. Defaulted to 'main'"
           fi
-          # Set GITHUB_BRANCH to the current branch
+          CURRENT_BRANCH=$(git branch --show-current)
           echo "GITHUB_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
 
-      # Step 5: Install Dependencies.
       - name: Install dependencies
         run: npm ci
 
-      # Step 6: Run Provider Tests.
       - name: Run provider tests
         env:
           PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
@@ -99,5 +78,4 @@ jobs:
           GITHUB_BRANCH: ${{ env.GITHUB_BRANCH }}
           DATABASE_URL: ${{ env.DATABASE_URL }}
           PORT: ${{ env.PORT }}
-          NODE_VERSION: ${{ env.NODE_VERSION }}
         run: npm run test:provider-ci
