@@ -18,12 +18,12 @@ React consumer app for bi-directional contract testing: https://github.com/murat
 
 - [PactJS Contract Testing Example](#pactjs-contract-testing-example)
   - [Setup](#setup)
-    - [Webhook setup](#webhook-setup)
     - [Consumer flow](#consumer-flow)
     - [Provider flow](#provider-flow)
     - [Other scripts on both sides](#other-scripts-on-both-sides)
       - [Consumer specific scripts](#consumer-specific-scripts)
       - [Provider specific scripts](#provider-specific-scripts)
+    - [Webhook setup](#webhook-setup)
       - [Provider selective testing](#provider-selective-testing)
       - [Handling Breaking Changes](#handling-breaking-changes)
       - [Breaking change - consumer flow](#breaking-change---consumer-flow)
@@ -147,11 +147,11 @@ npm run record:provider:bidirectional:deployment --env=dev # records the bi-dire
 
 ### Webhook setup
 
-For the webhook to test successfully: 
+For the webhook to test successfully:
 
-* **You must have executed pact tests at the consumer and provider**; the Pact Broker has to know about them.
+- **You must have executed pact tests at the consumer and provider**; the Pact Broker has to know about them.
 
-* You must create a yml with `repository_dispatch ` event at your provider (you can use this file https://github.com/muratkeremozcan/provider/blob/main/.github/workflows/webhook.yml at your provider, edit the test executions portion as you see fit).
+- You must create a yml with `repository_dispatch ` event at your provider (you can use this file https://github.com/muratkeremozcan/provider/blob/main/.github/workflows/webhook.yml at your provider, edit the test executions portion as you see fit).
 
 Flow:
 
@@ -169,33 +169,33 @@ Flow:
 
    ```bash
    #!/bin/bash
-   
+
    # this file is a test for your GitHub Personal Access token
    # if you can create an issue, then Pact webhook will work
-   
+
    # Set your GitHub credentials and repository details
    GITHUB_REPO_OWNER="Your_GITHUB_REPO_OWNER"                      # GitHub username or org
    GITHUB_REPO_NAME="Your_repo_name"                               # GitHub repository name
    GITHUB_AUTH_TOKEN="Your_GitHub_Personal_Access_Token"           # GitHub Personal Access Token with repo permissions
-   
+
    # Issue details
    ISSUE_TITLE="Test issue"                                    # Title of the issue to be created
    ISSUE_BODY="This is a test issue created via API."          # Body of the issue
-   
+
    # Step 1: Verify the GitHub Token
    echo "Verifying GitHub token..."
    TOKEN_VERIFICATION_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_AUTH_TOKEN" https://api.github.com/users/$GITHUB_REPO_OWNER)
-   
+
    if [ "$TOKEN_VERIFICATION_RESPONSE" -ne 200 ]; then
      echo "Error: Bad credentials. Please check your GitHub token and ensure it has the required permissions."
      exit 1
    else
      echo "GitHub token verified successfully."
    fi
-   
+
    # GitHub API endpoint for creating an issue
    ISSUE_URL="https://api.github.com/repos/$GITHUB_REPO_OWNER/$GITHUB_REPO_NAME/issues"
-   
+
    # Step 2: Run the curl command to create the issue
    echo "Creating a new GitHub issue..."
    curl -X POST "$ISSUE_URL" \
@@ -232,15 +232,13 @@ Flow:
    }
    ```
 
-   
-
 ![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/be9ywm042qtxj9i5h6nu.png)
 
 Alternatively, use the CLI to add the webhook. Prior to running the scripts:
 
-* Make sure to [install pact broker](https://github.com/pact-foundation/pact-ruby-standalone/releases); `pact-broker version` command should output a meaningful result.
+- Make sure to [install pact broker](https://github.com/pact-foundation/pact-ruby-standalone/releases); `pact-broker version` command should output a meaningful result.
 
-* Set the values of the variables in the beginning of the script. **Careful not to check in the file with secrets in display**.
+- Set the values of the variables in the beginning of the script. **Careful not to check in the file with secrets in display**.
 
 ```bash
 #!/bin/bash
@@ -250,10 +248,10 @@ Alternatively, use the CLI to add the webhook. Prior to running the scripts:
 # Get it at https://github.com/pact-foundation/pact-ruby-standalone/releases, per your OS
 # You may have to set the path with
 # export PATH=$PATH:$(pwd)/pact/bin
-# or 
+# or
 # set -x PATH $PATH (pwd)/pact/bin
-# 
-# Ensure that your target provider GitHub repository has a .yml workflow file in .github/workflows/ 
+#
+# Ensure that your target provider GitHub repository has a .yml workflow file in .github/workflows/
 # configured to respond to repository_dispatch events with an event type like "contract_requiring_verification_published".
 # Example: https://github.com/muratkeremozcan/pact-js-example-provider/blob/main/.github/workflows/webhook.yml
 
