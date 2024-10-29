@@ -1,4 +1,4 @@
-name: Provider Contract Tests
+name: Webhook triggered Provider Contract Test
 
 on:
   repository_dispatch:
@@ -13,6 +13,8 @@ env:
   PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }}
   PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+  GITHUB_REPO_OWNER: 'muratkeremozcan'
+  GITHUB_REPO_NAME: 'pact-js-example-provider'
   DATABASE_URL: 'file:./dev.db'
   PORT: 3001
 
@@ -20,6 +22,9 @@ jobs:
   verify_pact:
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Log Payload Variables
+      # This step logs the initial variables received from the event payload.
+      # It's useful for debugging and ensuring variables are correctly passed.
       - name: Log Payload Variables
         run: |
           echo "PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}"
@@ -28,11 +33,17 @@ jobs:
           echo "PACT_BROKER_BASE_URL: ${{ env.PACT_BROKER_BASE_URL }}"
           echo "PACT_BROKER_TOKEN: [REDACTED]"
 
+      # Step 2: Install jq
+      # jq is a lightweight and flexible command-line JSON processor.
+      # We use it to parse JSON responses from the Pact Broker.
       - name: Install jq
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
 
+      # Step 3: Extract consumer branch name
+      # This step fetches the consumer's branch name from the Pact Broker
+      # and sets CONSUMER_BRANCH environment variable for use in subsequent steps.
       - name: Extract consumer branch name
         shell: bash
         env:
@@ -40,25 +51,43 @@ jobs:
           PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
         run: |
           echo "Fetching consumer branch from Pact Broker..."
+          # Fetch the pact JSON from the Pact Broker using the PACT_PAYLOAD_URL
           PACT_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$PACT_PAYLOAD_URL")
           echo "PACT_JSON: $PACT_JSON"
+          # Extract the consumer version URL from the pact JSON using jq
           CONSUMER_VERSION_URL=$(echo "$PACT_JSON" | jq -r '._links."pb:consumer-version".href')
           echo "CONSUMER_VERSION_URL: $CONSUMER_VERSION_URL"
+          # Fetch the consumer version JSON from the consumer version URL
           CONSUMER_VERSION_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$CONSUMER_VERSION_URL")
           echo "CONSUMER_VERSION_JSON: $CONSUMER_VERSION_JSON"
-          CONSUMER_BRANCH=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.branch')
+          # Extract the consumer branch name from the consumer version JSON
+          # The branch name is nested under _embedded.branchVersions[0].name
+          CONSUMER_BRANCH=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.branchVersions[0].name')
+          # If CONSUMER_BRANCH is null or empty, default to 'main'
+          if [ "$CONSUMER_BRANCH" = "null" ] || [ -z "$CONSUMER_BRANCH" ]; then
+            echo "No consumer branch found. Defaulting to 'main'."
+            CONSUMER_BRANCH="main"
+          fi
           echo "Consumer branch extracted: $CONSUMER_BRANCH"
+          # Set CONSUMER_BRANCH as an environment variable for subsequent steps
           echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
 
+      # Step 4: Configure Git
+      # Sets up Git configuration and initializes the repository.
       - name: Configure Git
         run: |
           git config --global init.defaultBranch main
           git init
-          git remote add origin https://github.com/your-org/your-provider-repo.git
+          # Use the environment variables for owner and repo name
+          git remote add origin https://github.com/${{ env.GITHUB_REPO_OWNER }}/${{ env.GITHUB_REPO_NAME }}.git
 
+      # Step 5: Checkout matching branch or default to main
+      # Attempts to checkout the branch that matches the consumer branch.
+      # If it doesn't exist in the provider repo, defaults to 'main'.
       - name: Checkout matching branch or default to main
         shell: bash
         run: |
+          # Check if the branch exists in the provider repository
           if git ls-remote --exit-code --heads origin "${CONSUMER_BRANCH}"; then
             echo "Branch '${CONSUMER_BRANCH}' exists in provider repository."
             echo "BRANCH_TO_CHECKOUT=${CONSUMER_BRANCH}" >> $GITHUB_ENV
@@ -66,18 +95,26 @@ jobs:
             echo "Branch '${CONSUMER_BRANCH}' does not exist in provider repository. Using 'main' branch."
             echo "BRANCH_TO_CHECKOUT=main" >> $GITHUB_ENV
           fi
+      # Checkout the determined branch
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.BRANCH_TO_CHECKOUT }}
 
+      # Step 6: Set GITHUB_BRANCH environment variable
+      # Captures the current branch name and sets it for use in tests.
       - name: Set GITHUB_BRANCH
         run: |
           CURRENT_BRANCH=$(git branch --show-current)
           echo "GITHUB_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
 
+      # Step 7: Install dependencies
+      # Installs project dependencies using npm.
       - name: Install dependencies
         run: npm ci
 
+      # Step 8: Run provider tests
+      # Executes the provider tests using the test:provider-ci script.
+      # Environment variables are set for use within the test scripts.
       - name: Run provider tests
         env:
           PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
