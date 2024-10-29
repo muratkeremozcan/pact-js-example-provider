@@ -1,6 +1,3 @@
-# This workflow is triggered by a webhook when the consumer publishes a pact.
-# It runs the provider's contract tests to verify the new pact.
-
 name: Provider Contract Tests
 
 on:
@@ -16,7 +13,6 @@ env:
   PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }}
   PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-  GITHUB_SHA: ${{ github.event.client_payload.sha }}
   DATABASE_URL: 'file:./dev.db'
   PORT: 3001
 
@@ -27,8 +23,15 @@ jobs:
       - name: Log Payload Variables
         run: |
           echo "PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}"
-          echo "GITHUB_SHA: ${{ env.GITHUB_SHA }}"
+          echo "GITHUB_SHA: ${{ github.event.client_payload.sha }}"
           echo "GITHUB_BRANCH: ${{ github.event.client_payload.branch }}"
+          echo "PACT_BROKER_BASE_URL: ${{ env.PACT_BROKER_BASE_URL }}"
+          echo "PACT_BROKER_TOKEN: [REDACTED]"
+
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install jq
 
       - name: Extract consumer branch name
         shell: bash
@@ -47,21 +50,25 @@ jobs:
           echo "Consumer branch extracted: $CONSUMER_BRANCH"
           echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
 
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - name: Configure Git
+        run: |
+          git config --global init.defaultBranch main
+          git init
+          git remote add origin https://github.com/your-org/your-provider-repo.git
 
       - name: Checkout matching branch or default to main
         shell: bash
+        env:
+          CONSUMER_BRANCH: ${{ env.CONSUMER_BRANCH }}
         run: |
-          git fetch origin ${{ env.CONSUMER_BRANCH }} || true
-          if git rev-parse --verify origin/${{ env.CONSUMER_BRANCH }}; then
-            git checkout ${{ env.CONSUMER_BRANCH }}
-            echo "Checked out branch '${{ env.CONSUMER_BRANCH }}'"
+          if git ls-remote --exit-code --heads origin "${CONSUMER_BRANCH}"; then
+            echo "Branch '${CONSUMER_BRANCH}' exists in provider repository."
+            git fetch origin "${CONSUMER_BRANCH}"
+            git checkout "${CONSUMER_BRANCH}"
           else
+            echo "Branch '${CONSUMER_BRANCH}' does not exist in provider repository. Using 'main' branch."
+            git fetch origin main
             git checkout main
-            echo "Branch '${{ env.CONSUMER_BRANCH }}' does not exist. Defaulted to 'main'"
           fi
           CURRENT_BRANCH=$(git branch --show-current)
           echo "GITHUB_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
@@ -74,7 +81,7 @@ jobs:
           PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
           PACT_BROKER_BASE_URL: ${{ env.PACT_BROKER_BASE_URL }}
           PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
-          GITHUB_SHA: ${{ env.GITHUB_SHA }}
+          GITHUB_SHA: ${{ github.event.client_payload.sha }}
           GITHUB_BRANCH: ${{ env.GITHUB_BRANCH }}
           DATABASE_URL: ${{ env.DATABASE_URL }}
           PORT: ${{ env.PORT }}
