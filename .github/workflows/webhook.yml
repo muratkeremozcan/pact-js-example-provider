@@ -72,14 +72,14 @@ jobs:
           # Set CONSUMER_BRANCH as an environment variable for subsequent steps
           echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
 
-      # Step 4: Configure Git
-      # Sets up Git configuration and initializes the repository.
-      - name: Configure Git
-        run: |
-          git config --global init.defaultBranch main
-          git init
-          # Use the environment variables for owner and repo name
-          git remote add origin https://github.com/${{ env.GITHUB_REPO_OWNER }}/${{ env.GITHUB_REPO_NAME }}.git
+      # Step 4: Checkout code using actions/checkout
+      # We use actions/checkout to clone the repository and fetch all branches.
+      - uses: actions/checkout@v4
+        with:
+          # Fetch all branches and history so we can switch branches
+          fetch-depth: 0
+          # Specify the repository to check out
+          repository: ${{ env.GITHUB_REPO_OWNER }}/${{ env.GITHUB_REPO_NAME }}
 
       # Step 5: Checkout matching branch or default to main
       # Attempts to checkout the branch that matches the consumer branch.
@@ -87,32 +87,25 @@ jobs:
       - name: Checkout matching branch or default to main
         shell: bash
         run: |
-          # Check if the branch exists in the provider repository
+          # Fetch all remote branches
+          git fetch --all
+          # Check if the branch exists in the remote repository
           if git ls-remote --exit-code --heads origin "${CONSUMER_BRANCH}"; then
-            echo "Branch '${CONSUMER_BRANCH}' exists in provider repository."
-            echo "BRANCH_TO_CHECKOUT=${CONSUMER_BRANCH}" >> $GITHUB_ENV
+            echo "Branch '${CONSUMER_BRANCH}' exists in the remote repository."
+            git checkout "${CONSUMER_BRANCH}"
+            echo "GITHUB_BRANCH=${CONSUMER_BRANCH}" >> $GITHUB_ENV
           else
-            echo "Branch '${CONSUMER_BRANCH}' does not exist in provider repository. Using 'main' branch."
-            echo "BRANCH_TO_CHECKOUT=main" >> $GITHUB_ENV
+            echo "Branch '${CONSUMER_BRANCH}' does not exist in the remote repository. Using 'main' branch."
+            git checkout main
+            echo "GITHUB_BRANCH=main" >> $GITHUB_ENV
           fi
-      # Checkout the determined branch
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.BRANCH_TO_CHECKOUT }}
 
-      # Step 6: Set GITHUB_BRANCH environment variable
-      # Captures the current branch name and sets it for use in tests.
-      - name: Set GITHUB_BRANCH
-        run: |
-          CURRENT_BRANCH=$(git branch --show-current)
-          echo "GITHUB_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
-
-      # Step 7: Install dependencies
+      # Step 6: Install dependencies
       # Installs project dependencies using npm.
       - name: Install dependencies
         run: npm ci
 
-      # Step 8: Run provider tests
+      # Step 7: Run provider tests
       # Executes the provider tests using the test:provider-ci script.
       # Environment variables are set for use within the test scripts.
       - name: Run provider tests
@@ -125,5 +118,3 @@ jobs:
           DATABASE_URL: ${{ env.DATABASE_URL }}
           PORT: ${{ env.PORT }}
         run: npm run test:provider-ci
-
-        # trigger
