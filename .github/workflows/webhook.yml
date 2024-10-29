@@ -1,4 +1,6 @@
-name: Webhook triggered Provider Contract Test
+name: Webhook-triggered Provider Contract Test
+
+# read https://dev.to/muratkeremozcan/-streamlining-pact-verification-in-cicd-with-github-actions-extracting-consumer-branch-names-and-dynamic-provider-testing-22g4
 
 on:
   repository_dispatch:
@@ -31,7 +33,6 @@ jobs:
           echo "GITHUB_SHA: ${{ github.event.client_payload.sha }}"
           echo "GITHUB_BRANCH: ${{ github.event.client_payload.branch }}"
           echo "PACT_BROKER_BASE_URL: ${{ env.PACT_BROKER_BASE_URL }}"
-          echo "PACT_BROKER_TOKEN: [REDACTED]"
 
       # Step 2: Install jq
       # jq is a lightweight and flexible command-line JSON processor.
@@ -118,5 +119,3 @@ jobs:
           DATABASE_URL: ${{ env.DATABASE_URL }}
           PORT: ${{ env.PORT }}
         run: npm run test:provider-ci
-
-        # trigger
