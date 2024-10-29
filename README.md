@@ -68,56 +68,6 @@ DATABASE_URL="file:./dev.db"
 PORT=3001
 ```
 
-### Webhook setup
-
-1. [Create a GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with the public_repo access granted.
-
-   You can test your GitHub token like so (change your repo url):
-
-   ```bash
-   curl -X POST https://api.github.com/repos/muratkeremozcan/pact-js-example-provider/issues \
-       -H "Accept: application/vnd.github.v3+json" \
-       -H "Authorization: Bearer your github token" \
-       -d '{"title": "Test issue", "body": "This is a test issue created via API."}'
-   ```
-
-2. Add the GitHub token to PactFlow (Settings>Secrets>Add Secret, name it `githubToken`).
-
-3. Create the Pact web hook (Settings>Webhooks>Add Webhook).
-
-   > There are no values under Authentication section.
-
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/be9ywm042qtxj9i5h6nu.png)
-
-Alternatively, use the CLI to add the webhook.
-First [install pact broker](https://github.com/pact-foundation/pact-ruby-standalone/releases), run the below while setting your PACT_BROKER_TOKEN (.env file) and your Github token (Github UI).
-
-```bash
-PACT_BROKER_BASE_URL=https://ozcan.pactflow.io \
-PACT_BROKER_TOKEN=yourPactFlowToken \
-
-pact-broker create-webhook https://api.github.com/repos/muratkeremozcan/pact-js-example-provider/dispatches \
-        --request=POST \
-        --header 'Content-Type: application/json' \
-        --header 'Accept: application/vnd.github.everest-preview+json' \
-        --header 'Authorization: Bearer yourGithubToken' \
-        --data '{
-            "event_type": "contract_requiring_verification_published",
-            "client_payload": {
-                "pact_url": "${pactbroker.pactUrl}",
-                "sha": "${pactbroker.providerVersionNumber}",
-                "branch": "${pactbroker.providerVersionBranch}",
-                "message": "Verify changed pact for ${pactbroker.consumerName} version ${pactbroker.consumerVersionNumber} branch ${pactbroker.consumerVersionBranch} by ${pactbroker.providerVersionNumber} (${pactbroker.providerVersionDescriptions})"
-            }
-        }'  \
-        --broker-base-url=$PACT_BROKER_BASE_URL \
-        --broker-token=$PACT_BROKER_TOKEN \
-        --consumer=WebConsumer \
-        --provider=MoviesAPI \
-        --description 'Webhook for MoviesAPI provider' \
-        --contract-requiring-verification-published
-```
-
 ### Consumer flow
 
 The numbers indicate the order the commands should occur when running them locally.
@@ -193,6 +143,194 @@ npm run optic:verify-ci # the above, but it also starts the server, in case you'
 npm run generate:openapi # generates an OpenAPI doc from Zod schemas
 npm run publish:pact-openapi # publishes the open api spec to Pact Broker for BDCT
 npm run record:provider:bidirectional:deployment --env=dev # records the bi-directional provider deployment
+```
+
+### Webhook setup
+
+For the webhook to test successfully: 
+
+* **You must have executed pact tests at the consumer and provider**; the Pact Broker has to know about them.
+
+* You must create a yml with `repository_dispatch ` event at your provider (you can use this file https://github.com/muratkeremozcan/provider/blob/main/.github/workflows/webhook.yml at your provider, edit the test executions portion as you see fit).
+
+Flow:
+
+1. [Create a GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with the public_repo access granted.
+
+   You can test your GitHub token with the script `scripts/one-time-scripts/create-github-issue-test.sh`.
+   Update the repo variables, give the file execution permissions and execute it. Do not check in the file with secrets in display.
+
+   ```bash
+   # give it execution permissions
+   chmod +x ./scripts/one-time-scripts/create-github-issue-test.sh
+   # execute it
+   ./scripts/one-time-scripts/create-github-issue-test.sh
+   ```
+
+   ```bash
+   #!/bin/bash
+   
+   # this file is a test for your GitHub Personal Access token
+   # if you can create an issue, then Pact webhook will work
+   
+   # Set your GitHub credentials and repository details
+   GITHUB_REPO_OWNER="Your_GITHUB_REPO_OWNER"                      # GitHub username or org
+   GITHUB_REPO_NAME="Your_repo_name"                               # GitHub repository name
+   GITHUB_AUTH_TOKEN="Your_GitHub_Personal_Access_Token"           # GitHub Personal Access Token with repo permissions
+   
+   # Issue details
+   ISSUE_TITLE="Test issue"                                    # Title of the issue to be created
+   ISSUE_BODY="This is a test issue created via API."          # Body of the issue
+   
+   # Step 1: Verify the GitHub Token
+   echo "Verifying GitHub token..."
+   TOKEN_VERIFICATION_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_AUTH_TOKEN" https://api.github.com/users/$GITHUB_REPO_OWNER)
+   
+   if [ "$TOKEN_VERIFICATION_RESPONSE" -ne 200 ]; then
+     echo "Error: Bad credentials. Please check your GitHub token and ensure it has the required permissions."
+     exit 1
+   else
+     echo "GitHub token verified successfully."
+   fi
+   
+   # GitHub API endpoint for creating an issue
+   ISSUE_URL="https://api.github.com/repos/$GITHUB_REPO_OWNER/$GITHUB_REPO_NAME/issues"
+   
+   # Step 2: Run the curl command to create the issue
+   echo "Creating a new GitHub issue..."
+   curl -X POST "$ISSUE_URL" \
+       -H "Accept: application/vnd.github.v3+json" \
+       -H "Authorization: Bearer $GITHUB_AUTH_TOKEN" \
+       -d "{\"title\": \"$ISSUE_TITLE\", \"body\": \"$ISSUE_BODY\"}"
+   ```
+
+2. Add the GitHub token to PactFlow (Settings>Secrets>Add Secret, name it `githubToken`).
+
+3. Create the Pact web hook (Settings>Webhooks>Add Webhook).
+
+   > There are no values under Authentication section.
+
+   Headers:
+
+   ```bash
+   Content-Type: application/json
+   Accept: application/vnd.github.everest-preview+json
+   Authorization: Bearer ${user.githubToken}
+   ```
+
+   Body:
+
+   ```bash
+   {
+     "event_type": "contract_requiring_verification_published",
+     "client_payload": {
+       "pact_url": "${pactbroker.pactUrl}",
+       "sha": "${pactbroker.providerVersionNumber}",
+       "branch": "${pactbroker.providerVersionBranch}",
+       "message": "Verify changed pact for ${pactbroker.consumerName} version ${pactbroker.consumerVersionNumber} branch ${pactbroker.consumerVersionBranch} by ${pactbroker.providerVersionNumber} (${pactbroker.providerVersionDescriptions})"
+     }
+   }
+   ```
+
+   
+
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/be9ywm042qtxj9i5h6nu.png)
+
+Alternatively, use the CLI to add the webhook. Prior to running the scripts:
+
+* Make sure to [install pact broker](https://github.com/pact-foundation/pact-ruby-standalone/releases); `pact-broker version` command should output a meaningful result.
+
+* Set the values of the variables in the beginning of the script. **Careful not to check in the file with secrets in display**.
+
+```bash
+#!/bin/bash
+
+# Pre-setup:
+# Ensure that you have pact-broker working; pact-broker version
+# Get it at https://github.com/pact-foundation/pact-ruby-standalone/releases, per your OS
+# You may have to set the path with
+# export PATH=$PATH:$(pwd)/pact/bin
+# or 
+# set -x PATH $PATH (pwd)/pact/bin
+# 
+# Ensure that your target provider GitHub repository has a .yml workflow file in .github/workflows/ 
+# configured to respond to repository_dispatch events with an event type like "contract_requiring_verification_published".
+# Example: https://github.com/muratkeremozcan/pact-js-example-provider/blob/main/.github/workflows/webhook.yml
+
+# Set the Pact Broker and GitHub tokens and URLs as environment variables
+PACT_BROKER_BASE_URL="Your_PactFlow_Org_URL"
+PACT_BROKER_TOKEN="Your_Pact_Token"
+GITHUB_AUTH_TOKEN="Your_GitHub_Personal_Access_Token"
+
+# Set customizable parameters
+DESCRIPTION="Your_webhook_description"                # Description for the webhook
+CONSUMER_NAME="Pact_consumer_name"                    # Consumer name in Pact
+PROVIDER_NAME="Pact_provider_name"                    # Provider name in Pact
+GITHUB_REPO_OWNER="Your_user_name"                    # GitHub username or org
+GITHUB_REPO_NAME="Your_repo_name"                     # GitHub repository name
+
+# GitHub dispatch endpoint for the repository and workflow file
+REPO_DISPATCHES="https://api.github.com/repos/$GITHUB_REPO_OWNER/$GITHUB_REPO_NAME/dispatches"
+
+# Log important parameters for verification
+echo "Pact Broker Base URL: $PACT_BROKER_BASE_URL \"
+echo "GitHub Dispatch Endpoint: $REPO_DISPATCHES \"
+echo "Consumer: $CONSUMER_NAME \"
+echo "Provider: $PROVIDER_NAME \"
+echo "Description: $DESCRIPTION"
+
+# Step 1: Verify the Pact Broker URL
+echo "Checking Pact Broker accessibility..."
+PACT_BROKER_STATUS=$(curl -o /dev/null -s -w "%{http_code}" \
+  -H "Authorization: Bearer $PACT_BROKER_TOKEN" \
+  "$PACT_BROKER_BASE_URL")
+
+if [ "$PACT_BROKER_STATUS" -ne 200 ]; then
+  echo "Error: Pact Broker URL is not accessible. Status code: $PACT_BROKER_STATUS"
+  echo "Please check the PACT_BROKER_BASE_URL & PACT_BROKER_TOKEN."
+  exit 1
+else
+  echo "Pact Broker URL is accessible."
+fi
+
+# Step 2: Check if the GitHub dispatch endpoint is accessible
+echo "Checking GitHub dispatch endpoint..."
+RESPONSE_STATUS=$(curl -o /dev/null -s -w "%{http_code}" -X POST "$REPO_DISPATCHES" \
+    -H "Authorization: Bearer $GITHUB_AUTH_TOKEN" \
+    -H "Accept: application/vnd.github.everest-preview+json" \
+    -d '{"event_type": "contract_requiring_verification_published"}')
+
+if [ "$RESPONSE_STATUS" -ne 204 ]; then
+  echo "Error: Unable to access GitHub dispatch endpoint. Status code: $RESPONSE_STATUS"
+  echo "Please check your GitHub token and webhook related yml. You may have to create a yml with repository_dispatch of type contract_requiring_verification_published"
+  exit 1
+else
+  echo "GitHub dispatch endpoint is accessible."
+fi
+
+# Step 3: Run the pact-broker command to create the webhook
+echo "Creating Pact webhook..."
+pact-broker create-webhook "$REPO_DISPATCHES" \
+    --request=POST \
+    --header 'Content-Type: application/json' \
+    --header 'Accept: application/vnd.github.everest-preview+json' \
+    --header "Authorization: Bearer $GITHUB_AUTH_TOKEN" \
+    --data '{
+        "event_type": "contract_requiring_verification_published",
+        "client_payload": {
+            "pact_url": "${pactbroker.pactUrl}",
+            "sha": "${pactbroker.providerVersionNumber}",
+            "branch": "${pactbroker.providerVersionBranch}",
+            "message": "Verify changed pact for ${pactbroker.consumerName} version ${pactbroker.consumerVersionNumber} branch ${pactbroker.consumerVersionBranch} by ${pactbroker.providerVersionNumber} (${pactbroker.providerVersionDescriptions})"
+        }
+    }' \
+    --broker-base-url="$PACT_BROKER_BASE_URL" \
+    --broker-token="$PACT_BROKER_TOKEN" \
+    --consumer="$CONSUMER_NAME" \
+    --provider="$PROVIDER_NAME" \
+    --description="$DESCRIPTION" \
+    --contract-requiring-verification-published
+
 ```
 
 #### Provider selective testing
