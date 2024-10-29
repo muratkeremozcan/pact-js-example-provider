@@ -4,7 +4,7 @@
 name: Provider Contract Tests
 
 on:
-  repository_dispatch: # A repository_dispatch in GitHub is a HTTP request to your GitHub project instructing GitHub to start any action or webhook
+  repository_dispatch:
     types:
       - contract_requiring_verification_published
 
@@ -14,36 +14,20 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # The URL of the Pact payload provided by the consumer's webhook.
+  # Environment variables accessible to all jobs
   PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }}
-  # Base URL of the Pact Broker.
   PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
-  # Authentication token for the Pact Broker.
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-  # Commit SHA from the consumer's webhook payload (for logging purposes).
   GITHUB_SHA: ${{ github.event.client_payload.sha }}
-  # Branch name from the consumer's webhook payload.
   GITHUB_BRANCH: ${{ github.event.client_payload.branch }}
-  # Database URL for the provider service.
   DATABASE_URL: 'file:./dev.db'
-  # Port for the provider service.
   PORT: 3001
 
 jobs:
   verify_pact:
     runs-on: ubuntu-latest
     env:
-      # Set initial environment variables from the webhook payload.
-      PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }}
-      PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
-      PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-      # Initialize GITHUB_BRANCH to 'main' by default.
-      GITHUB_BRANCH: main
-      # Database URL for the provider service.
-      DATABASE_URL: 'file:./dev.db'
-      # Port for the provider service.
-      PORT: 3001
-      # Node version.
+      # Environment variables specific to this job
       NODE_VERSION: 20
 
     steps:
@@ -51,18 +35,14 @@ jobs:
       - name: Log Payload Variables
         run: |
           echo "PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}"
-          echo "GITHUB_SHA: ${{ github.event.client_payload.sha }}"
-          echo "GITHUB_BRANCH: ${{ github.event.client_payload.branch }}"
+          echo "GITHUB_SHA: ${{ env.GITHUB_SHA }}"
+          echo "GITHUB_BRANCH: ${{ env.GITHUB_BRANCH }}"
 
-      # Step 2: Checkout the repository (default to main branch).
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # Step 3: Extract the consumer's branch name from the Pact Broker API.
+      # Step 2: Extract the consumer's branch name from the Pact Broker API.
       - name: Extract consumer branch name
         shell: bash
         env:
-          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+          PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
           PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
         run: |
           echo "Fetching consumer branch from Pact Broker..."
@@ -78,45 +58,46 @@ jobs:
           # Save the consumer branch to the environment.
           echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
 
-      # Step 4: Check if the matching branch exists in the provider repository.
-      - name: Check if matching branch exists in provider repository
-        shell: bash
-        run: |
-          # Fetch all remote branches.
-          git fetch --all
-          # Check if the branch exists.
-          if git show-ref --verify --quiet refs/heads/"${CONSUMER_BRANCH}"; then
-            echo "Branch '${CONSUMER_BRANCH}' exists in provider repository."
-            echo "BRANCH_EXISTS=true" >> $GITHUB_ENV
-          else
-            echo "Branch '${CONSUMER_BRANCH}' does not exist in provider repository."
-            echo "BRANCH_EXISTS=false" >> $GITHUB_ENV
-          fi
-
-      # Step 5: Checkout the matching branch if it exists.
-      - name: Checkout matching branch
-        if: env.BRANCH_EXISTS == 'true'
+      # Step 3: Checkout the repository, attempting the consumer's branch first.
+      - name: Checkout repository
         uses: actions/checkout@v3
         with:
+          fetch-depth: 0
+          # Try to check out the consumer's branch; if it doesn't exist, proceed and handle it in the next step.
           ref: ${{ env.CONSUMER_BRANCH }}
+          # Continue on error to handle non-existing branch
+          persist-credentials: false
+          clean: true
 
-      # Step 6: Handle the case where the matching branch doesn't exist.
-      - name: Handle missing branch
-        if: env.BRANCH_EXISTS == 'false'
+      # Step 4: Verify if the checkout succeeded, else fallback to main
+      - name: Verify checkout and fallback if necessary
+        shell: bash
         run: |
-          echo "No matching branch found in provider repository."
-          # Optionally, you can fail the workflow here.
-          # exit 1
+          CURRENT_BRANCH=$(git branch --show-current)
+          if [ "$CURRENT_BRANCH" != "${{ env.CONSUMER_BRANCH }}" ]; then
+            echo "Branch '${{ env.CONSUMER_BRANCH }}' does not exist. Checking out 'main' branch."
+            git checkout main
+            echo "BRANCH_EXISTS=false" >> $GITHUB_ENV
+          else
+            echo "Checked out branch '${CURRENT_BRANCH}'."
+            echo "BRANCH_EXISTS=true" >> $GITHUB_ENV
+          fi
+          # Set GITHUB_BRANCH to the current branch
+          echo "GITHUB_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
 
-      # Step 7: Set GITHUB_BRANCH environment variable to the checked-out branch.
-      - name: Set GITHUB_BRANCH environment variable
-        run: echo "GITHUB_BRANCH=${{ env.CONSUMER_BRANCH }}" >> $GITHUB_ENV
-        if: env.BRANCH_EXISTS == 'true'
-
-      # Step 8: Install Dependencies.
+      # Step 5: Install Dependencies.
       - name: Install dependencies
         run: npm ci
 
-      # Step 9: Run Provider Tests.
+      # Step 6: Run Provider Tests.
       - name: Run provider tests
+        env:
+          PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
+          PACT_BROKER_BASE_URL: ${{ env.PACT_BROKER_BASE_URL }}
+          PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
+          GITHUB_SHA: ${{ env.GITHUB_SHA }}
+          GITHUB_BRANCH: ${{ env.GITHUB_BRANCH }}
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          PORT: ${{ env.PORT }}
+          NODE_VERSION: ${{ env.NODE_VERSION }}
         run: npm run test:provider-ci
