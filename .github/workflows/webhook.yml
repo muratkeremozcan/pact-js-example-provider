@@ -13,6 +13,8 @@ env:
   PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }}
   PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+  GITHUB_REPO_OWNER: 'muratkeremozcan'
+  GITHUB_REPO_NAME: 'pact-js-example-provider'
   DATABASE_URL: 'file:./dev.db'
   PORT: 3001
 
@@ -76,8 +78,8 @@ jobs:
         run: |
           git config --global init.defaultBranch main
           git init
-          # Replace with your actual provider repository URL
-          git remote add origin https://github.com/your-org/your-provider-repo.git
+          # Use the environment variables for owner and repo name
+          git remote add origin https://github.com/${{ env.GITHUB_REPO_OWNER }}/${{ env.GITHUB_REPO_NAME }}.git
 
       # Step 5: Checkout matching branch or default to main
       # Attempts to checkout the branch that matches the consumer branch.
