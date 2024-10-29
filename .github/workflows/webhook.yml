@@ -31,12 +31,12 @@ jobs:
       - name: Install jq
         run: |
           sudo apt-get update
-          sudo apt-get install jq
+          sudo apt-get install -y jq
 
       - name: Extract consumer branch name
         shell: bash
         env:
-          PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
+          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
           PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
         run: |
           echo "Fetching consumer branch from Pact Broker..."
@@ -58,18 +58,20 @@ jobs:
 
       - name: Checkout matching branch or default to main
         shell: bash
-        env:
-          CONSUMER_BRANCH: ${{ env.CONSUMER_BRANCH }}
         run: |
           if git ls-remote --exit-code --heads origin "${CONSUMER_BRANCH}"; then
             echo "Branch '${CONSUMER_BRANCH}' exists in provider repository."
-            git fetch origin "${CONSUMER_BRANCH}"
-            git checkout "${CONSUMER_BRANCH}"
+            echo "BRANCH_TO_CHECKOUT=${CONSUMER_BRANCH}" >> $GITHUB_ENV
           else
             echo "Branch '${CONSUMER_BRANCH}' does not exist in provider repository. Using 'main' branch."
-            git fetch origin main
-            git checkout main
+            echo "BRANCH_TO_CHECKOUT=main" >> $GITHUB_ENV
           fi
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BRANCH_TO_CHECKOUT }}
+
+      - name: Set GITHUB_BRANCH
+        run: |
           CURRENT_BRANCH=$(git branch --show-current)
           echo "GITHUB_BRANCH=${CURRENT_BRANCH}" >> $GITHUB_ENV
 
@@ -80,7 +82,7 @@ jobs:
         env:
           PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
           PACT_BROKER_BASE_URL: ${{ env.PACT_BROKER_BASE_URL }}
-          PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
+          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
           GITHUB_SHA: ${{ github.event.client_payload.sha }}
           GITHUB_BRANCH: ${{ env.GITHUB_BRANCH }}
           DATABASE_URL: ${{ env.DATABASE_URL }}
