@@ -32,43 +32,59 @@ env:
 jobs:
   verify_pact:
     runs-on: ubuntu-latest
+    env:
+      # Set initial environment variables from the webhook payload.
+      PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }}
+      PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
+      PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+      # Initialize GITHUB_BRANCH to 'main' by default.
+      GITHUB_BRANCH: main
+      # Database URL for the provider service.
+      DATABASE_URL: 'file:./dev.db'
+      # Port for the provider service.
+      PORT: 3001
+      # Node version.
+      NODE_VERSION: 20
+
     steps:
-      # Log the payload variables for debugging and verification.
+      # Step 1: Log the payload variables for debugging and verification.
       - name: Log Payload Variables
         run: |
           echo "PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}"
-          echo "GITHUB_SHA: ${{ env.GITHUB_SHA }}"
-          echo "GITHUB_BRANCH: ${{ env.GITHUB_BRANCH }}"
-      # Step 1: Set up environment variables from the webhook payload
-      - name: Set up environment variables
-        run: |
-          # The webhook payload contains the pact URL
-          echo "PACT_PAYLOAD_URL=${{ github.event.client_payload.pact_url }}" >> $GITHUB_ENV
+          echo "GITHUB_SHA: ${{ github.event.client_payload.sha }}"
+          echo "GITHUB_BRANCH: ${{ github.event.client_payload.branch }}"
 
-      # Step 2: Extract the consumer's branch name from the Pact Broker API
+      # Step 2: Checkout the repository (default to main branch).
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 3: Extract the consumer's branch name from the Pact Broker API.
       - name: Extract consumer branch name
         shell: bash
+        env:
+          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+          PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
         run: |
-          PACT_URL="${{ env.PACT_PAYLOAD_URL }}"
-          # Use curl to fetch the pact details from the Pact Broker
-          PACT_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$PACT_URL")
-          # Extract the consumer version details
+          echo "Fetching consumer branch from Pact Broker..."
+          # Fetch the pact details from the Pact Broker.
+          PACT_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$PACT_PAYLOAD_URL")
+          # Extract the consumer version URL.
           CONSUMER_VERSION_URL=$(echo "$PACT_JSON" | jq -r '._links."pb:consumer-version".href')
-          # Fetch the consumer version details
+          # Fetch the consumer version details.
           CONSUMER_VERSION_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$CONSUMER_VERSION_URL")
-          # Extract the branch name
+          # Extract the branch name.
           CONSUMER_BRANCH=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.branch')
-          echo "Consumer branch: $CONSUMER_BRANCH"
-          # Save the branch name to the environment
+          echo "Consumer branch extracted: $CONSUMER_BRANCH"
+          # Save the consumer branch to the environment.
           echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
 
-      # Step 3: Check if the matching branch exists in the provider repository
+      # Step 4: Check if the matching branch exists in the provider repository.
       - name: Check if matching branch exists in provider repository
         shell: bash
         run: |
-          # Fetch all branches
+          # Fetch all remote branches.
           git fetch --all
-          # Check if the branch exists
+          # Check if the branch exists.
           if git show-ref --verify --quiet refs/heads/"${CONSUMER_BRANCH}"; then
             echo "Branch '${CONSUMER_BRANCH}' exists in provider repository."
             echo "BRANCH_EXISTS=true" >> $GITHUB_ENV
@@ -77,42 +93,30 @@ jobs:
             echo "BRANCH_EXISTS=false" >> $GITHUB_ENV
           fi
 
-      # Step 4: Checkout the matching branch if it exists
+      # Step 5: Checkout the matching branch if it exists.
       - name: Checkout matching branch
         if: env.BRANCH_EXISTS == 'true'
         uses: actions/checkout@v3
         with:
-          # Check out the branch that matches the consumer's branch
           ref: ${{ env.CONSUMER_BRANCH }}
 
-      # Step 5: Fallback to main branch if matching branch doesn't exist
-      - name: Checkout main branch
+      # Step 6: Handle the case where the matching branch doesn't exist.
+      - name: Handle missing branch
         if: env.BRANCH_EXISTS == 'false'
-        uses: actions/checkout@v3
-        with:
-          # Default to main branch
-          ref: main
+        run: |
+          echo "No matching branch found in provider repository."
+          # Optionally, you can fail the workflow here.
+          # exit 1
 
-      # Step 6: Set GITHUB_BRANCH environment variable to the checked-out branch
+      # Step 7: Set GITHUB_BRANCH environment variable to the checked-out branch.
       - name: Set GITHUB_BRANCH environment variable
         run: echo "GITHUB_BRANCH=${{ env.CONSUMER_BRANCH }}" >> $GITHUB_ENV
         if: env.BRANCH_EXISTS == 'true'
 
-      # Step 7: Install Dependencies
+      # Step 8: Install Dependencies.
       - name: Install dependencies
         run: npm ci
 
-      # Step 8: Run Provider Tests
+      # Step 9: Run Provider Tests.
       - name: Run provider tests
         run: npm run test:provider-ci
-        env:
-          # Pass the necessary environment variables to the test script
-          PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
-          PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}
-          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-          GITHUB_SHA: ${{ env.GITHUB_SHA }}
-          GITHUB_BRANCH: ${{ env.GITHUB_BRANCH }}
-          # Include other environment variables as needed
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          PORT: 3001
-          NODE_VERSION: 20
