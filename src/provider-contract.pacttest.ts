@@ -2,7 +2,7 @@ import { Verifier } from '@pact-foundation/pact'
 import { stateHandlers } from './test-helpers/state-handlers'
 import { buildVerifierOptions } from './test-helpers/pact-utils/build-verifier-options'
 import { truncateTables } from '../scripts/truncate-tables'
-import { requestFilter } from './test-helpers/pact-request-filter'
+import { requestFilter } from './test-helpers/pact-utils/pact-request-filter'
 
 // 1) Run the provider service
 // 2) Setup the provider verifier options

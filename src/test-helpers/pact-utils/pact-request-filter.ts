@@ -1,5 +1,19 @@
 import type { ProxyOptions } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
 
+/* 
+why? read https://dev.to/muratkeremozcan/building-custom-request-filters-for-pactjs-verifications-in-express-and-non-express-environments-4b5e
+TL,DR;
+This setup allows Pact tests to handle authorization tokens flexibly,
+ensuring they’re present in HTTP requests for both Express and non-Express environments. 
+
+The higher-order function pattern and handleExpressEnv function provide compatibility with Pact's request expectations,
+letting the same code seamlessly support Express-style middleware (next() function) and other environments, 
+like Lambda, where middleware may not be used. 
+
+This design also permits custom token generation, a feature for tests needing dynamic tokens w
+without persisting them in Pact files.
+*/
+
 // generic HttpRequest structure to accommodate both Express and non-Express environments
 type HttpRequest = {
   headers: Record<string, string | string[] | undefined>
