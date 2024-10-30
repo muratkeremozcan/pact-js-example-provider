@@ -7,7 +7,7 @@
 import type { Movie } from '@prisma/client'
 import { Kafka } from 'kafkajs'
 import fs from 'node:fs/promises'
-import type { MovieEvent } from '../@types'
+import type { MovieEvent, MovieAction } from '../@types'
 import { logFilePath } from './log-file-path'
 
 const kafka = new Kafka({
@@ -36,10 +36,7 @@ const logEvent = async (event: MovieEvent, logFilePath: string) => {
   })
 }
 
-export const produceMovieEvent = async (
-  movie: Movie,
-  action: 'created' | 'updated' | 'deleted'
-) => {
+export const produceMovieEvent = async (movie: Movie, action: MovieAction) => {
   const event: MovieEvent = {
     topic: `movie-${action}`,
     messages: [{ key: movie.id.toString(), value: JSON.stringify(movie) }]
