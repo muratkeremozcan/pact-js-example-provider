@@ -19,7 +19,7 @@ describe('Pact Verification', () => {
     // logLevel: 'debug',
     messageProviders // the bread and butter of the test is here
   })
-  const provider = new MessageProviderPact(options)
+  const verifier = new MessageProviderPact(options)
 
   // our produceMovieEvent has some console.logs which we don't need during tests
   // but you can comment these out if you want to see them.
@@ -33,7 +33,7 @@ describe('Pact Verification', () => {
 
   it('should validate the expectations of movie-consumer', async () => {
     try {
-      const output = await provider.verify()
+      const output = await verifier.verify()
       console.log('Pact Message Verification Complete!')
       console.log('Result:', output)
     } catch (error) {
