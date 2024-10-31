@@ -60,23 +60,27 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
       description: `Movie with name "${name}" is set up.`
     }
   },
-  // 'No movies exist': async () => {
-  //   console.log('Truncating tables...')
-  //   await truncateTables()
-  // },
+  'No movies exist': async () => {
+    console.log('Truncating tables...')
+    await truncateTables()
 
-  // @ts-expect-error: https://github.com/pact-foundation/pact-js/issues/1164
-  'No movies exist': {
-    setup: async () => {
-      console.log('Truncating tables...')
-      await truncateTables()
-    },
-    teardown: async () => {
-      console.log('Teardown of state No movies exist ran...')
-      // Logic to restore default movies or clean up further can go here.
-      // If you're using fixtures or need to reset the database, handle that here.
+    return {
+      description: 'State with no movies is set up.'
     }
   }
+
+  //// @ts-expect-error: https://github.com/pact-foundation/pact-js/issues/1164
+  // 'No movies exist': {
+  //   setup: async () => {
+  //     console.log('Truncating tables...')
+  //     await truncateTables()
+  //   },
+  //   teardown: async () => {
+  //     console.log('Teardown of state No movies exist ran...')
+  //     // Logic to restore default movies or clean up further can go here.
+  //     // If you're using fixtures or need to reset the database, handle that here.
+  //   }
+  // }
 }
 
 /*

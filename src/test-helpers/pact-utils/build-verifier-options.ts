@@ -174,6 +174,7 @@ export function buildMessageVerifierOptions({
   provider,
   messageProviders,
   includeMainAndDeployed,
+  stateHandlers,
   consumer,
   enablePending = false,
   logLevel = 'info',
@@ -187,6 +188,7 @@ export function buildMessageVerifierOptions({
   provider: string
   messageProviders: MessageProviders
   includeMainAndDeployed: boolean
+  stateHandlers?: StateHandlers & MessageStateHandlers
   consumer?: string
   enablePending?: boolean
   logLevel?: ProxyOptions['logLevel']
@@ -200,6 +202,7 @@ export function buildMessageVerifierOptions({
   console.table({
     Provider: provider,
     'Message Handlers': messageProviders ? 'Provided' : 'Not Provided',
+    'State Handlers': stateHandlers ? 'Provided' : 'Not Provided',
     'Include Main and Deployed': includeMainAndDeployed,
     Consumer: consumer || 'All Consumers',
     PACT_BROKER_TOKEN: pactBrokerToken ? 'Provided' : 'Not Provided',
@@ -214,6 +217,7 @@ export function buildMessageVerifierOptions({
   const options: PactMessageProviderOptions = {
     provider,
     messageProviders,
+    stateHandlers,
     logLevel,
     publishVerificationResult,
     pactBrokerToken,

@@ -1,5 +1,6 @@
 import { MessageProviderPact } from '@pact-foundation/pact'
 import { messageProviders } from './test-helpers/message-providers'
+import { stateHandlers } from './test-helpers/state-handlers'
 import { buildMessageVerifierOptions } from './test-helpers/pact-utils/build-verifier-options'
 
 // 1) Run the provider service, optionally start the kafka cluster (if you want to see the console logs)
@@ -17,9 +18,10 @@ describe('Pact Verification', () => {
     includeMainAndDeployed: PACT_BREAKING_CHANGE !== 'true', // if it is a breaking change, set the env var
     enablePending: PACT_ENABLE_PENDING === 'true',
     // logLevel: 'debug',
-    messageProviders // the bread and butter of the test is here
+    messageProviders, // the bread and butter of the test is here
+    stateHandlers
   })
-  const provider = new MessageProviderPact(options)
+  const verifier = new MessageProviderPact(options)
 
   // our produceMovieEvent has some console.logs which we don't need during tests
   // but you can comment these out if you want to see them.
@@ -33,7 +35,7 @@ describe('Pact Verification', () => {
 
   it('should validate the expectations of movie-consumer', async () => {
     try {
-      const output = await provider.verify()
+      const output = await verifier.verify()
       console.log('Pact Message Verification Complete!')
       console.log('Result:', output)
     } catch (error) {
