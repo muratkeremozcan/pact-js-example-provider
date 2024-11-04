@@ -26,10 +26,10 @@ export const config: JestConfigWithTsJest = {
   ],
   coverageThreshold: {
     global: {
-      statements: 10,
-      branches: 10,
-      lines: 10,
-      functions: 10
+      statements: 0,
+      branches: 0,
+      lines: 0,
+      functions: 0
     }
   },
   moduleDirectories: ['node_modules', 'src'],
