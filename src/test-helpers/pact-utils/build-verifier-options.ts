@@ -10,6 +10,7 @@ import type {
 } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
 import { handlePactBrokerUrlAndSelectors } from './handle-url-and-selectors'
 import { noOpRequestFilter } from './pact-request-filter'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const isCI = require('is-ci')
 
 /**
