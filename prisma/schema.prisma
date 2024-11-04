@@ -13,8 +13,9 @@ datasource db {
 }
 
 model Movie {
-  id     Int    @id @default(autoincrement())
-  name   String
-  year   Int
-  rating Float
+  id       Int    @id @default(autoincrement())
+  name     String
+  year     Int
+  rating   Float
+  director String
 }
