@@ -8,8 +8,9 @@ import type {
   ProxyOptions,
   StateHandlers
 } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
-import { noOpRequestFilter } from './pact-request-filter'
 import { handlePactBrokerUrlAndSelectors } from './handle-url-and-selectors'
+import { noOpRequestFilter } from './pact-request-filter'
+const isCI = require('is-ci')
 
 /**
  * Builds a `VerifierOptions` object for Pact verification, encapsulating
@@ -28,12 +29,13 @@ import { handlePactBrokerUrlAndSelectors } from './handle-url-and-selectors'
  * @param afterEach - (Optional) A hook that runs after each consumer interaction.
  * @param includeMainAndDeployed - (Required) Flag indicating whether to include `mainBranch` and `deployedOrReleased` selectors. Should be explicitly controlled.
  * @param consumer - (Optional) A specific consumer to run verification for. If not provided, all consumers will be verified.
- * @param enablePending - (Optional, defaults to `false`) use this if breaking changes from a consumer somehow got in main, and the provider cannot release (allow blasphemy!)
- * @param requestFilter = (Optional) A custom request filter function to modify incoming requests (ex: auth).
+ * @param enablePending - (Optional, defaults to `false`) Use this if breaking changes from a consumer somehow got in main, and the provider cannot release (allow blasphemy!)
+ * @param requestFilter - (Optional) A custom request filter function to modify incoming requests (e.g., for authentication).
  * @param publishVerificationResult - (Optional, defaults to `true`) Whether to publish the verification result to the Pact Broker.
  * @param pactBrokerToken - (Optional) Token for authentication with the Pact Broker, defaults to environment variable.
  * @param providerVersion - (Optional) The version of the provider, typically tied to a Git commit or build.
  * @param providerVersionBranch - (Optional) The branch of the provider being verified.
+ * @param providerVersionTags - (Optional) Tags to associate with the provider version, such as branch names or environment names.
  * @param pactBrokerUrl - (Optional) URL of the Pact Broker, defaults to an environment variable.
  * @param pactPayloadUrl - (Optional) Direct URL for Pact payloads, typically used in CI environments.
  *
@@ -43,7 +45,7 @@ import { handlePactBrokerUrlAndSelectors } from './handle-url-and-selectors'
  * // Running verification for all consumers
  * const options = buildVerifierOptions({
  *   provider: 'MoviesAPI',
- *   includeMainAndDeployed: process.env.PACT_BREAKING_CHANGE !== 'true'
+ *   includeMainAndDeployed: process.env.PACT_BREAKING_CHANGE !== 'true',
  *   port: '3001',
  *   stateHandlers,
  * })
@@ -52,10 +54,10 @@ import { handlePactBrokerUrlAndSelectors } from './handle-url-and-selectors'
  * // Running verification for a specific consumer, with debug logging
  * const options = buildVerifierOptions({
  *   provider: 'MoviesAPI',
- *   consumer: 'WebConsumer'
- *   includeMainAndDeployed: PACT_BREAKING_CHANGE!=='true'
+ *   consumer: 'WebConsumer',
+ *   includeMainAndDeployed: process.env.PACT_BREAKING_CHANGE !== 'true',
  *   port: '3001',
- *   stateHandlers
+ *   stateHandlers,
  *   logLevel: 'debug',
  * })
  */
@@ -68,12 +70,13 @@ export function buildVerifierOptions({
   afterEach,
   includeMainAndDeployed,
   consumer,
-  enablePending,
+  enablePending = false,
   requestFilter = noOpRequestFilter,
   publishVerificationResult = true,
   pactBrokerToken = process.env.PACT_BROKER_TOKEN,
-  providerVersion = process.env.GITHUB_SHA,
-  providerVersionBranch = process.env.GITHUB_BRANCH || 'main', // default to main if provider branch is not set
+  providerVersion = process.env.GITHUB_SHA || 'unknown',
+  providerVersionBranch = process.env.GITHUB_BRANCH || 'main', // default to 'main' if provider branch is not set
+  providerVersionTags = getProviderVersionTags(),
   pactBrokerUrl = process.env.PACT_BROKER_BASE_URL,
   pactPayloadUrl = process.env.PACT_PAYLOAD_URL
 }: {
@@ -91,6 +94,7 @@ export function buildVerifierOptions({
   pactBrokerToken?: string
   providerVersion?: string
   providerVersionBranch?: string
+  providerVersionTags?: string[]
   pactBrokerUrl?: string
   pactPayloadUrl?: string
 }): VerifierOptions {
@@ -105,6 +109,7 @@ export function buildVerifierOptions({
     PACT_BROKER_TOKEN: pactBrokerToken ? 'Provided' : 'Not Provided',
     'Provider Version': providerVersion,
     'Provider Version Branch': providerVersionBranch,
+    'Provider Version Tags': providerVersionTags.join(', ') || 'None',
     'Pact Broker URL': pactBrokerUrl,
     'Pact Payload URL': pactPayloadUrl || 'Not Provided',
     'Enable Pending': enablePending,
@@ -126,7 +131,8 @@ export function buildVerifierOptions({
     pactBrokerToken,
     providerVersion,
     providerVersionBranch,
-    enablePending // use this if breaking changes from a consumer somehow got in main, and the provider cannot release (allow blasphemy!)
+    providerVersionTags,
+    enablePending // Use this if breaking changes from a consumer somehow got in main, and the provider cannot release (allow blasphemy!)
   }
 
   // When the CI triggers the provider tests, we need to use the PACT_PAYLOAD_URL
@@ -143,6 +149,36 @@ export function buildVerifierOptions({
 }
 
 /**
+ * Generates an array of tags to associate with the provider version.
+ * Tags can include the current branch name, environment, or other identifiers.
+ *
+ * @returns An array of strings representing the provider version tags.
+ *
+ * @example
+ * // In a CI environment with GITHUB_BRANCH set to 'refs/heads/feature-branch'
+ * const tags = getProviderVersionTags()
+ * // tags => ['feature-branch']
+ */
+function getProviderVersionTags(): string[] {
+  const tags = []
+
+  if (isCI) {
+    // Since we always use 'dev' for DEPLOY_ENV in CI, otherwise add the logic to get env
+    tags.push('dev')
+
+    // Include the branch name as a tag
+    if (process.env.GITHUB_BRANCH) {
+      const branchName = process.env.GITHUB_BRANCH
+      tags.push(branchName)
+    }
+  } else {
+    tags.push('local')
+  }
+
+  return tags
+}
+
+/**
  * Builds a `PactMessageProviderOptions` object for message-based Pact verification,
  * encapsulating common provider test setup options for message handlers, Pact Broker options,
  * and dynamically generated consumer version selectors for message interactions.
@@ -150,6 +186,7 @@ export function buildVerifierOptions({
  * @param provider - The name of the provider being verified.
  * @param messageProviders - Handlers that map to specific message interactions defined by the consumer Pact.
  * @param includeMainAndDeployed - Flag to include `mainBranch` and `deployedOrReleased` selectors for verifying consumer interactions.
+ * @param stateHandlers - (Optional) Handlers to simulate provider states based on consumer expectations.
  * @param consumer - (Optional) A specific consumer to run verification for. If not provided, all consumers will be verified.
  * @param enablePending - (Optional, defaults to `false`) Whether to enable pending pacts.
  * @param logLevel - (Optional) Log level for debugging (e.g., 'info', 'debug').
@@ -157,13 +194,14 @@ export function buildVerifierOptions({
  * @param pactBrokerToken - (Optional) Token for authentication with the Pact Broker.
  * @param providerVersion - (Optional) The version of the provider, typically tied to a Git commit or build.
  * @param providerVersionBranch - (Optional) The branch of the provider being verified.
+ * @param providerVersionTags - (Optional) Tags to associate with the provider version, such as branch names or environment names.
  * @param pactBrokerUrl - (Optional) URL of the Pact Broker.
  * @param pactPayloadUrl - (Optional) URL for fetching the pact payload (used in CI environments).
  *
  * @returns A fully configured `PactMessageProviderOptions` object for message-based Pact verification.
  *
  * @example
- * const options = buildMessageProviderPact({
+ * const options = buildMessageVerifierOptions({
  *   provider: 'MoviesAPI',
  *   messageProviders,
  *   includeMainAndDeployed: true,
@@ -180,8 +218,9 @@ export function buildMessageVerifierOptions({
   logLevel = 'info',
   publishVerificationResult = true,
   pactBrokerToken = process.env.PACT_BROKER_TOKEN,
-  providerVersion = process.env.GITHUB_SHA,
-  providerVersionBranch = process.env.GITHUB_BRANCH || 'main', // default to main if provider branch is not set
+  providerVersion = process.env.GITHUB_SHA || 'unknown',
+  providerVersionBranch = process.env.GITHUB_BRANCH || 'main', // default to 'main' if provider branch is not set
+  providerVersionTags = getProviderVersionTags(),
   pactBrokerUrl = process.env.PACT_BROKER_BASE_URL,
   pactPayloadUrl = process.env.PACT_PAYLOAD_URL
 }: {
@@ -196,6 +235,7 @@ export function buildMessageVerifierOptions({
   pactBrokerToken?: string
   providerVersion?: string
   providerVersionBranch?: string
+  providerVersionTags?: string[]
   pactBrokerUrl?: string
   pactPayloadUrl?: string
 }): PactMessageProviderOptions {
@@ -208,6 +248,7 @@ export function buildMessageVerifierOptions({
     PACT_BROKER_TOKEN: pactBrokerToken ? 'Provided' : 'Not Provided',
     'Provider Version': providerVersion,
     'Provider Version Branch': providerVersionBranch,
+    'Provider Version Tags': providerVersionTags.join(', ') || 'None',
     'Pact Broker URL': pactBrokerUrl || 'Not Provided',
     'Pact Payload URL': pactPayloadUrl || 'Not Provided',
     'Enable Pending': enablePending,
@@ -223,7 +264,8 @@ export function buildMessageVerifierOptions({
     pactBrokerToken,
     providerVersion,
     providerVersionBranch,
-    enablePending // use this if breaking changes from a consumer somehow got in main, and the provider cannot release (allow blasphemy!)
+    providerVersionTags,
+    enablePending // Use this if breaking changes from a consumer somehow got in main, and the provider cannot release (allow blasphemy!)
   }
 
   handlePactBrokerUrlAndSelectors({
