@@ -18,26 +18,23 @@ type MovieResponse =
 
 export function formatResponse(res: Response, result: MovieResponse): Response {
   if ('error' in result && result.error) {
-    const statusCode = result.status || 400 // Default to 400 if status is not set
     return res
-      .status(statusCode)
-      .json({ status: statusCode, error: result.error })
+      .status(result.status)
+      .json({ status: result.status, error: result.error })
   } else if ('data' in result) {
     if (result.data === null) {
-      const statusCode = result.status || 404 // Default to 404 if no data
       return res
-        .status(statusCode)
-        .json({ status: statusCode, error: 'No movies found' })
+        .status(result.status)
+        .json({ status: result.status, error: 'No movies found' })
     }
-    const statusCode = result.status || 200 // Default to 200 OK
     return res
-      .status(statusCode)
-      .json({ status: statusCode, data: result.data })
+      .status(result.status)
+      .json({ status: result.status, data: result.data })
   } else if ('message' in result) {
-    const statusCode = result.status || 200 // Default to 200 OK
+    // Handle delete movie case with a success message
     return res
-      .status(statusCode)
-      .json({ status: statusCode, message: result.message })
+      .status(result.status)
+      .json({ status: result.status, message: result.message })
   } else {
     return res.status(500).json({ error: 'Unexpected error occurred' })
   }
