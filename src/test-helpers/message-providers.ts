@@ -1,9 +1,9 @@
 import { providerWithMetadata } from '@pact-foundation/pact'
 import type { Movie } from '@prisma/client'
 import { produceMovieEvent } from '../events/movie-events'
-import { generateMovieWithoutId } from './factories'
+import { generateMovieWithId } from './factories'
 
-const movie: Movie = { id: 7, ...generateMovieWithoutId() }
+const movie: Movie = generateMovieWithId()
 
 // These are the messages the provider should produce
 // Each key is an event (e.g., 'movie-created') linked to a handler (providerWithMetadata) that generates the message.
