@@ -6,6 +6,6 @@
     "allowJs": true,
     "resolveJsonModule": true
   },
-  "include": ["**/*.ts", "./index.d.ts", "../src/test-helpers/factories.ts"],
+  "include": ["**/*.ts", "./index.ts", "../src/test-helpers/factories.ts"],
   "extends": "../tsconfig.json"
 }

@@ -8,9 +8,6 @@ concurrency:
   group: ${{ github.ref }} && ${{ github.workflow }}
   cancel-in-progress: true
 
-env:
-  PORT: 3001
-
 jobs:
   pr-check:
     runs-on: ubuntu-latest
