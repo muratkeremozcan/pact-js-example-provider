@@ -153,7 +153,7 @@ describe('MovieService', () => {
       expect.objectContaining({
         status: 400,
         error:
-          'String must contain at least 1 character(s), Number must be greater than or equal to 1900'
+          'name - String must contain at least 1 character(s), year - Number must be greater than or equal to 1900'
       })
     )
   })
@@ -166,7 +166,7 @@ describe('MovieService', () => {
       expect.objectContaining({
         status: 400,
         error:
-          'String must contain at least 1 character(s), Number must be greater than or equal to 1900'
+          'name - String must contain at least 1 character(s), year - Number must be greater than or equal to 1900'
       })
     )
   })
