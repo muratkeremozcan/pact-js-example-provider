@@ -12,7 +12,7 @@ const PACT_BREAKING_CHANGE = process.env.PACT_BREAKING_CHANGE || 'false'
 const PACT_ENABLE_PENDING = process.env.PACT_ENABLE_PENDING || 'false'
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'local'
 
-describe('Pact Verification', () => {
+describe('Pact Verification Pact Classic', () => {
   // 2) Setup the provider verifier options
   const port = process.env.PORT || '3001'
   const options = buildVerifierOptions({
@@ -46,7 +46,7 @@ describe('Pact Verification', () => {
     jest.restoreAllMocks()
   })
 
-  it('should validate the expectations of movie-consumer', async () => {
+  it('should validate the expectations of WebConsumer', async () => {
     // 3) Write & execute the provider contract test
     try {
       const output = await verifier.verifyProvider()
