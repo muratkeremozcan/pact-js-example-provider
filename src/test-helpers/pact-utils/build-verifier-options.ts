@@ -172,9 +172,7 @@ function getProviderVersionTags(): string[] {
       tags.push(branchName)
     }
   } else {
-    // In local development, you might not want to tag with 'dev'
-    // You can decide what tags, if any, to add here
-    // For example, you might choose to add 'local' or leave it empty
+    tags.push('local')
   }
 
   return tags
