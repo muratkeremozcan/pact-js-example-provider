@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Movies API",
-    "version": "9.0.0",
+    "version": "8.0.0",
     "description": "API for managing movies"
   },
   "servers": [
@@ -42,19 +42,12 @@
             "type": "number",
             "description": "Rating",
             "example": 7.5
-          },
-          "director": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Director",
-            "example": "Christopher Nolan"
           }
         },
         "required": [
           "name",
           "year",
-          "rating",
-          "director"
+          "rating"
         ]
       },
       "CreateMovieResponse": {
@@ -87,19 +80,13 @@
                 "type": "number",
                 "description": "Rating",
                 "example": 7.5
-              },
-              "director": {
-                "type": "string",
-                "description": "Director",
-                "example": "Christopher Nolan"
               }
             },
             "required": [
               "id",
               "name",
               "year",
-              "rating",
-              "director"
+              "rating"
             ]
           },
           "error": {
@@ -144,19 +131,13 @@
                     "type": "number",
                     "description": "Rating",
                     "example": 7.5
-                  },
-                  "director": {
-                    "type": "string",
-                    "description": "Director",
-                    "example": "Christopher Nolan"
                   }
                 },
                 "required": [
                   "id",
                   "name",
                   "year",
-                  "rating",
-                  "director"
+                  "rating"
                 ]
               },
               {
@@ -183,19 +164,13 @@
                       "type": "number",
                       "description": "Rating",
                       "example": 7.5
-                    },
-                    "director": {
-                      "type": "string",
-                      "description": "Director",
-                      "example": "Christopher Nolan"
                     }
                   },
                   "required": [
                     "id",
                     "name",
                     "year",
-                    "rating",
-                    "director"
+                    "rating"
                   ]
                 },
                 "description": "List of movies or an empty array if no movies exist",
@@ -301,12 +276,6 @@
             "type": "number",
             "description": "Rating",
             "example": 7.5
-          },
-          "director": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Director",
-            "example": "Christopher Nolan"
           }
         }
       },
@@ -340,19 +309,13 @@
                 "type": "number",
                 "description": "Rating",
                 "example": 7.5
-              },
-              "director": {
-                "type": "string",
-                "description": "Director",
-                "example": "Christopher Nolan"
               }
             },
             "required": [
               "id",
               "name",
               "year",
-              "rating",
-              "director"
+              "rating"
             ],
             "description": "Updated movie data"
           },
@@ -396,19 +359,13 @@
                 "type": "number",
                 "description": "Rating",
                 "example": 7.5
-              },
-              "director": {
-                "type": "string",
-                "description": "Director",
-                "example": "Christopher Nolan"
               }
             },
             "required": [
               "id",
               "name",
               "year",
-              "rating",
-              "director"
+              "rating"
             ],
             "description": "Updated movie data"
           },

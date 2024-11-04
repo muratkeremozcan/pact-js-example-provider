@@ -257,19 +257,8 @@ describe('MovieAdapter', () => {
 
   describe('updateMovie', () => {
     const id = 1
-    const existingMovie = {
-      name: 'Inception',
-      year: 2020,
-      id,
-      rating: 7.5,
-      director: 'Christopher Nolan'
-    }
-    const updateMovieData = {
-      name: 'The Dark Knight',
-      year: 2008,
-      rating: 8.5,
-      director: 'Steven Spielberg'
-    }
+    const existingMovie = { name: 'Inception', year: 2020, id, rating: 7.5 }
+    const updateMovieData = { name: 'The Dark Knight', year: 2008, rating: 8.5 }
     const updatedMovie = { id, ...updateMovieData }
 
     it('should successfully update a movie', async () => {

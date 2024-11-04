@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Movies API
-  version: 9.0.0
+  version: 8.0.0
   description: API for managing movies
 servers:
   - url: http://localhost:3000
@@ -32,16 +32,10 @@ components:
           type: number
           description: Rating
           example: 7.5
-        director:
-          type: string
-          minLength: 1
-          description: Director
-          example: Christopher Nolan
       required:
         - name
         - year
         - rating
-        - director
     CreateMovieResponse:
       type: object
       properties:
@@ -68,16 +62,11 @@ components:
               type: number
               description: Rating
               example: 7.5
-            director:
-              type: string
-              description: Director
-              example: Christopher Nolan
           required:
             - id
             - name
             - year
             - rating
-            - director
         error:
           type: string
           description: Error message, if any
@@ -111,16 +100,11 @@ components:
                   type: number
                   description: Rating
                   example: 7.5
-                director:
-                  type: string
-                  description: Director
-                  example: Christopher Nolan
               required:
                 - id
                 - name
                 - year
                 - rating
-                - director
             - type: array
               items:
                 type: object
@@ -141,16 +125,11 @@ components:
                     type: number
                     description: Rating
                     example: 7.5
-                  director:
-                    type: string
-                    description: Director
-                    example: Christopher Nolan
                 required:
                   - id
                   - name
                   - year
                   - rating
-                  - director
               description: List of movies or an empty array if no movies exist
               example: []
             - type: "null"
@@ -226,11 +205,6 @@ components:
           type: number
           description: Rating
           example: 7.5
-        director:
-          type: string
-          minLength: 1
-          description: Director
-          example: Christopher Nolan
     UpdateMovieResponse:
       type: object
       properties:
@@ -257,16 +231,11 @@ components:
               type: number
               description: Rating
               example: 7.5
-            director:
-              type: string
-              description: Director
-              example: Christopher Nolan
           required:
             - id
             - name
             - year
             - rating
-            - director
           description: Updated movie data
         error:
           type: string
@@ -300,16 +269,11 @@ components:
               type: number
               description: Rating
               example: 7.5
-            director:
-              type: string
-              description: Director
-              example: Christopher Nolan
           required:
             - id
             - name
             - year
             - rating
-            - director
           description: Updated movie data
         error:
           type: string
