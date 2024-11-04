@@ -19,8 +19,7 @@ describe('CRUD movie', () => {
   const movieProps: Omit<Movie, 'id'> = {
     name: spok.string,
     year: spok.number,
-    rating: spok.number,
-    director: spok.string
+    rating: spok.number
   }
 
   let token: string
