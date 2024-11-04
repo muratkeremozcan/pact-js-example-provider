@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
 
-/** middleware for validating movie ide in the request url */
+/** middleware for validating movie id in the request url */
 export function validateId(req: Request, res: Response, next: NextFunction) {
   const movieId = parseInt(req.params.id!)
 

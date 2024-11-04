@@ -6,6 +6,4 @@ import log from './log'
  */
 export default function tasks(on: Cypress.PluginEvents) {
   on('task', { log })
-
-  // if you're exporting a function vs default export, you can namespace it and use it like this:
 }
