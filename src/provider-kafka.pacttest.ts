@@ -34,7 +34,6 @@ describe('Pact Verification', () => {
   })
 
   it('should validate the expectations of movie-consumer', async () => {
-    console.log(`PACT_PAYLOAD_URL: ${process.env.PACT_PAYLOAD_URL}`)
     try {
       const output = await verifier.verify()
       console.log('Pact Message Verification Complete!')
