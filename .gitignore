@@ -24,5 +24,8 @@ npm-debug.log*
 cypress/movie-events.log
 
 # Prisma
-prisma/dev.db
+prisma/dev.db  
 prisma/dev.db-journal
+
+# Pact
+pacts

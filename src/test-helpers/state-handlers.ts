@@ -65,11 +65,11 @@ export const stateHandlers: StateHandlers & MessageStateHandlers = {
     await truncateTables()
 
     return {
-      description: 'State with no movies is set up.'
+      description: 'State with no movies achieved.'
     }
   }
 
-  //// @ts-expect-error: https://github.com/pact-foundation/pact-js/issues/1164
+  // // @ts-expect-error: https://github.com/pact-foundation/pact-js/issues/1164
   // 'No movies exist': {
   //   setup: async () => {
   //     console.log('Truncating tables...')

@@ -1,4 +1,5 @@
 import type { z } from 'zod'
+
 import type {
   CreateMovieResponseSchema,
   CreateMovieSchema,
@@ -10,7 +11,7 @@ import type {
   UpdateMovieResponseSchema
 } from './schema'
 
-// Zod Key feature 2: link the schemas to the types
+// Zod key feature 2: link the schemas to the types
 
 export type CreateMovieRequest = z.infer<typeof CreateMovieSchema>
 

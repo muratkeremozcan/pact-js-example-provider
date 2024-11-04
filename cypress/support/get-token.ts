@@ -1,6 +1,12 @@
 import 'cypress-data-session'
+
 const getToken = () =>
-  cy.api({ method: 'POST', url: '/auth/fake-token' }).its('body.token')
+  cy
+    .api({
+      method: 'GET',
+      url: '/auth/fake-token'
+    })
+    .its('body.token')
 
 const maybeGetToken = (sessionName: string) =>
   cy.dataSession({
@@ -8,7 +14,7 @@ const maybeGetToken = (sessionName: string) =>
 
     validate: () => true,
 
-    setup: () => getToken(),
+    setup: getToken,
 
     shareAcrossSpecs: true
   })

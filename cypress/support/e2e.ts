@@ -63,7 +63,6 @@ Cypress.Commands.add(
   }
 )
 
-// update movie
 Cypress.Commands.add(
   'updateMovie',
   (token: string, id: number, body: Partial<Movie>, allowedToFail = false) => {

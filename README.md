@@ -236,7 +236,20 @@ Flow:
 
 Alternatively, use the CLI to add the webhook. Prior to running the scripts:
 
-- Make sure to [install pact broker](https://github.com/pact-foundation/pact-ruby-standalone/releases); `pact-broker version` command should output a meaningful result.
+- Ensure that you have pact-broker working; pact-broker version
+  Get it at https://github.com/pact-foundation/pact-ruby-standalone/releases, per your OS
+
+  > You may have to set the path with zshell:
+  > `export PATH=$PATH:$(pwd)/pact/bin` 
+  > or with fish:
+  > `set -x PATH $PATH (pwd)/pact/bin` 
+  >
+  > Test with
+  > `pact-broker version`
+  >
+  > Ensure that your target provider GitHub repository has a .yml workflow file in .github/workflows/ 
+  > configured to respond to repository_dispatch events with an event type like "contract_requiring_verification_published".
+  > Example: https://github.com/muratkeremozcan/pact-js-example-provider/blob/main/.github/workflows/webhook.yml
 
 - Set the values of the variables in the beginning of the script. **Careful not to check in the file with secrets in display**.
 
