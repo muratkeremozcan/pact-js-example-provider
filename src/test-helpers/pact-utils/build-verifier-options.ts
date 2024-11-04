@@ -73,7 +73,7 @@ export function buildVerifierOptions({
   publishVerificationResult = true,
   pactBrokerToken = process.env.PACT_BROKER_TOKEN,
   providerVersion = process.env.GITHUB_SHA,
-  providerVersionBranch = process.env.GITHUB_BRANCH,
+  providerVersionBranch = process.env.GITHUB_BRANCH || 'main', // default to main if provider branch is not set
   pactBrokerUrl = process.env.PACT_BROKER_BASE_URL,
   pactPayloadUrl = process.env.PACT_PAYLOAD_URL
 }: {
@@ -181,7 +181,7 @@ export function buildMessageVerifierOptions({
   publishVerificationResult = true,
   pactBrokerToken = process.env.PACT_BROKER_TOKEN,
   providerVersion = process.env.GITHUB_SHA,
-  providerVersionBranch = process.env.GITHUB_BRANCH,
+  providerVersionBranch = process.env.GITHUB_BRANCH || 'main', // default to main if provider branch is not set
   pactBrokerUrl = process.env.PACT_BROKER_BASE_URL,
   pactPayloadUrl = process.env.PACT_PAYLOAD_URL
 }: {
