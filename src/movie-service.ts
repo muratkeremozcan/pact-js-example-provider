@@ -104,7 +104,7 @@ function validateSchema<T>(
     return { success: true, data: result.data }
   } else {
     const errorMessages = result.error.errors
-      .map((err) => err.message)
+      .map((err) => `${err.path.join('.')} - ${err.message}`)
       .join(', ')
     return { success: false, error: errorMessages }
   }
