@@ -30,10 +30,7 @@ export const CreateMovieSchema = z
     director: z.string().min(1).openapi({
       example: 'Christopher Nolan',
       description: 'Director'
-    }),
-    oscar: z
-      .boolean()
-      .openapi({ example: true, description: 'Has won an Oscar' })
+    })
   })
   .openapi('CreateMovieRequest')
 
@@ -56,10 +53,7 @@ export const CreateMovieResponseSchema = z
       director: z.string().openapi({
         example: 'Christopher Nolan',
         description: 'Director'
-      }),
-      oscar: z
-        .boolean()
-        .openapi({ example: true, description: 'Has won an Oscar' })
+      })
     }),
     error: z
       .string()
@@ -86,8 +80,7 @@ const movieObj = {
   director: z.string().openapi({
     example: 'Christopher Nolan',
     description: 'Director'
-  }),
-  oscar: z.boolean().openapi({ example: true, description: 'Has won an Oscar' })
+  })
 }
 
 export const GetMovieResponseUnionSchema = z
@@ -107,8 +100,7 @@ export const GetMovieResponseUnionSchema = z
             name: 'Inception',
             year: 2010,
             rating: 7.5,
-            director: 'Christopher Nolan',
-            oscar: true
+            director: 'Christopher Nolan'
           }
         }),
       z.array(z.object(movieObj)).openapi({
@@ -166,11 +158,7 @@ export const UpdateMovieSchema = z
     director: z.string().min(1).optional().openapi({
       example: 'Christopher Nolan',
       description: 'Director'
-    }),
-    oscar: z
-      .boolean()
-      .optional()
-      .openapi({ example: true, description: 'Has won an Oscar' })
+    })
   })
   .openapi('UpdateMovieRequest')
 
@@ -193,10 +181,7 @@ export const UpdateMovieResponseSchema = z
         director: z.string().openapi({
           example: 'Christopher Nolan',
           description: 'Director'
-        }),
-        oscar: z
-          .boolean()
-          .openapi({ example: true, description: 'Has won an Oscar' })
+        })
       })
       .openapi({ description: 'Updated movie data' }),
     error: z
