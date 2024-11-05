@@ -1,6 +1,6 @@
 name: Webhook-triggered Provider Contract Test
 
-# Reference: https://dev.to/muratkeremozcan/-streamlining-pact-verification-in-cicd-with-github-actions-extracting-consumer-branch-names-and-dynamic-provider-testing-22g4
+# read https://dev.to/muratkeremozcan/-streamlining-pact-verification-in-cicd-with-github-actions-extracting-consumer-branch-names-and-dynamic-provider-testing-22g4
 
 on:
   repository_dispatch:
@@ -33,7 +33,6 @@ jobs:
           echo "GITHUB_SHA: ${{ github.event.client_payload.sha }}"
           echo "GITHUB_BRANCH: ${{ github.event.client_payload.branch }}"
           echo "PACT_BROKER_BASE_URL: ${{ env.PACT_BROKER_BASE_URL }}"
-          echo "ORIGINAL_EVENT: ${{ github.event.client_payload.original_event }}"  # Log the custom field
 
       # Step 2: Install jq
       # jq is a lightweight and flexible command-line JSON processor.
@@ -79,6 +78,17 @@ jobs:
           # Set CONSUMER_BRANCH as an environment variable for subsequent steps
           echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
 
+          # Determine if it's a breaking change based on branch naming convention
+          # Updated to check if 'breaking' is included anywhere in the branch name (case-insensitive)
+          # This makes the condition more generic and flexible
+          if [[ "${CONSUMER_BRANCH,,}" == *"breaking"* ]]; then
+            echo "PACT_BREAKING_CHANGE=true" >> $GITHUB_ENV
+            echo "PACT_BREAKING_CHANGE set to true based on consumer branch name containing 'breaking'."
+          else
+            echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
+            echo "PACT_BREAKING_CHANGE set to false based on consumer branch name."
+          fi
+
       # Step 4: Checkout code using actions/checkout
       # We use actions/checkout to clone the repository and fetch all branches.
       - uses: actions/checkout@v4
@@ -107,54 +117,11 @@ jobs:
             echo "GITHUB_BRANCH=main" >> $GITHUB_ENV
           fi
 
-      # Step 6: Set PACT_BREAKING_CHANGE based on PR description checkbox (Webhook event)
-      # This step sets PACT_BREAKING_CHANGE based on the original event type.
-      - name: Set PACT_BREAKING_CHANGE based on event type
-        shell: bash
-        run: |
-          ORIGINAL_EVENT="${{ github.event.client_payload.original_event }}"
-          echo "Original Event Type: $ORIGINAL_EVENT"
-
-          if [[ "$ORIGINAL_EVENT" == "pull_request" ]]; then
-            echo "Setting PACT_BREAKING_CHANGE based on PR description checkbox."
-            PR_BODY="${{ github.event.client_payload.pr_body }}"
-            if [[ "$PR_BODY" == *"[x] Pact breaking change"* ]]; then
-              echo "PACT_BREAKING_CHANGE=true" >> $GITHUB_ENV
-              echo "PACT_BREAKING_CHANGE set to true based on PR description checkbox."
-            else
-              echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
-              echo "PACT_BREAKING_CHANGE remains false."
-            fi
-          elif [[ "$ORIGINAL_EVENT" == "push" ]]; then
-            echo "Setting PACT_BREAKING_CHANGE based on merged PR description."
-            # Fetch the merged PR associated with this commit SHA
-            PR_NUMBER=$(gh pr list --search $GITHUB_SHA --json number --jq '.[].number' | head -n1)
-            if [[ -z "$PR_NUMBER" ]]; then
-              echo "No PR found for commit SHA $GITHUB_SHA. Assuming no breaking change."
-              echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
-            else
-              PR_BODY=$(gh pr view $PR_NUMBER --json body --jq '.body')
-              echo "PR Body: $PR_BODY"
-              if [[ "$PR_BODY" == *"[x] Pact breaking change"* ]]; then
-                echo "PACT_BREAKING_CHANGE=true" >> $GITHUB_ENV
-                echo "PACT_BREAKING_CHANGE set to true based on merged PR description checkbox."
-              else
-                echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
-                echo "PACT_BREAKING_CHANGE remains false."
-              fi
-            fi
-          else
-            echo "Unknown original event type: $ORIGINAL_EVENT. Defaulting PACT_BREAKING_CHANGE to false."
-            echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Step 7: Install dependencies
+      # Step 6: Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # Step 8: Run provider tests
+      # Step 7: Run provider tests
       # Executes the provider tests using the test:provider-ci script.
       # Environment variables are set for use within the test scripts.
       - name: Run provider tests
@@ -167,4 +134,6 @@ jobs:
           DATABASE_URL: ${{ env.DATABASE_URL }}
           PORT: ${{ env.PORT }}
           PACT_BREAKING_CHANGE: ${{ env.PACT_BREAKING_CHANGE }}
-        run: npm run test:provider-ci
+        run: |
+          echo "Running provider contract tests with PACT_BREAKING_CHANGE=$PACT_BREAKING_CHANGE"
+          npm run test:provider-ci
