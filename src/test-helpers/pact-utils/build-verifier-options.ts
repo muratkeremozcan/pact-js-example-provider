@@ -168,6 +168,7 @@ function getProviderVersionTags(): string[] {
     // only include dev if it's not a breaking change
     // Convert PACT_BREAKING_CHANGE to boolean
     const isBreakingChange = process.env.PACT_BREAKING_CHANGE === 'true'
+    console.log({ isBreakingChange })
     // Only include 'dev' if it's not a breaking change
     if (!isBreakingChange) {
       tags.push('dev')
