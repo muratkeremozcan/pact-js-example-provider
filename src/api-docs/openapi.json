@@ -42,12 +42,19 @@
             "type": "number",
             "description": "Rating",
             "example": 7.5
+          },
+          "director": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Director",
+            "example": "Christopher Nolan"
           }
         },
         "required": [
           "name",
           "year",
-          "rating"
+          "rating",
+          "director"
         ]
       },
       "CreateMovieResponse": {
@@ -80,13 +87,19 @@
                 "type": "number",
                 "description": "Rating",
                 "example": 7.5
+              },
+              "director": {
+                "type": "string",
+                "description": "Director",
+                "example": "Christopher Nolan"
               }
             },
             "required": [
               "id",
               "name",
               "year",
-              "rating"
+              "rating",
+              "director"
             ]
           },
           "error": {
@@ -131,13 +144,19 @@
                     "type": "number",
                     "description": "Rating",
                     "example": 7.5
+                  },
+                  "director": {
+                    "type": "string",
+                    "description": "Director",
+                    "example": "Christopher Nolan"
                   }
                 },
                 "required": [
                   "id",
                   "name",
                   "year",
-                  "rating"
+                  "rating",
+                  "director"
                 ]
               },
               {
@@ -164,13 +183,19 @@
                       "type": "number",
                       "description": "Rating",
                       "example": 7.5
+                    },
+                    "director": {
+                      "type": "string",
+                      "description": "Director",
+                      "example": "Christopher Nolan"
                     }
                   },
                   "required": [
                     "id",
                     "name",
                     "year",
-                    "rating"
+                    "rating",
+                    "director"
                   ]
                 },
                 "description": "List of movies or an empty array if no movies exist",
@@ -276,6 +301,12 @@
             "type": "number",
             "description": "Rating",
             "example": 7.5
+          },
+          "director": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Director",
+            "example": "Christopher Nolan"
           }
         }
       },
@@ -309,13 +340,19 @@
                 "type": "number",
                 "description": "Rating",
                 "example": 7.5
+              },
+              "director": {
+                "type": "string",
+                "description": "Director",
+                "example": "Christopher Nolan"
               }
             },
             "required": [
               "id",
               "name",
               "year",
-              "rating"
+              "rating",
+              "director"
             ],
             "description": "Updated movie data"
           },
@@ -359,13 +396,19 @@
                 "type": "number",
                 "description": "Rating",
                 "example": 7.5
+              },
+              "director": {
+                "type": "string",
+                "description": "Director",
+                "example": "Christopher Nolan"
               }
             },
             "required": [
               "id",
               "name",
               "year",
-              "rating"
+              "rating",
+              "director"
             ],
             "description": "Updated movie data"
           },
