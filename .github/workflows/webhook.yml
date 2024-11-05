@@ -7,10 +7,6 @@ on:
     types:
       - verification_published
 
-concurrency:
-  group: ${{ github.ref }} && ${{ github.workflow }}
-  cancel-in-progress: true
-
 env:
   PACT_PAYLOAD_URL: ${{ github.event.client_payload.pact_url }}
   PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER_BASE_URL }}

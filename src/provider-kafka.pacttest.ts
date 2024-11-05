@@ -25,13 +25,13 @@ describe('Pact Verification for Message queue', () => {
 
   // our produceMovieEvent has some console.logs which we don't need during tests
   // but you can comment these out if you want to see them.
-  // beforeAll(() => {
-  //   jest.spyOn(console, 'log').mockImplementation(() => {})
-  //   jest.spyOn(console, 'error').mockImplementation(() => {})
-  // })
-  // afterAll(() => {
-  //   jest.restoreAllMocks()
-  // })
+  beforeAll(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {})
+    jest.spyOn(console, 'error').mockImplementation(() => {})
+  })
+  afterAll(() => {
+    jest.restoreAllMocks()
+  })
 
   it('should validate the expectations of WebConsumer-event-consumer', async () => {
     try {

@@ -247,7 +247,7 @@ function usePactBrokerUrlAndSelectors({
  */
 function buildConsumerVersionSelectors(
   consumer: string | undefined,
-  includeMainAndDeployed: boolean
+  includeMainAndDeployed = true
 ): ConsumerVersionSelector[] {
   // Create the base selector object.
   // If a specific consumer is provided, include it in the selector.
@@ -267,11 +267,11 @@ function buildConsumerVersionSelectors(
   if (includeMainAndDeployed) {
     selectors.push({ ...baseSelector, mainBranch: true }) // Includes the main branch of the consumer
     selectors.push({ ...baseSelector, deployedOrReleased: true }) // Includes deployed or released consumer versions
-  } else {
-    console.log('Excluding main and deployed branches due to breaking change')
   }
 
-  console.log('Final selectors:', selectors)
+  // The 'branch: "*"' selector has been intentionally removed to prevent
+  // verification of pacts from all branches, which may include irrelevant or
+  // unverified branches.
 
   return selectors
 }

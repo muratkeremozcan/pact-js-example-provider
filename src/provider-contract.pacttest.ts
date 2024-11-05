@@ -38,13 +38,13 @@ describe('Pact Verification Pact Classic', () => {
 
   // our produceMovieEvent has some console.logs which we don't need during tests
   // but you can comment these out if you want to see them.
-  // beforeAll(() => {
-  //   jest.spyOn(console, 'log').mockImplementation(() => {})
-  //   jest.spyOn(console, 'error').mockImplementation(() => {})
-  // })
-  // afterAll(() => {
-  //   jest.restoreAllMocks()
-  // })
+  beforeAll(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {})
+    jest.spyOn(console, 'error').mockImplementation(() => {})
+  })
+  afterAll(() => {
+    jest.restoreAllMocks()
+  })
 
   it('should validate the expectations of WebConsumer', async () => {
     // 3) Write & execute the provider contract test
