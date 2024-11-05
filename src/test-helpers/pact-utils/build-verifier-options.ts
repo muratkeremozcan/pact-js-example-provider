@@ -152,6 +152,7 @@ export function buildVerifierOptions({
 /**
  * Generates an array of tags to associate with the provider version.
  * Tags can include the current branch name, environment, or other identifiers.
+ * Tags are only used in Webhooks, therefore we use is-ci
  *
  * @returns An array of strings representing the provider version tags.
  *
@@ -164,8 +165,11 @@ function getProviderVersionTags(): string[] {
   const tags = []
 
   if (isCI) {
-    // Since we always use 'dev' for DEPLOY_ENV in CI, otherwise add the logic to get env
-    if (!process.env.PACT_BREAKING_CHANGE) {
+    // only include dev if it's not a breaking change
+    // Convert PACT_BREAKING_CHANGE to boolean
+    const isBreakingChange = process.env.PACT_BREAKING_CHANGE === 'true'
+    // Only include 'dev' if it's not a breaking change
+    if (!isBreakingChange) {
       tags.push('dev')
     }
 
