@@ -1,6 +1,6 @@
 name: Webhook-triggered Provider Contract Test
 
-# read https://dev.to/muratkeremozcan/-streamlining-pact-verification-in-cicd-with-github-actions-extracting-consumer-branch-names-and-dynamic-provider-testing-22g4
+# Reference: https://dev.to/muratkeremozcan/-streamlining-pact-verification-in-cicd-with-github-actions-extracting-consumer-branch-names-and-dynamic-provider-testing-22g4
 
 on:
   repository_dispatch:
@@ -33,6 +33,7 @@ jobs:
           echo "GITHUB_SHA: ${{ github.event.client_payload.sha }}"
           echo "GITHUB_BRANCH: ${{ github.event.client_payload.branch }}"
           echo "PACT_BROKER_BASE_URL: ${{ env.PACT_BROKER_BASE_URL }}"
+          echo "ORIGINAL_EVENT: ${{ github.event.client_payload.original_event }}"  # Log the custom field
 
       # Step 2: Install jq
       # jq is a lightweight and flexible command-line JSON processor.
@@ -52,18 +53,30 @@ jobs:
           PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
         run: |
           echo "Fetching consumer branch from Pact Broker..."
+
+          # Fetch the pact JSON from the Pact Broker using the PACT_PAYLOAD_URL
           PACT_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$PACT_PAYLOAD_URL")
           echo "PACT_JSON: $PACT_JSON"
+
+          # Extract the consumer version URL from the pact JSON using jq
           CONSUMER_VERSION_URL=$(echo "$PACT_JSON" | jq -r '._links."pb:consumer-version".href')
           echo "CONSUMER_VERSION_URL: $CONSUMER_VERSION_URL"
+
+          # Fetch the consumer version JSON from the consumer version URL
           CONSUMER_VERSION_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$CONSUMER_VERSION_URL")
           echo "CONSUMER_VERSION_JSON: $CONSUMER_VERSION_JSON"
+
+          # Extract the consumer branch name from the consumer version JSON
+          # The branch name is nested under _embedded.branchVersions[0].name
           CONSUMER_BRANCH=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.branchVersions[0].name')
+          # If CONSUMER_BRANCH is null or empty, default to 'main'
           if [ "$CONSUMER_BRANCH" = "null" ] || [ -z "$CONSUMER_BRANCH" ]; then
             echo "No consumer branch found. Defaulting to 'main'."
             CONSUMER_BRANCH="main"
           fi
           echo "Consumer branch extracted: $CONSUMER_BRANCH"
+
+          # Set CONSUMER_BRANCH as an environment variable for subsequent steps
           echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
 
       # Step 4: Checkout code using actions/checkout
@@ -94,49 +107,48 @@ jobs:
             echo "GITHUB_BRANCH=main" >> $GITHUB_ENV
           fi
 
-      # Step 6: Set PACT_BREAKING_CHANGE based on PR description during pull_request events
-      - name: Set PACT_BREAKING_CHANGE based on PR description checkbox (PR event)
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prBody = context.payload.pull_request.body || '';
+      # Step 6: Set PACT_BREAKING_CHANGE based on PR description checkbox (Webhook event)
+      # This step sets PACT_BREAKING_CHANGE based on the original event type.
+      - name: Set PACT_BREAKING_CHANGE based on event type
+        shell: bash
+        run: |
+          ORIGINAL_EVENT="${{ github.event.client_payload.original_event }}"
+          echo "Original Event Type: $ORIGINAL_EVENT"
 
-            // Check if the PR description contains a checked checkbox for Pact breaking change
-            if (prBody.includes('[x] Pact breaking change')) {
-              core.exportVariable('PACT_BREAKING_CHANGE', 'true');
-              console.log('PACT_BREAKING_CHANGE set to true based on PR description checkbox.');
-            } else {
-              core.exportVariable('PACT_BREAKING_CHANGE', 'false');
-              console.log('PACT_BREAKING_CHANGE remains false.');
-            }
-
-      # Step 6: Set PACT_BREAKING_CHANGE based on merged PR description during push events
-      - name: Set PACT_BREAKING_CHANGE based on merged PR description (push to main)
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const commitSha = context.sha;
-            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: commitSha,
-            });
-            const mergedPr = prs.find(pr => pr.merged_at !== null && pr.merge_commit_sha === commitSha);
-            if (mergedPr) {
-              const prBody = mergedPr.body || '';
-              if (prBody.includes('[x] Pact breaking change')) {
-                core.exportVariable('PACT_BREAKING_CHANGE', 'true');
-                console.log('PACT_BREAKING_CHANGE set to true based on merged PR description checkbox.');
-              } else {
-                core.exportVariable('PACT_BREAKING_CHANGE', 'false');
-                console.log('PACT_BREAKING_CHANGE remains false.');
-              }
-            } else {
-              core.exportVariable('PACT_BREAKING_CHANGE', 'false');
-              console.log('No merged PR found for this commit. PACT_BREAKING_CHANGE remains false.');
-            }
+          if [[ "$ORIGINAL_EVENT" == "pull_request" ]]; then
+            echo "Setting PACT_BREAKING_CHANGE based on PR description checkbox."
+            PR_BODY="${{ github.event.client_payload.pr_body }}"
+            if [[ "$PR_BODY" == *"[x] Pact breaking change"* ]]; then
+              echo "PACT_BREAKING_CHANGE=true" >> $GITHUB_ENV
+              echo "PACT_BREAKING_CHANGE set to true based on PR description checkbox."
+            else
+              echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
+              echo "PACT_BREAKING_CHANGE remains false."
+            fi
+          elif [[ "$ORIGINAL_EVENT" == "push" ]]; then
+            echo "Setting PACT_BREAKING_CHANGE based on merged PR description."
+            # Fetch the merged PR associated with this commit SHA
+            PR_NUMBER=$(gh pr list --search $GITHUB_SHA --json number --jq '.[].number' | head -n1)
+            if [[ -z "$PR_NUMBER" ]]; then
+              echo "No PR found for commit SHA $GITHUB_SHA. Assuming no breaking change."
+              echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
+            else
+              PR_BODY=$(gh pr view $PR_NUMBER --json body --jq '.body')
+              echo "PR Body: $PR_BODY"
+              if [[ "$PR_BODY" == *"[x] Pact breaking change"* ]]; then
+                echo "PACT_BREAKING_CHANGE=true" >> $GITHUB_ENV
+                echo "PACT_BREAKING_CHANGE set to true based on merged PR description checkbox."
+              else
+                echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
+                echo "PACT_BREAKING_CHANGE remains false."
+              fi
+            fi
+          else
+            echo "Unknown original event type: $ORIGINAL_EVENT. Defaulting PACT_BREAKING_CHANGE to false."
+            echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Step 7: Install dependencies
       - name: Install dependencies
