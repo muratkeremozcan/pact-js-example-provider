@@ -165,7 +165,9 @@ function getProviderVersionTags(): string[] {
 
   if (isCI) {
     // Since we always use 'dev' for DEPLOY_ENV in CI, otherwise add the logic to get env
-    tags.push('dev')
+    if (!process.env.PACT_BREAKING_CHANGE) {
+      tags.push('dev')
+    }
 
     // Include the branch name as a tag
     if (process.env.GITHUB_BRANCH) {

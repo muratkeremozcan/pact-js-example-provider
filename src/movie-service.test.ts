@@ -146,7 +146,12 @@ describe('MovieService', () => {
   })
 
   it('should return 400 if addMovie validation fails', async () => {
-    const invalidMovieData = { name: '', year: 1899, rating: 7.5 } // Invalid year, empty name
+    const invalidMovieData = {
+      name: '',
+      year: 1899,
+      rating: 7.5,
+      director: 'Christopher Nolan'
+    } // Invalid year, empty name
 
     const result = await movieService.addMovie(invalidMovieData)
     expect(result).toEqual(

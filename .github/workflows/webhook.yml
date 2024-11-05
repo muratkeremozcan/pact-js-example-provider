@@ -45,33 +45,33 @@ jobs:
       # Step 3: Extract consumer branch name
       # This step fetches the consumer's branch name from the Pact Broker
       # and sets CONSUMER_BRANCH environment variable for use in subsequent steps.
-      - name: Extract consumer branch name
+      - name: Extract consumer branch name and set PACT_BREAKING_CHANGE
         shell: bash
         env:
           PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
           PACT_PAYLOAD_URL: ${{ env.PACT_PAYLOAD_URL }}
         run: |
           echo "Fetching consumer branch from Pact Broker..."
-          # Fetch the pact JSON from the Pact Broker using the PACT_PAYLOAD_URL
           PACT_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$PACT_PAYLOAD_URL")
           echo "PACT_JSON: $PACT_JSON"
-          # Extract the consumer version URL from the pact JSON using jq
           CONSUMER_VERSION_URL=$(echo "$PACT_JSON" | jq -r '._links."pb:consumer-version".href')
           echo "CONSUMER_VERSION_URL: $CONSUMER_VERSION_URL"
-          # Fetch the consumer version JSON from the consumer version URL
           CONSUMER_VERSION_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$CONSUMER_VERSION_URL")
           echo "CONSUMER_VERSION_JSON: $CONSUMER_VERSION_JSON"
-          # Extract the consumer branch name from the consumer version JSON
-          # The branch name is nested under _embedded.branchVersions[0].name
           CONSUMER_BRANCH=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.branchVersions[0].name')
-          # If CONSUMER_BRANCH is null or empty, default to 'main'
           if [ "$CONSUMER_BRANCH" = "null" ] || [ -z "$CONSUMER_BRANCH" ]; then
             echo "No consumer branch found. Defaulting to 'main'."
             CONSUMER_BRANCH="main"
           fi
           echo "Consumer branch extracted: $CONSUMER_BRANCH"
-          # Set CONSUMER_BRANCH as an environment variable for subsequent steps
           echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
+
+          # Determine if it's a breaking change based on branch naming convention
+          if [[ "$CONSUMER_BRANCH" == feat/breaking-change* ]]; then
+            echo "PACT_BREAKING_CHANGE=true" >> $GITHUB_ENV
+          else
+            echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
+          fi
 
       # Step 4: Checkout code using actions/checkout
       # We use actions/checkout to clone the repository and fetch all branches.
@@ -102,7 +102,6 @@ jobs:
           fi
 
       # Step 6: Install dependencies
-      # Installs project dependencies using npm.
       - name: Install dependencies
         run: npm ci
 
@@ -118,4 +117,5 @@ jobs:
           GITHUB_BRANCH: ${{ env.GITHUB_BRANCH }}
           DATABASE_URL: ${{ env.DATABASE_URL }}
           PORT: ${{ env.PORT }}
+          PACT_BREAKING_CHANGE: ${{ env.PACT_BREAKING_CHANGE }}
         run: npm run test:provider-ci
