@@ -267,11 +267,11 @@ function buildConsumerVersionSelectors(
   if (includeMainAndDeployed) {
     selectors.push({ ...baseSelector, mainBranch: true }) // Includes the main branch of the consumer
     selectors.push({ ...baseSelector, deployedOrReleased: true }) // Includes deployed or released consumer versions
+  } else {
+    console.log('Excluding main and deployed branches due to breaking change')
   }
 
-  // The 'branch: "*"' selector has been intentionally removed to prevent
-  // verification of pacts from all branches, which may include irrelevant or
-  // unverified branches.
+  console.log('Final selectors:', selectors)
 
   return selectors
 }
