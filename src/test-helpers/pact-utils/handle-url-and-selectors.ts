@@ -273,7 +273,5 @@ function buildConsumerVersionSelectors(
   // verification of pacts from all branches, which may include irrelevant or
   // unverified branches.
 
-  console.log({ buildConsumerVersionSelectorsResult: selectors })
-
   return selectors
 }
