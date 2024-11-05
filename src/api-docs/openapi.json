@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Movies API",
-    "version": "10.0.0",
+    "version": "9.0.0",
     "description": "API for managing movies"
   },
   "servers": [
@@ -48,19 +48,13 @@
             "minLength": 1,
             "description": "Director",
             "example": "Christopher Nolan"
-          },
-          "oscar": {
-            "type": "boolean",
-            "description": "Has won an Oscar",
-            "example": true
           }
         },
         "required": [
           "name",
           "year",
           "rating",
-          "director",
-          "oscar"
+          "director"
         ]
       },
       "CreateMovieResponse": {
@@ -98,11 +92,6 @@
                 "type": "string",
                 "description": "Director",
                 "example": "Christopher Nolan"
-              },
-              "oscar": {
-                "type": "boolean",
-                "description": "Has won an Oscar",
-                "example": true
               }
             },
             "required": [
@@ -110,8 +99,7 @@
               "name",
               "year",
               "rating",
-              "director",
-              "oscar"
+              "director"
             ]
           },
           "error": {
@@ -161,11 +149,6 @@
                     "type": "string",
                     "description": "Director",
                     "example": "Christopher Nolan"
-                  },
-                  "oscar": {
-                    "type": "boolean",
-                    "description": "Has won an Oscar",
-                    "example": true
                   }
                 },
                 "required": [
@@ -173,8 +156,7 @@
                   "name",
                   "year",
                   "rating",
-                  "director",
-                  "oscar"
+                  "director"
                 ]
               },
               {
@@ -206,11 +188,6 @@
                       "type": "string",
                       "description": "Director",
                       "example": "Christopher Nolan"
-                    },
-                    "oscar": {
-                      "type": "boolean",
-                      "description": "Has won an Oscar",
-                      "example": true
                     }
                   },
                   "required": [
@@ -218,8 +195,7 @@
                     "name",
                     "year",
                     "rating",
-                    "director",
-                    "oscar"
+                    "director"
                   ]
                 },
                 "description": "List of movies or an empty array if no movies exist",
@@ -331,11 +307,6 @@
             "minLength": 1,
             "description": "Director",
             "example": "Christopher Nolan"
-          },
-          "oscar": {
-            "type": "boolean",
-            "description": "Has won an Oscar",
-            "example": true
           }
         }
       },
@@ -374,11 +345,6 @@
                 "type": "string",
                 "description": "Director",
                 "example": "Christopher Nolan"
-              },
-              "oscar": {
-                "type": "boolean",
-                "description": "Has won an Oscar",
-                "example": true
               }
             },
             "required": [
@@ -386,8 +352,7 @@
               "name",
               "year",
               "rating",
-              "director",
-              "oscar"
+              "director"
             ],
             "description": "Updated movie data"
           },
@@ -436,11 +401,6 @@
                 "type": "string",
                 "description": "Director",
                 "example": "Christopher Nolan"
-              },
-              "oscar": {
-                "type": "boolean",
-                "description": "Has won an Oscar",
-                "example": true
               }
             },
             "required": [
@@ -448,8 +408,7 @@
               "name",
               "year",
               "rating",
-              "director",
-              "oscar"
+              "director"
             ],
             "description": "Updated movie data"
           },

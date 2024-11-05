@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Movies API
-  version: 10.0.0
+  version: 9.0.0
   description: API for managing movies
 servers:
   - url: http://localhost:3000
@@ -37,16 +37,11 @@ components:
           minLength: 1
           description: Director
           example: Christopher Nolan
-        oscar:
-          type: boolean
-          description: Has won an Oscar
-          example: true
       required:
         - name
         - year
         - rating
         - director
-        - oscar
     CreateMovieResponse:
       type: object
       properties:
@@ -77,17 +72,12 @@ components:
               type: string
               description: Director
               example: Christopher Nolan
-            oscar:
-              type: boolean
-              description: Has won an Oscar
-              example: true
           required:
             - id
             - name
             - year
             - rating
             - director
-            - oscar
         error:
           type: string
           description: Error message, if any
@@ -125,17 +115,12 @@ components:
                   type: string
                   description: Director
                   example: Christopher Nolan
-                oscar:
-                  type: boolean
-                  description: Has won an Oscar
-                  example: true
               required:
                 - id
                 - name
                 - year
                 - rating
                 - director
-                - oscar
             - type: array
               items:
                 type: object
@@ -160,17 +145,12 @@ components:
                     type: string
                     description: Director
                     example: Christopher Nolan
-                  oscar:
-                    type: boolean
-                    description: Has won an Oscar
-                    example: true
                 required:
                   - id
                   - name
                   - year
                   - rating
                   - director
-                  - oscar
               description: List of movies or an empty array if no movies exist
               example: []
             - type: "null"
@@ -251,10 +231,6 @@ components:
           minLength: 1
           description: Director
           example: Christopher Nolan
-        oscar:
-          type: boolean
-          description: Has won an Oscar
-          example: true
     UpdateMovieResponse:
       type: object
       properties:
@@ -285,17 +261,12 @@ components:
               type: string
               description: Director
               example: Christopher Nolan
-            oscar:
-              type: boolean
-              description: Has won an Oscar
-              example: true
           required:
             - id
             - name
             - year
             - rating
             - director
-            - oscar
           description: Updated movie data
         error:
           type: string
@@ -333,17 +304,12 @@ components:
               type: string
               description: Director
               example: Christopher Nolan
-            oscar:
-              type: boolean
-              description: Has won an Oscar
-              example: true
           required:
             - id
             - name
             - year
             - rating
             - director
-            - oscar
           description: Updated movie data
         error:
           type: string

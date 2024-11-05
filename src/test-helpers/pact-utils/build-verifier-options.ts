@@ -8,11 +8,10 @@ import type {
   ProxyOptions,
   StateHandlers
 } from '@pact-foundation/pact/src/dsl/verifier/proxy/types'
-import {
-  handlePactBrokerUrlAndSelectors,
-  getProviderVersionTags
-} from './handle-url-and-selectors'
+import { handlePactBrokerUrlAndSelectors } from './handle-url-and-selectors'
 import { noOpRequestFilter } from './pact-request-filter'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const isCI = require('is-ci')
 
 /**
  * Builds a `VerifierOptions` object for Pact verification, encapsulating
@@ -148,6 +147,42 @@ export function buildVerifierOptions({
   })
 
   return options
+}
+
+/**
+ * Generates an array of tags to associate with the provider version.
+ * Tags can include the current branch name, environment, or other identifiers.
+ * Tags are only used in Webhooks, therefore we use is-ci
+ *
+ * @returns An array of strings representing the provider version tags.
+ *
+ * @example
+ * // In a CI environment with GITHUB_BRANCH set to 'refs/heads/feature-branch'
+ * const tags = getProviderVersionTags()
+ * // tags => ['feature-branch']
+ */
+function getProviderVersionTags(): string[] {
+  const tags = []
+
+  if (isCI) {
+    // only include dev if it's not a breaking change
+    // Convert PACT_BREAKING_CHANGE to boolean
+    const isBreakingChange = process.env.PACT_BREAKING_CHANGE === 'true'
+    // Only include 'dev' if it's not a breaking change
+    if (!isBreakingChange) {
+      tags.push('dev')
+    }
+
+    // Include the branch name as a tag
+    if (process.env.GITHUB_BRANCH) {
+      const branchName = process.env.GITHUB_BRANCH
+      tags.push(branchName)
+    }
+  } else {
+    tags.push('local')
+  }
+
+  return tags
 }
 
 /**

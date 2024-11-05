@@ -3,8 +3,6 @@ import type {
   VerifierOptions
 } from '@pact-foundation/pact'
 import type { ConsumerVersionSelector } from '@pact-foundation/pact-core'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const isCI = require('is-ci')
 
 /**
  * Handles the conditional logic for selecting the Pact Broker URL and consumer version selectors.
@@ -38,7 +36,7 @@ export function handlePactBrokerUrlAndSelectors({
       options
     )
     if (usedPayloadUrl) {
-      return // Successfully used the Pact payload URL, no need to proceed further–
+      return // Successfully used the Pact payload URL, no need to proceed further
     }
     // If not used, continue to set up options using the Pact Broker URL and selectors
   }
@@ -166,25 +164,9 @@ function usePactBrokerUrlAndSelectors({
   console.log(`Using Pact Broker Base URL: ${pactBrokerUrl}`)
 
   options.pactBrokerUrl = pactBrokerUrl
-
-  // Initialize providerVersionTags array if not present
-  options.providerVersionTags = options.providerVersionTags || []
-
-  // Conditionally add 'dev' tag if includeMainAndDeployed is true and not a breaking change
-  // Assuming 'includeMainAndDeployed' is set based on 'PACT_BREAKING_CHANGE'
-  // If 'includeMainAndDeployed' is true, include 'dev'; else, exclude 'dev'
-  if (includeMainAndDeployed) {
-    options.providerVersionTags.push('dev')
-    console.log('Added dev tag')
-  }
-
-  // Add branch-specific tag (already handled in getProviderVersionTags)
-  // No need to add 'main' and 'deployed'
-
-  // Build consumer version selectors
   options.consumerVersionSelectors = buildConsumerVersionSelectors(
     consumer,
-    false // Since you don't want 'main' and 'deployed', set to false
+    includeMainAndDeployed
   )
 
   if (consumer) {
@@ -194,9 +176,13 @@ function usePactBrokerUrlAndSelectors({
   }
 
   if (includeMainAndDeployed) {
-    console.log('Including dev tag in the verification')
+    console.log(
+      'Including main branch and deployedOrReleased in the verification'
+    )
   } else {
-    console.log('Not including dev tag, running only the matching branch')
+    console.log(
+      'Only running the matching branch, this is useful when introducing breaking changes'
+    )
   }
 
   // Log the consumer version selectors for debugging
@@ -204,44 +190,6 @@ function usePactBrokerUrlAndSelectors({
     'Consumer Version Selectors:',
     JSON.stringify(options.consumerVersionSelectors, null, 2)
   )
-}
-
-/**
- * Generates an array of tags to associate with the provider version.
- * Tags can include the current branch name, environment, or other identifiers.
- * Tags are only used in Webhooks, therefore we use is-ci
- *
- * @returns An array of strings representing the provider version tags.
- *
- * @example
- * // In a CI environment with GITHUB_BRANCH set to 'refs/heads/feature-branch'
- * const tags = getProviderVersionTags()
- * // tags => ['feature-branch']
- */
-export function getProviderVersionTags(): string[] {
-  const tags = []
-
-  if (isCI) {
-    // only include dev if it's not a breaking change
-    // Convert PACT_BREAKING_CHANGE to boolean
-    const isBreakingChange = process.env.PACT_BREAKING_CHANGE === 'true'
-    console.log({ isBreakingChange })
-    // Only include 'dev' if it's not a breaking change
-    if (!isBreakingChange) {
-      tags.push('dev')
-    }
-
-    // Include the branch name as a tag
-    if (process.env.GITHUB_BRANCH) {
-      const branchName = process.env.GITHUB_BRANCH
-      tags.push(branchName)
-    }
-  } else {
-    tags.push('local')
-  }
-
-  console.log('providerVersionTags:', tags)
-  return tags
 }
 
 /**
