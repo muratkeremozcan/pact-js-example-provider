@@ -66,13 +66,6 @@ jobs:
           echo "Consumer branch extracted: $CONSUMER_BRANCH"
           echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
 
-          # Determine if it's a breaking change based on branch naming convention
-          if [[ "$CONSUMER_BRANCH" == feat/breaking-change* ]]; then
-            echo "PACT_BREAKING_CHANGE=true" >> $GITHUB_ENV
-          else
-            echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
-          fi
-
       # Step 4: Checkout code using actions/checkout
       # We use actions/checkout to clone the repository and fetch all branches.
       - uses: actions/checkout@v4
@@ -101,11 +94,55 @@ jobs:
             echo "GITHUB_BRANCH=main" >> $GITHUB_ENV
           fi
 
-      # Step 6: Install dependencies
+      # Step 6: Set PACT_BREAKING_CHANGE based on PR description during pull_request events
+      - name: Set PACT_BREAKING_CHANGE based on PR description checkbox (PR event)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prBody = context.payload.pull_request.body || '';
+
+            // Check if the PR description contains a checked checkbox for Pact breaking change
+            if (prBody.includes('[x] Pact breaking change')) {
+              core.exportVariable('PACT_BREAKING_CHANGE', 'true');
+              console.log('PACT_BREAKING_CHANGE set to true based on PR description checkbox.');
+            } else {
+              core.exportVariable('PACT_BREAKING_CHANGE', 'false');
+              console.log('PACT_BREAKING_CHANGE remains false.');
+            }
+
+      # Step 6: Set PACT_BREAKING_CHANGE based on merged PR description during push events
+      - name: Set PACT_BREAKING_CHANGE based on merged PR description (push to main)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commitSha = context.sha;
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: commitSha,
+            });
+            const mergedPr = prs.find(pr => pr.merged_at !== null && pr.merge_commit_sha === commitSha);
+            if (mergedPr) {
+              const prBody = mergedPr.body || '';
+              if (prBody.includes('[x] Pact breaking change')) {
+                core.exportVariable('PACT_BREAKING_CHANGE', 'true');
+                console.log('PACT_BREAKING_CHANGE set to true based on merged PR description checkbox.');
+              } else {
+                core.exportVariable('PACT_BREAKING_CHANGE', 'false');
+                console.log('PACT_BREAKING_CHANGE remains false.');
+              }
+            } else {
+              core.exportVariable('PACT_BREAKING_CHANGE', 'false');
+              console.log('No merged PR found for this commit. PACT_BREAKING_CHANGE remains false.');
+            }
+
+      # Step 7: Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # Step 7: Run provider tests
+      # Step 8: Run provider tests
       # Executes the provider tests using the test:provider-ci script.
       # Environment variables are set for use within the test scripts.
       - name: Run provider tests
