@@ -150,7 +150,8 @@ describe('MovieService', () => {
       name: '',
       year: 1899,
       rating: 7.5,
-      director: 'Christopher Nolan'
+      director: 'Christopher Nolan',
+      oscar: true
     } // Invalid year, empty name
 
     const result = await movieService.addMovie(invalidMovieData)

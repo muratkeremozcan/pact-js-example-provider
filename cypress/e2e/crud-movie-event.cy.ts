@@ -20,7 +20,8 @@ describe('CRUD movie', () => {
     name: spok.string,
     year: spok.number,
     rating: spok.number,
-    director: spok.string
+    director: spok.string,
+    oscar: spok.boolean
   }
 
   let token: string
