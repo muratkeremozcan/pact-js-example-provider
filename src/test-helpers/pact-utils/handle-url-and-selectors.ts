@@ -247,7 +247,7 @@ function usePactBrokerUrlAndSelectors({
  */
 function buildConsumerVersionSelectors(
   consumer: string | undefined,
-  includeMainAndDeployed = true
+  includeMainAndDeployed: boolean
 ): ConsumerVersionSelector[] {
   // Create the base selector object.
   // If a specific consumer is provided, include it in the selector.
