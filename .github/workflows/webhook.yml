@@ -54,56 +54,47 @@ jobs:
           echo "Starting extraction of consumer branch name from Pact Broker..."
 
           # Fetch the pact JSON from the Pact Broker using the PACT_PAYLOAD_URL
-          PACT_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$PACT_PAYLOAD_URL")
-
-          # Log the full PACT_JSON for debugging
+          PACT_JSON=$(curl -s -H "Authorization: ***" "$PACT_PAYLOAD_URL")
           echo "DEBUG: Full PACT_JSON response:"
-          echo "$PACT_JSON" | jq '.'
+          echo "$PACT_JSON" | jq '.'  # Full JSON for debugging
 
           # Extract the consumer version URL from the pact JSON using jq
-          CONSUMER_VERSION_URL=$(echo "$PACT_JSON" | jq -r '._links."pb:consumer-version".href')
+          CONSUMER_VERSION_URL=$(echo "$PACT_JSON" | jq -r '._links."pb:consumer-version".href // empty')
           echo "DEBUG: Consumer Version URL: $CONSUMER_VERSION_URL"
 
+          if [[ -z "$CONSUMER_VERSION_URL" ]]; then
+            echo "ERROR: Consumer Version URL is empty. Exiting."
+            exit 1
+          fi
+
           # Fetch the consumer version JSON
-          CONSUMER_VERSION_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$CONSUMER_VERSION_URL")
+          CONSUMER_VERSION_JSON=$(curl -s -H "Authorization: ***" "$CONSUMER_VERSION_URL")
+          echo "DEBUG: Full Consumer Version JSON response:"
+          echo "$CONSUMER_VERSION_JSON" | jq '.'  # Full JSON for debugging
 
           echo "DEBUG: Looking for branch information in multiple locations..."
 
-          # Try to extract branch name from different possible locations
+          # Try to extract branch name from different possible locations with null-safe handling
           BRANCH_FROM_METADATA=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.metadata.branch // empty')
           echo "DEBUG: Branch from metadata: $BRANCH_FROM_METADATA"
 
-          BRANCH_FROM_TAGS=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.tags[].name | select(contains("branch-")) // empty' | head -n1)
+          BRANCH_FROM_TAGS=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.tags[]?.name | select(contains("branch-")) // empty' | head -n1)
           echo "DEBUG: Branch from tags: $BRANCH_FROM_TAGS"
 
-          BRANCH_FROM_BRANCHES=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.branchVersions[].name // empty' | head -n1)
+          BRANCH_FROM_BRANCHES=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.branchVersions[]?.name // empty' | head -n1)
           echo "DEBUG: Branch from branchVersions: $BRANCH_FROM_BRANCHES"
 
-          # Check the entire JSON structure for any mention of a branch name pattern
-          BRANCH_GLOBALLY=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.. | objects | .name? | select(test("experiment/.*|breaking"))' | head -n1)
-          echo "DEBUG: Branch found globally by pattern search: $BRANCH_GLOBALLY"
-
-          # Try to get branch from version number if it contains branch information
           VERSION_NUMBER=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.number // empty')
           echo "DEBUG: Version number: $VERSION_NUMBER"
 
-          # Determine the branch name using the following priority:
-          # 1. Branch from global search if it matches an expected pattern
-          # 2. Branch from metadata
-          # 3. Branch from tags
-          # 4. Branch from branchVersions
-          # 5. Check if version number contains "breaking"
-          # 6. Default to 'main'
-          if [ ! -z "$BRANCH_GLOBALLY" ]; then
-            CONSUMER_BRANCH="$BRANCH_GLOBALLY"
-            echo "DEBUG: Using branch found globally by pattern search"
-          elif [ ! -z "$BRANCH_FROM_METADATA" ]; then
+          # Determine the branch name using priority:
+          if [ -n "$BRANCH_FROM_METADATA" ]; then
             CONSUMER_BRANCH="$BRANCH_FROM_METADATA"
             echo "DEBUG: Using branch from metadata"
-          elif [ ! -z "$BRANCH_FROM_TAGS" ]; then
+          elif [ -n "$BRANCH_FROM_TAGS" ]; then
             CONSUMER_BRANCH="${BRANCH_FROM_TAGS#branch-}"  # Remove 'branch-' prefix if present
             echo "DEBUG: Using branch from tags"
-          elif [ ! -z "$BRANCH_FROM_BRANCHES" ]; then
+          elif [ -n "$BRANCH_FROM_BRANCHES" ]; then
             CONSUMER_BRANCH="$BRANCH_FROM_BRANCHES"
             echo "DEBUG: Using branch from branchVersions"
           elif [[ "$VERSION_NUMBER" == *"breaking"* ]]; then
