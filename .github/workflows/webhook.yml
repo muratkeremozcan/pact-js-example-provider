@@ -83,7 +83,8 @@ jobs:
           # 1. Branch from metadata
           # 2. Branch from tags
           # 3. Branch from branchVersions
-          # 4. Default to 'main'
+          # 4. Check if version number contains "breaking"
+          # 5. Default to 'main'
           if [ ! -z "$BRANCH_FROM_METADATA" ]; then
             CONSUMER_BRANCH="$BRANCH_FROM_METADATA"
             echo "DEBUG: Using branch from metadata"
@@ -93,6 +94,9 @@ jobs:
           elif [ ! -z "$BRANCH_FROM_BRANCHES" ]; then
             CONSUMER_BRANCH="$BRANCH_FROM_BRANCHES"
             echo "DEBUG: Using branch from branchVersions"
+          elif [[ "$VERSION_NUMBER" == *"breaking"* ]]; then
+            CONSUMER_BRANCH="$VERSION_NUMBER"
+            echo "DEBUG: Using branch derived from version number"
           else
             CONSUMER_BRANCH="main"
             echo "DEBUG: No branch found in any location, defaulting to 'main'"
