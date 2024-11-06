@@ -63,41 +63,8 @@ jobs:
           # Fetch the consumer version JSON
           CONSUMER_VERSION_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$CONSUMER_VERSION_URL")
 
-          echo "DEBUG: Looking for branch information in multiple locations..."
-
-          # Try to extract branch name from different possible locations
-          BRANCH_FROM_METADATA=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.metadata.branch // empty')
-          echo "DEBUG: Branch from metadata: $BRANCH_FROM_METADATA"
-
-          BRANCH_FROM_TAGS=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.tags[].name | select(contains("branch-")) // empty' | head -n1)
-          echo "DEBUG: Branch from tags: $BRANCH_FROM_TAGS"
-
-          BRANCH_FROM_BRANCHES=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.branchVersions[].name // empty' | head -n1)
-          echo "DEBUG: Branch from branchVersions: $BRANCH_FROM_BRANCHES"
-
-          # Try to get branch from version number if it contains branch information
-          VERSION_NUMBER=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.number // empty')
-          echo "DEBUG: Version number: $VERSION_NUMBER"
-
-          # Determine the branch name using the following priority:
-          # 1. Branch from metadata
-          # 2. Branch from tags
-          # 3. Branch from branchVersions
-          # 4. Default to 'main'
-          if [ ! -z "$BRANCH_FROM_METADATA" ]; then
-            CONSUMER_BRANCH="$BRANCH_FROM_METADATA"
-            echo "DEBUG: Using branch from metadata"
-          elif [ ! -z "$BRANCH_FROM_TAGS" ]; then
-            CONSUMER_BRANCH="${BRANCH_FROM_TAGS#branch-}"  # Remove 'branch-' prefix if present
-            echo "DEBUG: Using branch from tags"
-          elif [ ! -z "$BRANCH_FROM_BRANCHES" ]; then
-            CONSUMER_BRANCH="$BRANCH_FROM_BRANCHES"
-            echo "DEBUG: Using branch from branchVersions"
-          else
-            CONSUMER_BRANCH="main"
-            echo "DEBUG: No branch found in any location, defaulting to 'main'"
-          fi
-
+          # Extract branch name directly from branchVersions
+          CONSUMER_BRANCH=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.branchVersions[0].name // "main"')
           echo "DEBUG: Selected consumer branch: $CONSUMER_BRANCH"
 
           # Determine if it's a breaking change
@@ -166,4 +133,9 @@ jobs:
           PACT_BREAKING_CHANGE: ${{ env.PACT_BREAKING_CHANGE }}
         run: |
           echo "Running provider contract tests with PACT_BREAKING_CHANGE=$PACT_BREAKING_CHANGE"
-          npm run test:provider-ci
+          if [[ "$PACT_BREAKING_CHANGE" == "true" ]]; then
+            echo "Running provider tests only against matching branch due to breaking change."
+            npm run test:provider-ci -- --consumer-version-selectors '[{"matchingBranch": true}]'
+          else
+            npm run test:provider-ci
+          fi
