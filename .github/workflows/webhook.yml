@@ -56,6 +56,10 @@ jobs:
           # Fetch the pact JSON from the Pact Broker using the PACT_PAYLOAD_URL
           PACT_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$PACT_PAYLOAD_URL")
 
+          # Log the full PACT_JSON for debugging
+          echo "DEBUG: Full PACT_JSON response:"
+          echo "$PACT_JSON" | jq '.'
+
           # Extract the consumer version URL from the pact JSON using jq
           CONSUMER_VERSION_URL=$(echo "$PACT_JSON" | jq -r '._links."pb:consumer-version".href')
           echo "DEBUG: Consumer Version URL: $CONSUMER_VERSION_URL"
@@ -75,17 +79,25 @@ jobs:
           BRANCH_FROM_BRANCHES=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.branchVersions[].name // empty' | head -n1)
           echo "DEBUG: Branch from branchVersions: $BRANCH_FROM_BRANCHES"
 
+          # Check the entire JSON structure for any mention of a branch name pattern
+          BRANCH_GLOBALLY=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.. | objects | .name? | select(test("experiment/.*|breaking"))' | head -n1)
+          echo "DEBUG: Branch found globally by pattern search: $BRANCH_GLOBALLY"
+
           # Try to get branch from version number if it contains branch information
           VERSION_NUMBER=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.number // empty')
           echo "DEBUG: Version number: $VERSION_NUMBER"
 
           # Determine the branch name using the following priority:
-          # 1. Branch from metadata
-          # 2. Branch from tags
-          # 3. Branch from branchVersions
-          # 4. Check if version number contains "breaking"
-          # 5. Default to 'main'
-          if [ ! -z "$BRANCH_FROM_METADATA" ]; then
+          # 1. Branch from global search if it matches an expected pattern
+          # 2. Branch from metadata
+          # 3. Branch from tags
+          # 4. Branch from branchVersions
+          # 5. Check if version number contains "breaking"
+          # 6. Default to 'main'
+          if [ ! -z "$BRANCH_GLOBALLY" ]; then
+            CONSUMER_BRANCH="$BRANCH_GLOBALLY"
+            echo "DEBUG: Using branch found globally by pattern search"
+          elif [ ! -z "$BRANCH_FROM_METADATA" ]; then
             CONSUMER_BRANCH="$BRANCH_FROM_METADATA"
             echo "DEBUG: Using branch from metadata"
           elif [ ! -z "$BRANCH_FROM_TAGS" ]; then
