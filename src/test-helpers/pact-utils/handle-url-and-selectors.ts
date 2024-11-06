@@ -3,6 +3,8 @@ import type {
   VerifierOptions
 } from '@pact-foundation/pact'
 import type { ConsumerVersionSelector } from '@pact-foundation/pact-core'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const isCI = require('is-ci')
 
 /**
  * Handles the conditional logic for selecting the Pact Broker URL and consumer version selectors.
@@ -190,6 +192,44 @@ function usePactBrokerUrlAndSelectors({
     'Consumer Version Selectors:',
     JSON.stringify(options.consumerVersionSelectors, null, 2)
   )
+}
+
+/**
+ * Generates an array of tags to associate with the provider version.
+ * Tags can include the current branch name, environment, or other identifiers.
+ * Tags are only used in Webhooks, therefore we use is-ci
+ *
+ * @returns An array of strings representing the provider version tags.
+ *
+ * @example
+ * // In a CI environment with GITHUB_BRANCH set to 'refs/heads/feature-branch'
+ * const tags = getProviderVersionTags()
+ * // tags => ['feature-branch']
+ */
+export function getProviderVersionTags(): string[] {
+  const tags = []
+
+  if (isCI) {
+    // only include dev if it's not a breaking change
+    // Convert PACT_BREAKING_CHANGE to boolean
+    const isBreakingChange = process.env.PACT_BREAKING_CHANGE === 'true'
+    console.log({ isBreakingChange })
+    // Only include 'dev' if it's not a breaking change
+    if (!isBreakingChange) {
+      tags.push('dev')
+    }
+
+    // Include the branch name as a tag
+    if (process.env.GITHUB_BRANCH) {
+      const branchName = process.env.GITHUB_BRANCH
+      tags.push(branchName)
+    }
+  } else {
+    tags.push('local')
+  }
+
+  console.log('providerVersionTags:', tags)
+  return tags
 }
 
 /**
