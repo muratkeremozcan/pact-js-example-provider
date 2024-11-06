@@ -75,19 +75,23 @@ jobs:
           fi
           echo "Consumer branch extracted: $CONSUMER_BRANCH"
 
-          # Set CONSUMER_BRANCH as an environment variable for subsequent steps
-          echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
-
           # Determine if it's a breaking change based on branch naming convention
-          # Updated to check if 'breaking' is included anywhere in the branch name (case-insensitive)
-          # This makes the condition more generic and flexible
-          if [[ "${CONSUMER_BRANCH,,}" == *"breaking"* ]]; then
+          if [[ "${CONSUMER_BRANCH,,}" == *"breaking"* && "${CONSUMER_BRANCH,,}" != "main" ]]; then
             echo "PACT_BREAKING_CHANGE=true" >> $GITHUB_ENV
-            echo "PACT_BREAKING_CHANGE set to true based on consumer branch name containing 'breaking'."
+            echo "PACT_BREAKING_CHANGE set to true because the branch name contains 'breaking' and is not 'main'."
           else
             echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
-            echo "PACT_BREAKING_CHANGE set to false based on consumer branch name."
+            echo "PACT_BREAKING_CHANGE set to false because the branch name does not contain 'breaking' or it is 'main'."
           fi
+
+          # Override CONSUMER_BRANCH to ignore main if it's a breaking change
+          if [[ "${CONSUMER_BRANCH,,}" == "main" && "${PACT_BREAKING_CHANGE}" == "true" ]]; then
+            echo "Consumer branch set to a breaking branch; ignoring main branch."
+            CONSUMER_BRANCH="feature-breaking-change"  # Example of a fallback branch; replace as needed
+          fi
+
+          # Set CONSUMER_BRANCH as an environment variable for subsequent steps
+          echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
 
       # Step 4: Checkout code using actions/checkout
       # We use actions/checkout to clone the repository and fetch all branches.
