@@ -55,8 +55,6 @@ jobs:
 
           # Fetch the pact JSON from the Pact Broker using the PACT_PAYLOAD_URL
           PACT_JSON=$(curl -s -H "Authorization: ***" "$PACT_PAYLOAD_URL")
-          echo "DEBUG: Full PACT_JSON response:"
-          echo "$PACT_JSON" | jq '.'  # Full JSON for debugging
 
           # Extract the consumer version URL from the pact JSON using jq
           CONSUMER_VERSION_URL=$(echo "$PACT_JSON" | jq -r '._links."pb:consumer-version".href // empty')
