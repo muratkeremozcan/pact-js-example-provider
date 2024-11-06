@@ -22,7 +22,8 @@ Authorization: {{token}}
     "name": "Inception",
     "year": 2010,
     "rating": 7.5,
-    "director": "Christopher Nolan"
+    "director": "Christopher Nolan",
+    "oscar": true
 }
 
 ###
@@ -54,7 +55,9 @@ Authorization: {{token}}
 {
     "name": "Inception",
     "year": 2010,
-    "rating": 7.5
+    "rating": 7.5,
+    "director": "Christopher Nolan",
+    "oscar": true
 }
 
 ###
@@ -67,7 +70,8 @@ Authorization: {{token}}
     "name": "Invalid Year Movie",
     "year": 1800,
     "rating": 7.5,
-    "director": "Christopher Nolan"
+    "director": "Christopher Nolan",
+    "oscar": true
 }
 
 ###
@@ -80,7 +84,8 @@ Authorization: {{token}}
     "name": "Inception Updated",
     "year": 2015,
     "rating": 8.0,
-    "director": "Steven Spielberg"
+    "director": "Steven Spielberg",
+    "oscar": true
 }
 
 ###
