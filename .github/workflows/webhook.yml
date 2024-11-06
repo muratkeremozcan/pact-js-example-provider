@@ -133,9 +133,4 @@ jobs:
           PACT_BREAKING_CHANGE: ${{ env.PACT_BREAKING_CHANGE }}
         run: |
           echo "Running provider contract tests with PACT_BREAKING_CHANGE=$PACT_BREAKING_CHANGE"
-          if [[ "$PACT_BREAKING_CHANGE" == "true" ]]; then
-            echo "Running provider tests only against matching branch due to breaking change."
-            npm run test:provider-ci -- --consumer-version-selectors '[{"matchingBranch": true}]'
-          else
-            npm run test:provider-ci
-          fi
+          npm run test:provider-ci
