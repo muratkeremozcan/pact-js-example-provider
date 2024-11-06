@@ -5,7 +5,7 @@ name: Webhook-triggered Provider Contract Test
 on:
   repository_dispatch:
     types:
-      - contract_content_changed
+      - contract_published
 
 concurrency:
   group: ${{ github.ref }} && ${{ github.workflow }}
