@@ -55,61 +55,69 @@ jobs:
 
           # Fetch the pact JSON from the Pact Broker using the PACT_PAYLOAD_URL
           PACT_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$PACT_PAYLOAD_URL")
-          echo "DEBUG: Full PACT_JSON response:"
-          echo "$PACT_JSON" | jq '.'
 
           # Extract the consumer version URL from the pact JSON using jq
           CONSUMER_VERSION_URL=$(echo "$PACT_JSON" | jq -r '._links."pb:consumer-version".href')
           echo "DEBUG: Consumer Version URL: $CONSUMER_VERSION_URL"
 
-          # Fetch the consumer version JSON from the consumer version URL
+          # Fetch the consumer version JSON
           CONSUMER_VERSION_JSON=$(curl -s -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$CONSUMER_VERSION_URL")
-          echo "DEBUG: Full Consumer Version JSON response:"
-          echo "$CONSUMER_VERSION_JSON" | jq '.'
 
-          # Output all branch versions to see if the desired branch is present
-          echo "DEBUG: All branchVersions data:"
-          echo "$CONSUMER_VERSION_JSON" | jq '._embedded.branchVersions'
+          echo "DEBUG: Looking for branch information in multiple locations..."
 
-          # Search for any branch containing 'breaking' in its name
-          CONSUMER_BRANCH=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.branchVersions[] | select(.name | contains("breaking")) | .name')
-          echo "DEBUG: Branch name containing 'breaking': $CONSUMER_BRANCH"
+          # Try to extract branch name from different possible locations
+          BRANCH_FROM_METADATA=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.metadata.branch // empty')
+          echo "DEBUG: Branch from metadata: $BRANCH_FROM_METADATA"
 
-          # Fallback to the first branch if none contains 'breaking'
-          if [ -z "$CONSUMER_BRANCH" ]; then
-            echo "DEBUG: No branch with 'breaking' found, defaulting to first branch"
-            CONSUMER_BRANCH=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.branchVersions[0].name')
-          fi
+          BRANCH_FROM_TAGS=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.tags[].name | select(contains("branch-")) // empty' | head -n1)
+          echo "DEBUG: Branch from tags: $BRANCH_FROM_TAGS"
 
-          # If CONSUMER_BRANCH is still null or empty, default to 'main'
-          if [ "$CONSUMER_BRANCH" = "null" ] || [ -z "$CONSUMER_BRANCH" ]; then
-            echo "DEBUG: Branch name was null or empty after search, defaulting to 'main'"
+          BRANCH_FROM_BRANCHES=$(echo "$CONSUMER_VERSION_JSON" | jq -r '._embedded.branchVersions[].name // empty' | head -n1)
+          echo "DEBUG: Branch from branchVersions: $BRANCH_FROM_BRANCHES"
+
+          # Try to get branch from version number if it contains branch information
+          VERSION_NUMBER=$(echo "$CONSUMER_VERSION_JSON" | jq -r '.number // empty')
+          echo "DEBUG: Version number: $VERSION_NUMBER"
+
+          # Determine the branch name using the following priority:
+          # 1. Branch from metadata
+          # 2. Branch from tags
+          # 3. Branch from branchVersions
+          # 4. Default to 'main'
+          if [ ! -z "$BRANCH_FROM_METADATA" ]; then
+            CONSUMER_BRANCH="$BRANCH_FROM_METADATA"
+            echo "DEBUG: Using branch from metadata"
+          elif [ ! -z "$BRANCH_FROM_TAGS" ]; then
+            CONSUMER_BRANCH="${BRANCH_FROM_TAGS#branch-}"  # Remove 'branch-' prefix if present
+            echo "DEBUG: Using branch from tags"
+          elif [ ! -z "$BRANCH_FROM_BRANCHES" ]; then
+            CONSUMER_BRANCH="$BRANCH_FROM_BRANCHES"
+            echo "DEBUG: Using branch from branchVersions"
+          else
             CONSUMER_BRANCH="main"
+            echo "DEBUG: No branch found in any location, defaulting to 'main'"
           fi
 
-          echo "DEBUG: Final Consumer branch name after search: $CONSUMER_BRANCH"
+          echo "DEBUG: Selected consumer branch: $CONSUMER_BRANCH"
 
-          # Determine if it's a breaking change based on branch naming convention
+          # Determine if it's a breaking change
           if [[ "${CONSUMER_BRANCH,,}" == *"breaking"* && "${CONSUMER_BRANCH,,}" != "main" ]]; then
             echo "DEBUG: Setting PACT_BREAKING_CHANGE=true"
             echo "PACT_BREAKING_CHANGE=true" >> $GITHUB_ENV
-            echo "Breaking change detected: Branch contains 'breaking' and is not 'main'"
+            echo "Breaking change detected in branch: $CONSUMER_BRANCH"
           else
             echo "DEBUG: Setting PACT_BREAKING_CHANGE=false"
             echo "PACT_BREAKING_CHANGE=false" >> $GITHUB_ENV
-            echo "No breaking change detected: Branch either doesn't contain 'breaking' or is 'main'"
+            echo "No breaking change detected in branch: $CONSUMER_BRANCH"
           fi
 
-          # Set environment variables and show final state
+          # Set the branch name in the environment
           echo "CONSUMER_BRANCH=$CONSUMER_BRANCH" >> $GITHUB_ENV
+
+          # Final debug output
           echo "Final state:"
           echo "- Consumer Branch: $CONSUMER_BRANCH"
           echo "- PACT_BREAKING_CHANGE: $(cat $GITHUB_ENV | grep 'PACT_BREAKING_CHANGE' | cut -d'=' -f2)"
-
-          # Additional validation check
-          echo "DEBUG: Validation of breaking change detection:"
-          echo "Branch name: $CONSUMER_BRANCH"
-          echo "Contains 'breaking': $(if [[ "$CONSUMER_BRANCH" == *"breaking"* ]]; then echo "YES"; else echo "NO"; fi)"
 
       # Step 4: Checkout code using actions/checkout
       # We use actions/checkout to clone the repository and fetch all branches.
