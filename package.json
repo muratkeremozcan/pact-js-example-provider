@@ -40,10 +40,10 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "7.2.0",
-    "@prisma/client": "5.22.0",
+    "@prisma/client": "6.0.0",
     "express": "4.21.1",
     "kafkajs": "2.2.4",
-    "prisma": "5.22.0",
+    "prisma": "6.0.0",
     "zod": "3.23.8"
   },
   "devDependencies": {
