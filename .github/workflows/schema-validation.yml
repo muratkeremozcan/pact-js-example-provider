@@ -34,28 +34,34 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Optic lint base OpenAPI spec ahead of other checks
+        run: npm run optic:lint
+
       # This workflow exists so we do not have to locally generate the OpenAPI spec.
       # If the OpenAPI spec has changed, it commits and pushes those changes back to the PR branch
-      - name: Generate OpenAPI docs from code
+      - name: Generate OpenAPI spec from code
         run: npm run generate:openapi
 
-      - name: Check if OpenAPI docs have changed
+      - name: Generate api docs for Github Pages (html)
+        run: npm run generate:api-docs
+
+      - name: Check if OpenAPI spec and/or API docs for Github Pages (html) have changed
         id: check_changes
         run: |
-          if git diff --quiet src/api-docs/openapi.yml src/api-docs/openapi.json; then
+          if git diff --quiet src/api-docs/openapi.yml src/api-docs/openapi.json docs/api-docs.html; then
             echo "changes=false" >> $GITHUB_ENV
           else
             echo "changes=true" >> $GITHUB_ENV
           fi
 
-      - name: Commit and push OpenAPI changes
+      - name: Commit and push OpenAPI spec and API docs for Github Pages (html) changes
         if: env.changes == 'true'
         uses: EndBug/add-and-commit@v9
         with:
           author_name: 'GitHub Actions'
           author_email: 'actions@github.com'
-          message: 'Update OpenAPI spec'
-          add: 'src/api-docs/openapi.yml src/api-docs/openapi.json'
+          message: 'Update OpenAPI spec and API docs'
+          add: 'src/api-docs/openapi.yml src/api-docs/openapi.json docs/api-docs.html'
           push: true
           github_token: ${{ secrets.PAT_TOKEN }}
 
@@ -67,8 +73,9 @@ jobs:
           git commit --allow-empty -m "Re-run checks after OpenAPI update"
           git push origin HEAD:${{ github.head_ref }}
 
-      - name: Fetch main branch for Optic
+      # Schema validation
+      - name: Fetch main branch for Optic (Begin schema validation)
         run: git fetch --depth=1 origin main:main
 
-      - name: Optic diff
+      - name: Optic diff (OpenAPI diff vs snapshot on main)
         run: npm run optic:diff
