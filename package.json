@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@bahmutov/cy-api": "2.2.6",
-    "@bahmutov/cypress-esbuild-preprocessor": "2.2.3",
+    "@bahmutov/cypress-esbuild-preprocessor": "2.2.4",
     "@cypress/skip-test": "2.6.1",
     "@esbuild-plugins/node-globals-polyfill": "0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "0.2.2",
@@ -66,7 +66,7 @@
     "cy-spok": "1.6.2",
     "cypress": "13.16.1",
     "cypress-ajv-schema-validator": "1.4.0",
-    "cypress-data-session": "2.8.5",
+    "cypress-data-session": "2.8.6",
     "cypress-map": "1.43.0",
     "cypress-recurse": "1.35.3",
     "cypress-skip-test": "1.0.0",
