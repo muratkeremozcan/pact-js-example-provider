@@ -1,5 +1,7 @@
 # PactJS Contract Testing Example
 
+[![API Documentation](https://img.shields.io/badge/API-DOCUMENTATION-blue?style=flat-square)](https://muratkeremozcan.github.io/redocly-ref-flat-openapi-spec/api-docs.html)
+
 ![Pact Status](https://ozcan.pactflow.io/pacts/provider/MoviesAPI/consumer/WebConsumer/latest/badge.svg)
 
 ![Can I Deploy?](https://ozcan.pactflow.io/pacticipants/MoviesAPI/branches/main/latest-version/can-i-deploy/to-environment/dev/badge.svg)
@@ -240,14 +242,14 @@ Alternatively, use the CLI to add the webhook. Prior to running the scripts:
   Get it at https://github.com/pact-foundation/pact-ruby-standalone/releases, per your OS
 
   > You may have to set the path with zshell:
-  > `export PATH=$PATH:$(pwd)/pact/bin` 
+  > `export PATH=$PATH:$(pwd)/pact/bin`
   > or with fish:
-  > `set -x PATH $PATH (pwd)/pact/bin` 
+  > `set -x PATH $PATH (pwd)/pact/bin`
   >
   > Test with
   > `pact-broker version`
   >
-  > Ensure that your target provider GitHub repository has a .yml workflow file in .github/workflows/ 
+  > Ensure that your target provider GitHub repository has a .yml workflow file in .github/workflows/
   > configured to respond to repository_dispatch events with an event type like "contract_requiring_verification_published".
   > Example: https://github.com/muratkeremozcan/pact-js-example-provider/blob/main/.github/workflows/webhook.yml
 
