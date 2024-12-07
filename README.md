@@ -1,6 +1,6 @@
 # PactJS Contract Testing Example
 
-[![API Documentation](https://img.shields.io/badge/API-DOCUMENTATION-blue?style=flat-square)](https://muratkeremozcan.github.io/redocly-ref-flat-openapi-spec/api-docs.html)
+[![API Documentation](https://img.shields.io/badge/API-DOCUMENTATION-blue?style=flat-square)](https://muratkeremozcan.github.io/pact-js-example-provider/api-docs.html)
 
 ![Pact Status](https://ozcan.pactflow.io/pacts/provider/MoviesAPI/consumer/WebConsumer/latest/badge.svg)
 
