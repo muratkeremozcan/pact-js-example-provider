@@ -39,7 +39,7 @@
     "optic:verify-ci": ". ./scripts/env-setup.sh && start-server-and-test start http://localhost:${PORT} optic:verify"
   },
   "dependencies": {
-    "@asteasolutions/zod-to-openapi": "7.2.0",
+    "@asteasolutions/zod-to-openapi": "7.3.0",
     "@prisma/client": "6.0.1",
     "express": "4.21.2",
     "kafkajs": "2.2.4",
@@ -65,7 +65,7 @@
     "cross-env": "7.0.3",
     "cy-spok": "1.6.2",
     "cypress": "13.16.1",
-    "cypress-ajv-schema-validator": "1.3.0",
+    "cypress-ajv-schema-validator": "1.4.0",
     "cypress-data-session": "2.8.5",
     "cypress-map": "1.43.0",
     "cypress-recurse": "1.35.3",
