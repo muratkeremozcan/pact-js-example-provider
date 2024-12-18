@@ -5,44 +5,61 @@ version: '3.8'  # Version of Docker Compose file format
 
 services:
   kafka:
-    image: confluentinc/cp-kafka:6.0.14  # Kafka Docker image
-    platform: linux/amd64  # Ensures compatibility with AMD64 architecture
+    image: bitnami/kafka:latest  # Kafka Docker image from Bitnami repository (multi-architecture support).
+    platform: linux/amd64  # Ensures compatibility with AMD64 architecture to avoid ARM issues on Apple Silicon.
     depends_on:
-      - zookeeper  # Kafka requires Zookeeper for managing configurations and cluster state
+      - zookeeper  # Kafka requires Zookeeper for managing configurations and cluster state.
     ports:
-      - '29092:29092'  # Exposes Kafka on port 29092 for external access
+      - '29092:29092'  # Maps external port 29092 to Kafka's listener for external access.
     expose:
-      - '29092'  # Makes port 29092 available for other containers in the same Docker network
+      - '29092'  # Makes port 29092 available for other containers in the same Docker network.
     environment:
-      KAFKA_BROKER_ID: 1  # Unique identifier for this Kafka broker
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'  # Connects Kafka to the Zookeeper service via its default port 2181
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka:9092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:29092
-      # Kafka uses advertised listeners to allow clients to connect. One listener for internal Docker network and another for external access.
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
-      # Mapping listener protocols to plaintext (no encryption/authentication).
-      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL  # Used for inter-broker communication within Docker network
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # Replication factor for Kafka's internal topic used to manage consumer offsets
+      KAFKA_BROKER_ID: 1  # Unique identifier for this Kafka broker instance.
+
+      KAFKA_CFG_ZOOKEEPER_CONNECT: 'zookeeper:2181'  
+      # Specifies Zookeeper's connection string (host and port) to enable Kafka to use it.
+
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,EXTERNAL://:29092  
+      # Defines Kafka's listeners:
+      # - PLAINTEXT listener for internal Docker communication.
+      # - EXTERNAL listener for connections outside the container via port 29092.
+
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:29092  
+      # Specifies how Kafka advertises its listeners to clients:
+      # - Internal Docker network: 'PLAINTEXT://kafka:9092' (accessible by other containers).
+      # - External access: 'EXTERNAL://localhost:29092' (accessible by external clients).
+
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT  
+      # Maps the listeners (PLAINTEXT and EXTERNAL) to the PLAINTEXT security protocol. 
+      # This avoids encryption/authentication and keeps it simple for local development.
+
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT  
+      # Specifies that Kafka brokers communicate with each other using the PLAINTEXT listener.
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  
+      # Sets the replication factor for Kafka's internal `__consumer_offsets` topic. 
+      # Since it's a single-node setup, replication is set to 1.
+
     volumes:
-      - kafka_data:/var/lib/kafka/data  # Persistent storage for Kafka logs to avoid data loss during container restarts
+      - kafka_data:/var/lib/kafka/data  
+      # Maps a persistent volume to store Kafka logs and data, preventing data loss on restarts.
 
   init-kafka:
-    image: confluentinc/cp-kafka:6.0.14  # Kafka image, the same as the main Kafka broker
+    image: bitnami/kafka:latest  # Kafka image, the same as the main Kafka broker
     depends_on:
       - kafka  # Will run after the Kafka broker is up and running
     entrypoint: ['/bin/sh', '-c']  # Defines the shell entry point for this container
     command: |
       "
-      # The command to initialize Kafka topics
-      # Waits until Kafka is available and lists topics to ensure the broker is up
-      kafka-topics --bootstrap-server kafka:9092 --list
+      # Wait for Kafka to be ready
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
 
-      # Create the 'movies' topic if it does not already exist
+      # Create the 'movies' topic
       echo -e 'Creating kafka topics'
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic movies --replication-factor 1 --partitions 1
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic movies --replication-factor 1 --partitions 1
 
-      # Output the list of all topics in Kafka
       echo -e 'Successfully created the following topics:'
-      kafka-topics --bootstrap-server kafka:9092 --list
+      /opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
       "
 
   kafka-ui:
