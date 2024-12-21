@@ -1,0 +1,68 @@
+name: Run e2e tests with pw
+on:
+  push:
+  workflow_dispatch:
+
+# if this branch is pushed back to back, cancel the older branch's workflow
+concurrency:
+  group: ${{ github.ref }} && ${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  DATABASE_URL: 'file:./dev.db'
+  PORT: 3001
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+  KAFKAJS_NO_PARTITIONER_WARNING: 1 # less kafka noise
+
+jobs:
+  pw-e2e-test:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Read Node version from .nvmrc
+        id: node_version
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium Only
+        run: npx playwright install chromium
+
+      # Start Kafka
+      - name: Start Kafka
+        continue-on-error: true # If Kafka fails to start, tests without Kafka can still run
+        run: docker compose -f ./src/events/kafka-cluster.yml up -d --no-recreate
+
+      - name: Run Playwright tests
+        run: npm run pw:run-local
+
+      # Stop Kafka after tests
+      - name: Stop Kafka
+        continue-on-error: true
+        if: always()
+        run: docker compose -f ./src/events/kafka-cluster.yml down
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 3
