@@ -37,7 +37,13 @@
     "optic:verify": "optic capture src/api-docs/openapi.yml",
     "optic:update": "optic capture src/api-docs/openapi.yml --update interactive",
     "optic:verify-ci": ". ./scripts/env-setup.sh && start-server-and-test start http://localhost:${PORT} optic:verify",
-    "generate:api-docs": "rm -rf docs && npx redocly build-docs src/api-docs/openapi.yml -o docs/api-docs.html"
+    "generate:api-docs": "rm -rf docs && npx redocly build-docs src/api-docs/openapi.yml -o docs/api-docs.html",
+    "pw:open": "npx playwright test --ui",
+    "pw:open-local": "npx playwright test --ui --config=pw/config/local.config.ts",
+    "pw:open-local-debug": "PWDEBUG=1 npx playwright test --ui --config=pw/config/local.config.ts",
+    "pw:run-local": "npx playwright test  --config=pw/config/local.config.ts",
+    "pw:run-local-trace": "npx playwright test --trace on && npx playwright show-report  --config=pw/config/local.config.ts",
+    "pw:open-local-trace": "npx playwright show-trace  --config=pw/config/local.config.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "7.3.0",
@@ -56,6 +62,7 @@
     "@faker-js/faker": "9.3.0",
     "@pact-foundation/pact": "13.2.0",
     "@pact-foundation/pact-cli": "16.0.4",
+    "@playwright/test": "^1.49.1",
     "@redocly/cli": "^1.25.15",
     "@types/jest": "29.5.14",
     "@types/lodash": "4.17.13",

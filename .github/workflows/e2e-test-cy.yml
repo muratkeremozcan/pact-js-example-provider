@@ -1,4 +1,4 @@
-name: Run e2e tests
+name: Run e2e tests with cy
 on:
   pull_request:
   workflow_dispatch:
@@ -19,7 +19,7 @@ env:
   KAFKAJS_NO_PARTITIONER_WARNING: 1 # less kafka noise
 
 jobs:
-  e2e-test:
+  cy-e2e-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -5,6 +5,8 @@
     "./jest-pact.config.ts",
     "./.eslintrc.js",
     "cypress",
+    "pw",
+    "playwright.config.ts",
     "prisma"
   ],
   "exclude": ["node_modules", "coverage", "dist", "**/*.*test.ts*"],
