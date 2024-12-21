@@ -52,7 +52,7 @@ jobs:
         run: docker compose -f ./src/events/kafka-cluster.yml up -d --no-recreate
 
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npm run pw:run-local
 
       # Stop Kafka after tests
       - name: Stop Kafka
