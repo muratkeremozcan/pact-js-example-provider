@@ -1,6 +1,6 @@
 // pw/support/helpers/crud-helper-fixtures.ts
 
-import { test as base } from './api-request-fixture'
+import { test as baseApiRequestFixture } from './api-request-fixture'
 import type { Movie } from '@prisma/client'
 import type { ApiRequestResponse } from './api-request-fixture'
 
@@ -15,7 +15,7 @@ export type ServerResponse<T> = {
   data: T
 }
 
-const test = base.extend<{
+export const test = baseApiRequestFixture.extend<{
   addMovie: (
     token: string,
     body: Omit<Movie, 'id'>
@@ -123,5 +123,3 @@ const test = base.extend<{
     await use(deleteMovie)
   }
 })
-
-export { test }
