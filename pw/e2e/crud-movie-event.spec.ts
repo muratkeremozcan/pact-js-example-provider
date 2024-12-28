@@ -3,19 +3,28 @@ import { runCommand } from '../support/utils/run-command'
 import { generateMovieWithoutId } from '../../src/test-helpers/factories'
 import { parseKafkaEvent } from '../support/parse-kafka-event'
 import { recurseWithExpect } from '../support/utils/recurse-with-expect'
+import type { Movie } from '@prisma/client'
 
 test.describe('CRUD movie', () => {
   const movie = generateMovieWithoutId()
   const updatedMovie = generateMovieWithoutId()
-  const movieProps = {
+  let token: string
+
+  const movieProps: Omit<Movie, 'id'> = {
+    name: movie.name,
+    year: movie.year,
+    rating: movie.rating,
+    director: movie.director
+  }
+
+  const movieEventProps = {
     name: expect.any(String),
     year: expect.any(Number),
     rating: expect.any(Number),
     director: expect.any(String)
   }
-  let token: string
 
-  test.beforeAll('should get a token with helper', async ({ apiRequest }) => {
+  test.beforeAll(async ({ apiRequest }) => {
     const responseCode = runCommand(
       `curl -s -o /dev/null -w "%{http_code}" ${process.env.KAFKA_UI_URL}`
     )
@@ -45,18 +54,13 @@ test.describe('CRUD movie', () => {
       token,
       movie
     )
+    const movieId = createResponse.data.id
+
     expect(createStatus).toBe(200)
     expect(createResponse).toMatchObject({
       status: 200,
-      data: {
-        name: movie.name,
-        year: movie.year,
-        rating: movie.rating,
-        director: movie.director
-      }
+      data: { ...movieProps, id: movieId }
     })
-
-    const movieId = createResponse.data.id
 
     // Wait for 'movie-created' Kafka event using recurseWithExpect
     await recurseWithExpect(
@@ -71,7 +75,7 @@ test.describe('CRUD movie', () => {
             key: String(movieId),
             movie: {
               id: movieId,
-              ...movieProps
+              ...movieEventProps
             }
           }
         ])
@@ -79,11 +83,11 @@ test.describe('CRUD movie', () => {
       { timeout: 10000, interval: 500 }
     )
 
-    // Get all movies and verify the new movie exists
-    const { body: allMoviesResponse, status: getAllStatus } =
+    // Get all movies and verify that the movie exists
+    const { body: getAllResponse, status: getAllStatus } =
       await getAllMovies(token)
     expect(getAllStatus).toBe(200)
-    expect(allMoviesResponse).toMatchObject({
+    expect(getAllResponse).toMatchObject({
       status: 200,
       data: expect.arrayContaining([
         expect.objectContaining({ id: movieId, name: movie.name })
@@ -98,13 +102,7 @@ test.describe('CRUD movie', () => {
     expect(getByIdStatus).toBe(200)
     expect(getByIdResponse).toMatchObject({
       status: 200,
-      data: {
-        id: movieId,
-        name: movie.name,
-        year: movie.year,
-        rating: movie.rating,
-        director: movie.director
-      }
+      data: { ...movieProps, id: movieId }
     })
 
     // Get the movie by name
@@ -113,10 +111,7 @@ test.describe('CRUD movie', () => {
     expect(getByNameStatus).toBe(200)
     expect(getByNameResponse).toMatchObject({
       status: 200,
-      data: {
-        id: movieId,
-        ...movieProps
-      }
+      data: { ...movieProps, id: movieId }
     })
 
     // Update the movie
@@ -149,7 +144,7 @@ test.describe('CRUD movie', () => {
             key: String(movieId),
             movie: {
               id: movieId,
-              ...movieProps
+              ...movieEventProps
             }
           }
         ])
@@ -158,8 +153,12 @@ test.describe('CRUD movie', () => {
     )
 
     // Delete the movie
-    const { status: deleteStatus } = await deleteMovie(token, movieId)
+    const {
+      status: deleteStatus,
+      body: { message }
+    } = await deleteMovie(token, movieId)
     expect(deleteStatus).toBe(200)
+    expect(message).toBe(`Movie ${movieId} has been deleted`)
 
     await recurseWithExpect(
       async () => {
@@ -173,7 +172,7 @@ test.describe('CRUD movie', () => {
             key: String(movieId),
             movie: {
               id: movieId,
-              ...movieProps
+              ...movieEventProps
             }
           }
         ])
