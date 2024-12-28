@@ -1,49 +1,49 @@
 import type { Movie } from '@prisma/client'
 import { test as baseApiRequestFixture } from './api-request-fixture'
 import type { ApiRequestResponse } from './api-request-fixture'
+import type {
+  DeleteMovieResponse,
+  CreateMovieResponse,
+  GetMovieResponse,
+  UpdateMovieResponse
+} from '../../../src/@types'
 
 // Common headers function
 const commonHeaders = (token: string) => ({
   Authorization: token
 })
 
-// Define the ServerResponse type
-export type ServerResponse<T> = {
-  status: number
-  data: T
-}
-
 export const test = baseApiRequestFixture.extend<{
   addMovie: (
     token: string,
     body: Omit<Movie, 'id'>,
     baseUrl?: string
-  ) => Promise<ApiRequestResponse<ServerResponse<Movie>>>
+  ) => Promise<ApiRequestResponse<CreateMovieResponse>>
   getAllMovies: (
     token: string,
     baseUrl?: string
-  ) => Promise<ApiRequestResponse<ServerResponse<Movie[]>>>
+  ) => Promise<ApiRequestResponse<GetMovieResponse>>
   getMovieById: (
     token: string,
     id: number,
     baseUrl?: string
-  ) => Promise<ApiRequestResponse<ServerResponse<Movie>>>
+  ) => Promise<ApiRequestResponse<GetMovieResponse>>
   getMovieByName: (
     token: string,
     name: string,
     baseUrl?: string
-  ) => Promise<ApiRequestResponse<ServerResponse<Movie[]>>>
+  ) => Promise<ApiRequestResponse<GetMovieResponse>>
   updateMovie: (
     token: string,
     id: number,
     body: Partial<Movie>,
     baseUrl?: string
-  ) => Promise<ApiRequestResponse<ServerResponse<Movie>>>
+  ) => Promise<ApiRequestResponse<UpdateMovieResponse>>
   deleteMovie: (
     token: string,
     id: number,
     baseUrl?: string
-  ) => Promise<ApiRequestResponse<ServerResponse<void>>>
+  ) => Promise<ApiRequestResponse<DeleteMovieResponse>>
 }>({
   addMovie: async ({ apiRequest }, use) => {
     const addMovie = async (
@@ -51,7 +51,7 @@ export const test = baseApiRequestFixture.extend<{
       body: Omit<Movie, 'id'>,
       baseUrl?: string
     ) => {
-      return apiRequest<ServerResponse<Movie>>({
+      return apiRequest<CreateMovieResponse>({
         method: 'POST',
         url: '/movies',
         baseUrl,
@@ -65,7 +65,7 @@ export const test = baseApiRequestFixture.extend<{
 
   getAllMovies: async ({ apiRequest }, use) => {
     const getAllMovies = async (token: string, baseUrl?: string) => {
-      return apiRequest<ServerResponse<Movie[]>>({
+      return apiRequest<GetMovieResponse>({
         method: 'GET',
         url: '/movies',
         baseUrl,
@@ -82,7 +82,7 @@ export const test = baseApiRequestFixture.extend<{
       id: number,
       baseUrl?: string
     ) => {
-      return apiRequest<ServerResponse<Movie>>({
+      return apiRequest<GetMovieResponse>({
         method: 'GET',
         url: `/movies/${id}`,
         baseUrl,
@@ -103,7 +103,7 @@ export const test = baseApiRequestFixture.extend<{
       const queryParams = new URLSearchParams({ name }).toString()
       const url = `/movies?${queryParams}` // Append the query string to the endpoint
 
-      return apiRequest<ServerResponse<Movie[]>>({
+      return apiRequest<GetMovieResponse>({
         method: 'GET',
         url, // Pass the constructed URL
         baseUrl,
@@ -121,7 +121,7 @@ export const test = baseApiRequestFixture.extend<{
       body: Partial<Movie>,
       baseUrl?: string
     ) => {
-      return apiRequest<ServerResponse<Movie>>({
+      return apiRequest<UpdateMovieResponse>({
         method: 'PUT',
         url: `/movies/${id}`,
         baseUrl,
@@ -135,7 +135,7 @@ export const test = baseApiRequestFixture.extend<{
 
   deleteMovie: async ({ apiRequest }, use) => {
     const deleteMovie = async (token: string, id: number, baseUrl?: string) => {
-      return apiRequest<ServerResponse<void>>({
+      return apiRequest<DeleteMovieResponse>({
         method: 'DELETE',
         url: `/movies/${id}`,
         baseUrl,
