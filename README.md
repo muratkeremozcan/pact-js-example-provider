@@ -16,7 +16,7 @@ Consumer service: https://github.com/muratkeremozcan/pact-js-example-consumer
 
 React consumer app for bi-directional contract testing: https://github.com/muratkeremozcan/pact-js-example-react-consumer
 
-![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/lxvhm3whvq36023haozh.png)
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/8qjfdsunkrdncqrcy3sw.png)
 
 - [PactJS Contract Testing Example](#pactjs-contract-testing-example)
   - [Setup](#setup)
