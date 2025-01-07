@@ -32,7 +32,7 @@ React consumer app for bi-directional contract testing: https://github.com/murat
       - [Breaking change - provider flow](#breaking-change---provider-flow)
   - [Consumer Tests](#consumer-tests)
   - [Provider Tests](#provider-tests)
-    - [Execution](#execution)
+      - [Execution](#execution)
   - [Message queue consumer tests in short](#message-queue-consumer-tests-in-short)
   - [Message queue provider tests in short](#message-queue-provider-tests-in-short)
     - [Execution (Same as traditional CDCT)](#execution-same-as-traditional-cdct)
@@ -40,11 +40,11 @@ React consumer app for bi-directional contract testing: https://github.com/murat
   - [Record Deployments](#record-deployments)
   - [Webhooks](#webhooks)
   - [Nuances of the env vars \& scripts](#nuances-of-the-env-vars--scripts)
-    - [Why `GITHUB_SHA` and `GITHUB_BRANCH`?](#why-github_sha-and-github_branch)
-    - [What is the Pact Matrix?](#what-is-the-pact-matrix)
+      - [Why `GITHUB_SHA` and `GITHUB_BRANCH`?](#why-github_sha-and-github_branch)
+      - [What is the Pact Matrix?](#what-is-the-pact-matrix)
   - [Bi-directional contract testing](#bi-directional-contract-testing)
-    - [Consumer flow for Pact Bi-directional contract testing](#consumer-flow-for-pact-bi-directional-contract-testing)
-    - [Provider flow for Pact Bi-directional contract testing](#provider-flow-for-pact-bi-directional-contract-testing)
+      - [Consumer flow for Pact Bi-directional contract testing](#consumer-flow-for-pact-bi-directional-contract-testing)
+      - [Provider flow for Pact Bi-directional contract testing](#provider-flow-for-pact-bi-directional-contract-testing)
     - [How does it work in the CI](#how-does-it-work-in-the-ci)
   - [OpenAPI Documentation and Schema Validation](#openapi-documentation-and-schema-validation)
   - [Database Management](#database-management)
@@ -110,6 +110,16 @@ npm run test:watch # watch mode
 npm run cy:open-local # open mode
 npm run cy:run-local  # run mode
 npm run cy:run-local-fast  # no video or screen shots
+
+# PW scripts
+npm run pw:open-local       # open mode (local config)
+npm run pw:open-local-debug # open with debug (local config)
+
+npm run pw:run-local        # run mode (local config)
+npm run pw:run-local-debug  # run with debug (local config)
+
+npm run pw:trace            # inspect a trace.zip file
+npm run pw:clear            # remove all temporary PW files
 ```
 
 #### Consumer specific scripts

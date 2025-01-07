@@ -7,7 +7,7 @@ export const baseConfig = defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 3 : 2,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: process.env.CI ? 'html' : 'list',
   use: {
     trace: 'on-first-retry'
   },
