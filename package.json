@@ -41,7 +41,7 @@
     "pw:open-local": "npx playwright test --ui -c pw/config/playwright-local.config.ts",
     "pw:open-local-debug": "PWDEBUG=1 npx playwright test --ui -c pw/config/playwright-local.config.ts",
     "pw:run-local": "npx playwright test -c pw/config/playwright-local.config.ts",
-    "pw:run-local-debug": "npx playwright test --trace on -c pw/config/playwright-local.config.ts ; npx playwright show-report",
+    "pw:run-local-debug": "PW_HTML_REPORT=1 npx playwright test --trace on -c pw/config/playwright-local.config.ts ; npx playwright show-report",
     "pw:trace": "npx playwright show-trace",
     "pw:clear": "rm -rf test-results playwright-report playwright/.cache"
   },
