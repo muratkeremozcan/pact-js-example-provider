@@ -2,10 +2,6 @@
 
 [![API Documentation](https://img.shields.io/badge/API-DOCUMENTATION-blue?style=flat-square)](https://muratkeremozcan.github.io/pact-js-example-provider/api-docs.html)
 
-![Pact Status](https://ozcan.pactflow.io/pacts/provider/MoviesAPI/consumer/WebConsumer/latest/badge.svg)
-
-![Can I Deploy?](https://ozcan.pactflow.io/pacticipants/MoviesAPI/branches/main/latest-version/can-i-deploy/to-environment/dev/badge.svg)
-
 An example test framework using Pact-js to validate contract testing between consumer and provider. The application that we are testing is a simple movies API that returns a list of movies.
 
 The biggest selling point of Consumer Driven Contract Testing (CDCT) in simple terms is the entities do not have to be in a common deployment; the contract / pact / json file instead binds them together. Which means we can work on the consumer in isolation, we can work on the provider in isolation, and we can test their integration without having to have them both running on the same machine or the same deployment.
