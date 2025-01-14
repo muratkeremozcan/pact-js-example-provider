@@ -109,3 +109,39 @@ function validateSchema<T>(
     return { success: false, error: errorMessages }
   }
 }
+
+/*
+How would this look in a lambda?
+
+Lambda Function (Driving Adapter)
+          |
+          v
+      MovieService
+          |
+          v
+   MovieRepository (Port)
+          |
+          v
+   MovieAdapter (Driven Adapter)
+          |
+          v
+      Database
+
+// example lambda
+// lambda functions replace the Express routes as driving adapters
+
+import { MovieService } from './movie-service'
+import { MovieAdapter } from './movie-adapter'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
+const movieRepository = new MovieAdapter(prisma)
+const movieService = new MovieService(movieRepository)
+
+export const getMovie = async (event) => {
+  const id = parseInt(event.pathParameters.id, 10)
+  return movieService.getMovieById(id)
+}
+
+
+*/
