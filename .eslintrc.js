@@ -33,6 +33,7 @@ module.exports = {
   rules: {
     '@typescript-eslint/consistent-type-imports': 'error',
     '@typescript-eslint/consistent-type-exports': 'error',
+    '@typescript-eslint/no-floating-promises': 'error',
     'no-only-tests/no-only-tests': 'error',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     'filenames/match-regex': ['error', '^[a-z0-9-._\\[\\]]+$', true],
