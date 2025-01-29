@@ -47,10 +47,10 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "7.3.0",
-    "@prisma/client": "6.2.1",
+    "@prisma/client": "6.3.0",
     "express": "4.21.2",
     "kafkajs": "2.2.4",
-    "prisma": "6.2.1",
+    "prisma": "6.3.0",
     "zod": "3.24.1"
   },
   "devDependencies": {
@@ -73,7 +73,7 @@
     "cors": "2.8.5",
     "cross-env": "7.0.3",
     "cy-spok": "1.6.2",
-    "cypress": "14.0.0",
+    "cypress": "14.0.1",
     "cypress-ajv-schema-validator": "1.4.0",
     "cypress-data-session": "2.8.6",
     "cypress-map": "1.43.0",
