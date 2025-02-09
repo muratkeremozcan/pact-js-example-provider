@@ -76,7 +76,7 @@
     "cypress": "14.0.2",
     "cypress-ajv-schema-validator": "1.4.0",
     "cypress-data-session": "2.8.6",
-    "cypress-map": "1.43.0",
+    "cypress-map": "1.45.0",
     "cypress-recurse": "1.35.3",
     "cypress-skip-test": "1.0.0",
     "dotenv": "16.4.7",
