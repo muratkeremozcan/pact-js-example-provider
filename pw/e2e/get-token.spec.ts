@@ -4,7 +4,7 @@ test.describe('token acquisition', () => {
   test('should get a token', async ({ request }) => {
     const tokenRes = await request.get('/auth/fake-token')
     const tokenResBody = await tokenRes.json()
-    const tokenResStatus = await tokenRes.status()
+    const tokenResStatus = tokenRes.status()
     const token = tokenResBody.token
 
     expect(tokenResStatus).toBe(200)

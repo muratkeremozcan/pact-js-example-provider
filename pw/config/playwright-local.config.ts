@@ -10,6 +10,9 @@ dotenvConfig({
 const BASE_URL = `http://localhost:${process.env.PORT}`
 
 export default merge({}, baseConfig, {
+  // Required: enable global setup to initialize auth configuration
+  globalSetup: '../support/global-setup.ts',
+
   use: {
     baseURL: BASE_URL
   },
