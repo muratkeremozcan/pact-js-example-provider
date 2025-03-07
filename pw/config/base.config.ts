@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { getStorageStatePath } from '../support/auth'
 
 export const baseConfig = defineConfig({
   testDir: '../e2e',
@@ -12,8 +13,11 @@ export const baseConfig = defineConfig({
     : process.env.PW_HTML_REPORT
       ? [['list'], ['html']]
       : 'list',
+  globalSetup: '../support/global-setup.ts',
   use: {
-    trace: 'retain-on-first-failure'
+    trace: 'retain-on-first-failure',
+    // Set the storage state path for all tests
+    storageState: getStorageStatePath()
   },
   projects: [
     {

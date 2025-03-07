@@ -5,7 +5,6 @@ import type { Movie } from '@prisma/client'
 test.describe('CRUD movie', () => {
   const movie = generateMovieWithoutId()
   const updatedMovie = generateMovieWithoutId()
-  let token: string
 
   const movieProps: Omit<Movie, 'id'> = {
     name: movie.name,
@@ -14,28 +13,18 @@ test.describe('CRUD movie', () => {
     director: movie.director
   }
 
-  test.beforeAll(async ({ apiRequest }) => {
-    const {
-      body: { token: fetchedToken }
-    } = await apiRequest<{ token: string }>({
-      method: 'GET',
-      url: '/auth/fake-token'
-    })
-
-    token = fetchedToken
-  })
-
   test('should crud', async ({
     addMovie,
     getAllMovies,
     getMovieById,
     getMovieByName,
     updateMovie,
-    deleteMovie
+    deleteMovie,
+    authToken
   }) => {
     // Add a movie
     const { body: createResponse, status: createStatus } = await addMovie(
-      token,
+      authToken,
       movie
     )
     const movieId = createResponse.data.id
@@ -48,7 +37,7 @@ test.describe('CRUD movie', () => {
 
     // Get all movies and verify that the movie exists
     const { body: getAllResponse, status: getAllStatus } =
-      await getAllMovies(token)
+      await getAllMovies(authToken)
     expect(getAllStatus).toBe(200)
     expect(getAllResponse).toMatchObject({
       status: 200,
@@ -59,7 +48,7 @@ test.describe('CRUD movie', () => {
 
     // Get the movie by ID
     const { body: getByIdResponse, status: getByIdStatus } = await getMovieById(
-      token,
+      authToken,
       movieId
     )
 
@@ -71,7 +60,7 @@ test.describe('CRUD movie', () => {
 
     // Get the movie by name
     const { body: getByNameResponse, status: getByNameStatus } =
-      await getMovieByName(token, movie.name)
+      await getMovieByName(authToken, movie.name)
 
     expect(getByNameStatus).toBe(200)
     expect(getByNameResponse).toMatchObject({
@@ -81,7 +70,7 @@ test.describe('CRUD movie', () => {
 
     // Update the movie
     const { body: updateResponse, status: updateStatus } = await updateMovie(
-      token,
+      authToken,
       movieId,
       updatedMovie
     )
@@ -101,12 +90,12 @@ test.describe('CRUD movie', () => {
     const {
       status: deleteStatus,
       body: { message }
-    } = await deleteMovie(token, movieId)
+    } = await deleteMovie(authToken, movieId)
     expect(deleteStatus).toBe(200)
     expect(message).toBe(`Movie ${movieId} has been deleted`)
 
     // Verify the movie no longer exists
-    const { body: allMoviesAfterDelete } = await getAllMovies(token)
+    const { body: allMoviesAfterDelete } = await getAllMovies(authToken)
     expect(allMoviesAfterDelete).toMatchObject({
       status: 200,
       data: expect.not.arrayContaining([
@@ -116,7 +105,7 @@ test.describe('CRUD movie', () => {
 
     // Attempt to delete the non-existing movie
     const { status: deleteNonExistentStatus, body: deleteNonExistentBody } =
-      await deleteMovie(token, movieId)
+      await deleteMovie(authToken, movieId)
     expect(deleteNonExistentStatus).toBe(404)
     expect(deleteNonExistentBody).toMatchObject({
       error: `Movie with ID ${movieId} not found`
