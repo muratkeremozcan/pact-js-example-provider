@@ -11,23 +11,8 @@ import {
 } from '@playwright/test'
 import { getAuthProvider } from './internal/auth-provider'
 import { getStorageStatePath } from './internal/auth-storage-utils'
-
-/**
- * Options for authentication fixtures
- */
-export interface AuthOptions {
-  /**
-   * Environment to use for authentication
-   * @default process.env.TEST_ENV || 'local'
-   */
-  environment?: string
-
-  /**
-   * User role to authenticate as
-   * @default 'default'
-   */
-  userRole?: string
-}
+import { getBaseUrl } from './internal/url-utils'
+import { type AuthOptions } from './internal/auth-types'
 
 /**
  * Creates auth fixtures that can be used to extend Playwright's test object
@@ -98,11 +83,12 @@ export function createAuthFixtures() {
       // Get token using the auth provider
       const token = await authProvider.getToken(request, authOptions)
 
-      // Create and configure browser context
+      // Create and configure browser context with environment-aware base URL
       const context = await browser.newContext({
-        baseURL:
-          process.env.BASE_URL ||
-          `http://localhost:${process.env.PORT || 8080}`,
+        baseURL: getBaseUrl({
+          environment: authOptions.environment || 'local',
+          baseUrl: authOptions.baseUrl
+        }),
         storageState: getStorageStatePath(authOptions)
       })
 

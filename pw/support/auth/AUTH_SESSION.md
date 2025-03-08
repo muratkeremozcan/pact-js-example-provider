@@ -16,21 +16,32 @@ This library builds on Playwright's authentication capabilities to create a more
     - [Limitations of Playwright's Approach](#limitations-of-playwrights-approach)
     - [What This Library Adds](#what-this-library-adds)
   - [Quick Start Guide](#quick-start-guide)
-  - [Token Management Utilities](#token-management-utilities)
+  - [API Overview](#api-overview)
+    - [Core Token Management](#core-token-management)
+    - [Global Setup Utilities](#global-setup-utilities)
+    - [Auth Provider Management](#auth-provider-management)
+    - [Test Fixtures](#test-fixtures)
+    - [Utility Functions](#utility-functions)
   - [Basic Usage](#basic-usage)
     - [Using Authentication in API Tests](#using-authentication-in-api-tests)
+    - [Using Authentication in UI Tests](#using-authentication-in-ui-tests)
     - [Clearing Tokens When Needed](#clearing-tokens-when-needed)
   - [Advanced Usage](#advanced-usage)
-    - [Multi-Environment Support](#multi-environment-support)
+    - [Testing Against Different Deployment Environments](#testing-against-different-deployment-environments)
+    - [Separate Auth and Application URLs](#separate-auth-and-application-urls)
+      - [Configuring URL Settings in Your Fixtures](#configuring-url-settings-in-your-fixtures)
     - [Multi-Role Support](#multi-role-support)
+      - [1. Using Multiple User Roles in Tests](#1-using-multiple-user-roles-in-tests)
+      - [2. Alternative Approach with multi-role support: Role-Specific Fixtures](#2-alternative-approach-with-multi-role-support-role-specific-fixtures)
+      - [3. Testing Interactions Between Multiple Roles in a Single Test](#3-testing-interactions-between-multiple-roles-in-a-single-test)
     - [UI Testing with Browser Context](#ui-testing-with-browser-context)
     - [Custom Authentication Provider](#custom-authentication-provider)
       - [OAuth2 Example](#oauth2-example)
       - [Token Pre-fetching](#token-pre-fetching)
-    - [Testing Multiple Roles in a Single Test](#testing-multiple-roles-in-a-single-test)
     - [Parallel Testing with Worker-Specific Accounts](#parallel-testing-with-worker-specific-accounts)
-    - [Session Storage Support](#session-storage-support)
+    - [Session Storage Support (Extension Recipe)](#session-storage-support-extension-recipe)
     - [Resetting Authentication State](#resetting-authentication-state)
+    - [Token Management Utilities](#token-management-utilities)
   - [Implementation Details](#implementation-details)
     - [Storage Structure](#storage-structure)
 
@@ -44,7 +55,7 @@ Playwright provides a mechanism for saving and reusing authentication state thro
 
 This approach uses a dedicated setup project that runs before your test projects:
 
-<details><summary><strong>(Expand for details)</strong></summary>
+<details><summary><strong>Expand for details:</strong></summary>
 
 1. Create an authentication setup file:
 
@@ -108,7 +119,7 @@ export default defineConfig({
 
 Alternatively, you can use a global setup function that runs once before all tests:
 
-<details><summary><strong>(Expand for details)</strong></summary>
+<details><summary><strong>Expand for details:</strong></summary>
 
 1. Create a global setup file:
 
@@ -168,7 +179,7 @@ export default defineConfig({
 
 #### 3. Write tests that use the authenticated state
 
-<details><summary><strong>(Expand for details)</strong></summary>
+<details><summary><strong>Expand for details:</strong></summary>
 
 ```typescript
 // tests/dashboard.spec.**ts**
@@ -377,7 +388,12 @@ export default defineConfig({
 // pw/support/custom-auth-provider.ts
 import { type AuthProvider } from './auth'
 import * as fs from 'fs'
-import * as path from 'path'
+import {
+  getTokenFilePath,
+  authStorageInit
+} from './auth/internal/auth-storage-utils'
+import { loadTokenFromStorage, saveTokenToStorage } from './auth/core'
+import { getAuthBaseUrl } from './auth/internal/url-utils'
 
 // Create a custom provider implementation
 const myCustomProvider: AuthProvider = {
@@ -420,36 +436,46 @@ const myCustomProvider: AuthProvider = {
     const environment = this.getEnvironment(options)
     const userRole = this.getUserRole(options)
 
-    // Store tokens in the standard directory structure
-    const storageDir = path.resolve(
-      process.cwd(),
-      'pw',
-      '.auth-sessions',
+    // Use the utility functions to get standardized paths
+    const tokenPath = getTokenFilePath({
       environment,
-      userRole
-    )
-    const tokenPath = path.join(storageDir, 'auth-token.json')
+      userRole,
+      tokenFileName: 'custom-auth-token.json'
+    })
 
-    // Check if we already have a valid token
-    if (fs.existsSync(tokenPath)) {
-      const tokenData = JSON.parse(fs.readFileSync(tokenPath, 'utf8'))
+    // Note: All token paths are organized by environment and role
+    console.log(`[Custom Auth] Using token path: ${tokenPath}`)
 
-      // Optional: Add token expiration checks
-      // if (tokenData.expiresAt && new Date(tokenData.expiresAt) < new Date()) {
-      //   console.log('Token expired, will fetch a new one')
-      // } else {
-      //   return tokenData.token
-      // }
-
-      return tokenData.token
+    // Check if we already have a valid token using the core utility
+    // Enable debug logging for better visibility
+    console.log(`[Custom Auth] Checking for existing token at ${tokenPath}`)
+    const existingToken = loadTokenFromStorage(tokenPath, true)
+    if (existingToken) {
+      console.log(`[Custom Auth] Using existing token from ${tokenPath}`)
+      return existingToken
     }
 
     // Implement your token acquisition logic here
     // This is the main part you'll customize based on your auth system
     console.log(`Fetching new token for ${environment}/${userRole}`)
 
+    // Get authentication-specific URL - often different from application URL
+    // IMPORTANT: Note that this is different from the application URL (baseUrl)
+    // This allows separate domains for auth and application
+    const authBaseUrl = getAuthBaseUrl({
+      environment,
+      authBaseUrl: options.authBaseUrl // Can be explicitly passed in test options
+    })
+
+    // Get the endpoint (could also be environment-specific if needed)
+    const endpoint = process.env.AUTH_TOKEN_ENDPOINT || '/token'
+    const authUrl = `${authBaseUrl}${endpoint}`
+
+    console.log(`[Custom Auth] Requesting token from ${authUrl}`)
+
     // Example: Username/password authentication
-    const response = await request.post('/auth/token', {
+    // Note we're using the auth-specific URL here, not the application URL
+    const response = await request.post(authUrl, {
       data: {
         username: process.env.AUTH_USERNAME || 'test@example.com',
         password: process.env.AUTH_PASSWORD || 'password123'
@@ -460,24 +486,22 @@ const myCustomProvider: AuthProvider = {
     const data = await response.json()
     const token = data.access_token || data.token || data.accessToken
 
-    // Ensure the storage directory exists
-    if (!fs.existsSync(storageDir)) {
-      fs.mkdirSync(storageDir, { recursive: true })
-    }
+    // Initialize storage directories (in case you're not using authGlobalInit() in global-setup)
+    authStorageInit({ environment, userRole })
 
-    // Save token with metadata
-    fs.writeFileSync(
+    // Use the core utility to save the token with metadata
+    // Enable debug logging for better visibility
+    console.log(`[Custom Auth] Saving token to ${tokenPath}`)
+    saveTokenToStorage(
       tokenPath,
-      JSON.stringify(
-        {
-          token,
-          timestamp: new Date().toISOString()
-          // Optional: Add expiration if known
-          // expiresAt: new Date(Date.now() + 3600 * 1000).toISOString()
-        },
-        null,
-        2
-      )
+      token,
+      {
+        environment,
+        userRole
+        // Optional: Add expiration if known
+        // expiresAt: new Date(Date.now() + 3600 * 1000).toISOString()
+      },
+      true // Enable debug logging
     )
 
     return token
@@ -495,6 +519,11 @@ const myCustomProvider: AuthProvider = {
     const domain =
       environment === 'local' ? 'localhost' : `${environment}.example.com`
 
+    // Log what we're doing
+    console.log(
+      `[Custom Auth] Applying token to browser context for ${environment}`
+    )
+
     // Example: Set authentication cookie
     await context.addCookies([
       {
@@ -511,7 +540,7 @@ const myCustomProvider: AuthProvider = {
     // Example: Set localStorage as an alternative authentication method
     await context.addInitScript(`
       localStorage.setItem('token', '${token}');
-      console.log('Set token in localStorage');
+      console.log('[Custom Auth] Set token in localStorage');
     `)
 
     // Additional options you could implement:
@@ -529,19 +558,16 @@ const myCustomProvider: AuthProvider = {
     const environment = this.getEnvironment(options)
     const userRole = this.getUserRole(options)
 
-    // Use the same path structure as in getToken
-    const storageDir = path.resolve(
-      process.cwd(),
-      'pw',
-      '.auth-sessions',
+    // Use the utility function to get the token path - same as in getToken
+    const tokenPath = getTokenFilePath({
       environment,
-      userRole
-    )
-    const tokenPath = path.join(storageDir, 'auth-token.json')
+      userRole,
+      tokenFileName: 'custom-auth-token.json'
+    })
 
     // Remove the token file if it exists
     if (fs.existsSync(tokenPath)) {
-      console.log(`Clearing token at ${tokenPath}`)
+      console.log(`[Custom Auth] Clearing token at ${tokenPath}`)
       fs.unlinkSync(tokenPath)
     }
   }
@@ -596,37 +622,39 @@ test('authenticated request', async ({ authToken, request }) => {
 })
 ```
 
-## Token Management Utilities
+## API Overview
 
-The auth library provides utility functions for handling token storage and retrieval. These functions are available through the core API and can simplify custom auth provider implementations:
+The authentication library exposes the following functions:
 
-```typescript
-import {
-  loadTokenFromStorage,
-  saveTokenToStorage,
-  getTokenFilePath
-} from './auth/core'
+### Core Token Management
 
-// Load a token from storage
-const token = loadTokenFromStorage('/path/to/token.json', true) // Second parameter enables debug logging
+- `getAuthToken`: Retrieves an authentication token using the configured provider for the specified environment and role.
+- `clearAuthToken`: Clears the cached authentication token for the specified environment and role.
+- `applyAuthToBrowserContext`: Applies authentication to a browser context for UI testing.
+- `configureAuthSession`: Configures global authentication settings like environment and debug mode.
+- `defaultTokenFormatter`: Default function for formatting token data for storage.
 
-// Save a token with metadata
-saveTokenToStorage(
-  '/path/to/token.json',
-  'your-token-string',
-  { environment: 'staging', userRole: 'admin' }, // Optional metadata
-  true // Enable debug logging
-)
+### Global Setup Utilities
 
-// Get standardized token file path
-const tokenPath = getTokenFilePath({
-  environment: 'staging',
-  userRole: 'admin',
-  tokenFileName: 'custom-token.json' // Optional custom filename
-})
-```
+- `authStorageInit`: Initializes the authentication storage directories.
+- `authGlobalInit`: Pre-fetches tokens during global setup for improved performance.
+- `initializeAuthForGlobalSetup`: Simplified helper for common global setup needs.
 
-These utilities follow the TypeScript best practices of functional programming and DRY principles, helping to reduce duplication in custom auth provider implementations.
+### Auth Provider Management
+
+- `setAuthProvider`: Sets the global authentication provider implementation.
+- `getAuthProvider`: Gets the current authentication provider instance.
+
+### Test Fixtures
+
+- `createAuthFixtures`: Creates Playwright test fixtures with authentication support.
+- `createRoleSpecificTest`: Creates role-specific test fixtures for specialized testing.
+
+### Utility Functions
+
+- `getBaseUrl`: Gets the base URL for the current environment.
+- `getAuthBaseUrl`: Gets the authentication base URL for the current environment.
+- `getStorageStatePath`: Gets the path for storing browser storage state.
 
 ## Basic Usage
 
@@ -649,6 +677,34 @@ test('fetch protected data', async ({ authToken, request }) => {
 
 The `authToken` is automatically retrieved from storage or fetched from your API if needed.
 
+### Using Authentication in UI Tests
+
+The library seamlessly handles browser-based authentication too, applying your token to the browser context:
+
+```typescript
+// This example uses our actual implementation from pw/support/auth/test-fixtures.ts
+test('access protected page', async ({ page }) => {
+  // The page fixture is already coming from an authenticated context
+  // Behind the scenes in our implementation:
+  // 1. Gets a token using the auth provider
+  // 2. Creates a new browser context
+  // 3. Calls authProvider.applyToBrowserContext(context, token, options)
+  // 4. Creates a page from that authenticated context
+
+  // Simply navigate to your protected page - you're already authenticated!
+  await page.goto('/dashboard')
+
+  // Verify we can see authenticated content
+  await expect(page.locator('h1')).toContainText('Welcome Back')
+  await expect(page.locator('#user-profile')).toBeVisible()
+})
+```
+
+This works because our authentication system automatically handles separate URLs for:
+
+1. **Application URL** - Where your app is hosted (used for browser tests)
+2. **Auth Service URL** - Where authentication happens (used for token requests)
+
 ### Clearing Tokens When Needed
 
 In some scenarios, you may want to force a new token to be fetched:
@@ -667,186 +723,91 @@ test('after clearing token', async ({ request }) => {
 
 ## Advanced Usage
 
-### Multi-Environment Support
+### Testing Against Different Deployment Environments
 
-The auth system supports different testing environments through appropriate provider configuration:
+The auth library supports testing against different deployment environments through the enhanced `AuthOptions` interface. You can specify the environment directly, and the base URL will be determined automatically using the `getBaseUrl` utility:
 
 ```typescript
-// global-setup.ts
-import { authStorageInit, configureAuthSession, setAuthProvider } from './auth'
-import { createMultiEnvAuthProvider } from './auth-provider-factory'
+// Create a test for a specific environment
+const stagingTest = test.extend({
+  authOptions: [{ environment: 'staging' }, { option: true }]
+})
 
-async function globalSetup() {
-  // Step 1: Set up storage paths
-  authStorageInit()
-
-  // Step 2: Configure minimal auth settings (ALL PARAMETERS OPTIONAL)
-  // Note: Environment and userRole are now managed by the auth provider
-  // configureAuthSession is only used for debug settings
-  configureAuthSession({
-    debug: true
-  })
-
-  // Step 3: Create environment-aware provider (THIS IS WHERE ENV LOGIC BELONGS)
-  // The environment-specific behavior should be defined in the provider
-  const authProvider = createMultiEnvAuthProvider({
-    // The current environment can be determined at runtime
-    currentEnvironment: process.env.TEST_ENV || 'local',
-
-    // Define configuration for each environment
-    environments: {
-      local: {
-        baseUrl: 'http://localhost:3000',
-        tokenEndpoint: '/auth/token'
-      },
-      staging: {
-        baseUrl: 'https://staging-api.example.com',
-        tokenEndpoint: '/api/auth/login'
-      },
-      production: {
-        baseUrl: 'https://api.example.com',
-        tokenEndpoint: '/api/v2/auth/token'
-      }
-    }
-  })
-
-  // Step 4: Set the auth provider (REQUIRED)
-  setAuthProvider(authProvider)
-}
+// This test will run against staging environment
+stagingTest('should work in staging', async ({ page }) => {
+  // Will use [https://staging.example.com](https://staging.example.com) as the base URL
+  await page.goto('/dashboard')
+  // ...
+})
 ```
 
-A simple implementation of the multi-environment auth provider factory:
+You can also explicitly override the base URL for specific deployments:
 
 ```typescript
-// auth-provider-factory.ts
-import * as path from 'path'
-import * as fs from 'fs'
-import { AuthProvider } from './auth'
-
-export function createMultiEnvAuthProvider(config: {
-  environments: Record<string, { baseUrl: string; tokenEndpoint: string }>
-  defaultEnvironment?: string
-}): AuthProvider {
-  return {
-    // Get the current environment - single source of truth
-    getEnvironment(options = {}) {
-      return (
-        options.environment ||
-        config.defaultEnvironment ||
-        process.env.TEST_ENV ||
-        'local'
-      )
+// For a custom deployment or PR environment
+const prTest = test.extend({
+  authOptions: [
+    {
+      environment: 'dev',
+      baseUrl: 'https://pr-123.example.com'
     },
+    { option: true }
+  ]
+})
 
-    // Get the current user role - single source of truth
-    getUserRole(options = {}) {
-      return options.userRole || 'default'
-    },
-
-    async getToken(request, options = {}) {
-      // Use the provider's own methods instead of direct options access
-      const environment = this.getEnvironment(options)
-      const userRole = this.getUserRole(options)
-
-      // Get environment-specific config
-      const envConfig =
-        config.environments[environment] || config.environments.local
-
-      // Store tokens in environment-specific directories
-      const storageDir = path.resolve(
-        process.cwd(),
-        'pw',
-        '.auth-sessions',
-        environment,
-        userRole
-      )
-      const tokenPath = path.join(storageDir, 'auth-token.json')
-
-      // Check for existing token in environment-specific path
-      if (fs.existsSync(tokenPath)) {
-        const tokenData = JSON.parse(fs.readFileSync(tokenPath, 'utf8'))
-        // TODO: Add token validation/expiration check here if needed
-        return tokenData.token
-      }
-
-      // Get token from environment-specific endpoint
-      const response = await request.get(
-        `${envConfig.baseUrl}${envConfig.tokenEndpoint}`,
-        {
-          headers: { 'Content-Type': 'application/json' }
-        }
-      )
-      const data = await response.json()
-
-      // Save token with environment info
-      if (!fs.existsSync(storageDir)) {
-        fs.mkdirSync(storageDir, { recursive: true })
-      }
-
-      fs.writeFileSync(
-        tokenPath,
-        JSON.stringify({
-          token: data.token || data.access_token,
-          environment,
-          timestamp: new Date().toISOString()
-        })
-      )
-
-      return data.token || data.access_token
-    },
-
-    // Other required methods
-    async applyToBrowserContext(context, token, options) {
-      // Use the provider's own methods for consistency
-      const environment = this.getEnvironment(options)
-
-      // Set cookies or localStorage based on environment
-      await context.addCookies([
-        {
-          name: 'auth-token',
-          value: token,
-          domain: environment === 'local' ? 'localhost' : `.example.com`,
-          path: '/',
-          httpOnly: true,
-          secure: environment !== 'local',
-          sameSite: 'Lax'
-        }
-      ])
-    },
-
-    clearToken(options) {
-      const environment = options.environment || 'local'
-      const userRole = options.userRole || 'default'
-      const tokenPath = path.resolve(
-        process.cwd(),
-        'pw',
-        '.auth-sessions',
-        environment,
-        userRole,
-        'auth-token.json'
-      )
-      if (fs.existsSync(tokenPath)) {
-        fs.unlinkSync(tokenPath)
-      }
-    }
-  }
-}
+// This test will run against the PR deployment
+prTest('should work in PR environment', async ({ page }) => {
+  await page.goto('/dashboard')
+  // ...
+})
 ```
 
-Usage in tests:
+### Separate Auth and Application URLs
+
+Many applications use different URLs for:
+
+1. **Application URL** - Where your app is hosted (used for browser tests)
+2. **Auth Service URL** - Where authentication happens (used for token requests)
+
+#### Configuring URL Settings in Your Fixtures
+
+To support different URLs, you need to modify your auth-fixture.ts file:
 
 ```typescript
-// Environment-specific test
-test('staging-specific test', async ({ request }) => {
-  // Pass environment override to getAuthToken
-  const token = await getAuthToken(request, { environment: 'staging' })
+// In your pw/support/fixtures/auth-fixture.ts
+import { test as base } from '@playwright/test'
+import {
+  createAuthFixtures,
+  type AuthOptions,
+  type AuthFixtures
+} from '../auth'
 
-  // Use the token with staging environment APIs
-  const response = await request.get('https://staging-api.example.com/data', {
-    headers: { Authorization: `Bearer ${token}` }
-  })
+// Configure URLs for different environments
+const defaultAuthOptions: AuthOptions = {
+  // Basic environment and role settings
+  environment: process.env.TEST_ENV || 'local',
+  userRole: 'default',
 
-  expect(response.ok()).toBeTruthy()
+  // URL configuration - can be environment-specific
+  baseUrl: process.env.APP_URL || 'http://localhost:3000', // Your application URL
+  authBaseUrl: process.env.AUTH_URL || 'http://localhost:3001', // Your auth service URL
+
+  // Optional debugging
+  debug: process.env.AUTH_DEBUG === 'true'
+}
+
+// Get the fixtures from the factory function
+const fixtures = createAuthFixtures()
+
+// Export the test object with auth fixtures
+export const test = base.extend<AuthFixtures>({
+  // Register auth options using the Playwright array format
+  authOptions: [defaultAuthOptions, { option: true }],
+
+  // Use the other fixtures directly
+  authToken: fixtures.authToken,
+  context: fixtures.context,
+  page: fixtures.page
 })
 ```
 
@@ -855,172 +816,218 @@ test('staging-specific test', async ({ request }) => {
 Supporting different user roles is simple with our architecture by implementing the right auth provider:
 
 ```typescript
-// global-setup.ts
-import { authStorageInit, configureAuthSession, setAuthProvider } from './auth'
-import { createMultiRoleAuthProvider } from './auth-provider-factory'
+// custom-auth-provider.ts
 
-async function globalSetup() {
-  // Step 1: Initialize storage
-  authStorageInit()
+import { type AuthProvider } from './auth'
+import * as fs from 'fs'
+import {
+  getTokenFilePath,
+  authStorageInit
+} from './auth/internal/auth-storage-utils'
+import { loadTokenFromStorage, saveTokenToStorage } from './auth/core'
+import { getAuthBaseUrl } from './auth/internal/url-utils'
 
-  // Step 2: Configure minimal auth settings (ALL PARAMETERS OPTIONAL)
-  // Note: userRole in configureAuthSession is only used for storage path organization
-  // and defaults to 'default' if not specified
-  configureAuthSession({
-    debug: true
-    // The userRole parameter here only affects storage paths and is NOT used for
-    // determining which credentials to use - that's handled by the provider
-  })
-
-  // Step 3: Create role-based auth provider (THIS IS WHERE ROLE LOGIC BELONGS)
-  // The role-specific authentication behavior should be defined in the provider
-  const authProvider = createMultiRoleAuthProvider({
-    // Default role to use if not specified in getAuthToken options
-    defaultRole: 'user',
-
-    // Define configuration for each role
-    roles: {
+/**
+ * Utility function to get credentials for a specific user role using a functional approach
+ * This is placed outside the auth provider object to maintain proper encapsulation
+ * and follow functional programming principles
+ */
+// eslint-disable-next-line complexity
+const getCredentialsForRole = (
+  role: string
+): { username: string; password: string } => {
+  // Using a map pattern for role-based credentials instead of imperative conditionals
+  const credentialMap: Record<string, { username: string; password: string }> =
+    {
       admin: {
-        credentials: {
-          username: process.env.ADMIN_USERNAME || 'admin',
-          password: process.env.ADMIN_PASSWORD || 'admin-password'
-        },
-        endpoint: '/auth/admin-token'
+        username: process.env.ADMIN_USERNAME || 'admin@example.com',
+        password: process.env.ADMIN_PASSWORD || 'admin123'
       },
-      user: {
-        credentials: {
-          username: process.env.USER_USERNAME || 'user',
-          password: process.env.USER_PASSWORD || 'user-password'
-        },
-        endpoint: '/auth/token'
+      regular: {
+        username: process.env.USER_USERNAME || 'user@example.com',
+        password: process.env.USER_PASSWORD || 'user123'
       },
       guest: {
-        credentials: {
-          username: 'guest',
-          password: 'guest-password'
-        },
-        endpoint: '/auth/guest-token'
+        username: process.env.GUEST_USERNAME || 'guest@example.com',
+        password: process.env.GUEST_PASSWORD || 'guest123'
+      },
+      tester: {
+        username: process.env.TESTER_USERNAME || 'tester@example.com',
+        password: process.env.TESTER_PASSWORD || 'tester123'
+      },
+      readonly: {
+        username: process.env.READONLY_USERNAME || 'readonly@example.com',
+        password: process.env.READONLY_PASSWORD || 'readonly123'
+      },
+      default: {
+        username: process.env.DEFAULT_USERNAME || 'default@example.com',
+        password: process.env.DEFAULT_PASSWORD || 'default123'
       }
     }
-  })
-
-  // Step 4: Set the auth provider (REQUIRED)
-  setAuthProvider(authProvider)
+  // Ensure we always return a valid credential object with functional fallback pattern
+  return (
+    credentialMap[role] ||
+    credentialMap.default || {
+      username: process.env.DEFAULT_USERNAME || 'default@example.com',
+      password: process.env.DEFAULT_PASSWORD || 'default123'
+    }
+  )
 }
-```
 
-A simple implementation of the multi-role auth provider factory:
 
-```typescript
-// auth-provider-factory.ts
-import * as path from 'path'
-import * as fs from 'fs'
-import { AuthProvider } from './auth'
+// Create a fully custom provider implementation
+const myCustomProvider: AuthProvider = {
 
-export function createMultiRoleAuthProvider(config: {
-  roles: Record<
-    string,
-    {
-      credentials: Record<string, string>
-      endpoint: string
+  getEnvironment(options = {}) { .. },
+
+  getUserRole(options = {}) { .. },
+
+  async getToken(request, options = {}) {
+    // Use our own methods to ensure consistency
+    const environment = this.getEnvironment(options)
+    const userRole = this.getUserRole(options)
+    // Use the utility functions to get standardized paths
+    const tokenPath = getTokenFilePath({
+      environment,
+      userRole,
+      tokenFileName: 'custom-auth-token.json'
+    })
+    // Check if we already have a valid token using the core utility
+    // Add custom logging for this provider implementation
+    console.log(`[Custom Auth] Checking for existing token at ${tokenPath}`)
+    const existingToken = loadTokenFromStorage(tokenPath, true)
+    if (existingToken) {
+      console.log(`[Custom Auth] Using existing token from ${tokenPath}`)
+      return existingToken
     }
-  >
-  defaultRole?: string
-}): AuthProvider {
-  return {
-    // Get the current environment - single source of truth
-    getEnvironment(options = {}) {
-      return options.environment || process.env.TEST_ENV || 'local'
-    },
+    // Initialize storage directories (in case you're not using authGlobalInit() in global-setup)
+    authStorageInit({ environment, userRole })
+    // Get a new token using our custom auth flow
+    console.log(
+      `[Custom Auth] Fetching new token for ${environment}/${userRole}`
+    )
+    // Use the authBaseUrl utility to get the environment-appropriate auth URL
+    const authBaseUrl = getAuthBaseUrl({
+      environment,
+      authBaseUrl: options.authBaseUrl
+    })
+    // Get the endpoint (could also be environment-specific if needed)
+    const endpoint = process.env.AUTH_TOKEN_ENDPOINT || '/token'
+    const authUrl = `${authBaseUrl}${endpoint}`
+    console.log(`[Custom Auth] Requesting token from ${authUrl}`)
 
-    // Get the current user role - single source of truth
-    getUserRole(options = {}) {
-      return options.userRole || config.defaultRole || 'default'
-    },
+    // Get immutable credentials object for the current role using our functional helper
+    const credentials = getCredentialsForRole(userRole)
 
-    async getToken(request, options = {}) {
-      // Use the provider's own methods instead of direct options access
-      const environment = this.getEnvironment(options)
-      const userRole = this.getUserRole(options)
-
-      // Get role-specific config
-      const roleConfig =
-        config.roles[userRole] || config.roles.user || config.roles.default
-
-      // Store tokens in role-specific directories
-      const storageDir = path.resolve(
-        process.cwd(),
-        'pw',
-        '.auth-sessions',
-        environment,
-        userRole
-      )
-      const tokenPath = path.join(storageDir, 'auth-token.json')
-
-      // Check for existing token for this role
-      if (fs.existsSync(tokenPath)) {
-        const tokenData = JSON.parse(fs.readFileSync(tokenPath, 'utf8'))
-        // TODO: Add token validation/expiration check here if needed
-        return tokenData.token
+    // Make the authentication request with the appropriate credentials
+    const response = await request.post(authUrl, {
+      data: credentials,
+      headers: {
+        'Content-Type': 'application/json'
       }
-
-      // Get token with role-specific credentials and endpoint
-      const baseUrl = `http://localhost:${process.env.PORT || 3000}`
-      const response = await request.post(`${baseUrl}${roleConfig.endpoint}`, {
-        data: roleConfig.credentials,
-        headers: { 'Content-Type': 'application/json' }
-      })
-
-      const data = await response.json()
-
-      // Save token with role info
-      if (!fs.existsSync(storageDir)) {
-        fs.mkdirSync(storageDir, { recursive: true })
-      }
-
-      fs.writeFileSync(
-        tokenPath,
-        JSON.stringify({
-          token: data.token || data.access_token,
-          userRole,
-          timestamp: new Date().toISOString()
-        })
-      )
-
-      return data.token || data.access_token
-    },
-
-    // Implement other required methods...
-    async applyToBrowserContext(context, token, options) {
-      await context.addCookies([
-        {
-          name: 'auth-token',
-          value: token,
-          domain: 'localhost',
-          path: '/',
-          httpOnly: true
-        }
-      ])
-    },
-
-    clearToken(options) {
-      const environment = options.environment || 'local'
-      const userRole = options.userRole || 'default'
-      const tokenPath = path.resolve(
-        process.cwd(),
-        'pw',
-        '.auth-sessions',
+    })
+    // Extract token from response - customize based on your API response format
+    const data = await response.json()
+    const token = data.access_token || data.token || data.accessToken
+    // Use the core utility to save the token with metadata
+    // We turn on debug mode to get logging
+    console.log(`[Custom Auth] Saving token to ${tokenPath}`)
+    saveTokenToStorage(
+      tokenPath,
+      token,
+      {
         environment,
         userRole,
-        'auth-token.json'
-      )
-      if (fs.existsSync(tokenPath)) {
-        fs.unlinkSync(tokenPath)
-      }
-    }
-  }
+        source: 'custom-provider'
+      },
+      true
+    )
+    return token
+  },
+
+  async applyToBrowserContext(context, token, options = {}) { .. },
+
+  clearToken(options = {}) { .. }
 }
 ```
+
+#### 1. Using Multiple User Roles in Tests
+
+The real power of this approach comes when testing with different user roles:
+
+```typescript
+// in your test file
+import { test } from '@playwright/test'
+import { createAuthFixtures } from './auth/test-fixtures'
+
+// Create role-specific test fixtures
+const regularTest = test.extend({
+  // Regular user fixture
+  ...createAuthFixtures({
+    userRole: 'regular'
+  })
+})
+
+const adminTest = test.extend({
+  // Admin user fixture
+  ...createAuthFixtures({
+    userRole: 'admin'
+  })
+})
+
+// Test as regular user
+regularTest('Regular user cannot access admin page', async ({ page }) => {
+  await page.goto('/dashboard')
+  // Regular user specific assertions
+  await expect(page.locator('#admin-panel')).not.toBeVisible()
+})
+
+// Test as admin user
+adminTest('Admin user can access admin page', async ({ page }) => {
+  await page.goto('/dashboard')
+  // Admin user specific assertions
+  await expect(page.locator('#admin-panel')).toBeVisible()
+})
+
+// Mix roles in a single test for complex scenarios
+test('Admin can impersonate a regular user', async ({
+  browser,
+  request,
+  authOptions
+}) => {
+  // Get admin user context first
+  const adminOptions = { ...authOptions, userRole: 'admin' }
+  const adminToken = await getToken(request, adminOptions)
+  const adminContext = await browser.newContext({
+    storageState: getStorageStatePath(adminOptions)
+  })
+  const adminPage = await adminContext.newPage()
+
+  // Admin logs in and accesses impersonation feature
+  await adminPage.goto('/admin/users')
+  await adminPage.click('text=Impersonate User')
+
+  // Now get a regular user context for comparison
+  const regularOptions = { ...authOptions, userRole: 'regular' }
+  const regularContext = await browser.newContext({
+    storageState: getStorageStatePath(regularOptions)
+  })
+  const regularPage = await regularContext.newPage()
+
+  // Compare experiences
+  // ...
+
+  // Clean up
+  await adminContext.close()
+  await regularContext.close()
+})
+```
+
+#### 2. Alternative Approach with multi-role support: Role-Specific Fixtures
+
+While the custom auth provider handles roles within a single implementation, you can alternatively create separate fixtures for each role. This approach may be simpler for teams that always test each role in isolation and never need to switch roles within a test.
+
+**Note**: This approach violates DRY principles and makes role management more complex. The custom auth provider pattern above is generally recommended.
 
 Create role-specific test fixtures:
 
@@ -1082,255 +1089,7 @@ userTest('regular user profile access', async ({ authToken, request }) => {
 })
 ```
 
-### UI Testing with Browser Context
-
-Apply the auth token to browser contexts for UI testing by leveraging the auth provider's `applyToBrowserContext` method:
-
-```typescript
-// ui-auth-fixture.ts
-import { test as base } from '@playwright/test'
-import { getAuthToken, applyAuthToBrowserContext } from '../support/auth'
-
-export const test = base.extend({
-  // Setup authenticated context
-  context: async ({ browser, request }, use) => {
-    // Get a token from the configured auth provider
-    const token = await getAuthToken(request)
-
-    // Create a new context
-    const context = await browser.newContext()
-
-    // Apply the token to the context using the configured auth provider
-    await applyAuthToBrowserContext(context, token)
-
-    // Use the authenticated context
-    await use(context)
-
-    // Clean up
-    await context.close()
-  }
-})
-```
-
-This works seamlessly because the `applyAuthToBrowserContext` function uses the same auth provider configured in your global setup.
-
-### Custom Authentication Provider
-
-To customize authentication, you need to create a custom auth provider and configure it using `setAuthProvider`. Here's how to create a custom provider for different authentication schemes:
-
-#### OAuth2 Example
-
-```typescript
-// oauth-auth-provider.ts
-import * as fs from 'fs'
-import * as path from 'path'
-import { AuthProvider } from './auth/internal/auth-provider'
-
-export function createOAuth2Provider(config: {
-  clientId: string
-  clientSecret: string
-  tokenUrl: string
-  scope?: string
-  defaultEnvironment?: string
-}): AuthProvider {
-  return {
-    // Get the current environment - single source of truth
-    getEnvironment(options = {}) {
-      return (
-        options.environment ||
-        config.defaultEnvironment ||
-        process.env.TEST_ENV ||
-        'local'
-      )
-    },
-
-    // Get the current user role - single source of truth
-    getUserRole(options = {}) {
-      return options.userRole || 'default'
-    },
-
-    async getToken(request, options = {}) {
-      // Use the provider's own methods instead of direct options access
-      const environment = this.getEnvironment(options)
-      const userRole = this.getUserRole(options)
-
-      // Determine storage path
-      const storageDir = path.resolve(
-        process.cwd(),
-        'pw',
-        '.auth-sessions',
-        environment,
-        userRole
-      )
-      const tokenPath = path.join(storageDir, 'oauth-token.json')
-
-      // Check for existing valid token
-      if (fs.existsSync(tokenPath)) {
-        const tokenData = JSON.parse(fs.readFileSync(tokenPath, 'utf8'))
-        if (tokenData.expiresAt && tokenData.expiresAt > Date.now()) {
-          return tokenData.accessToken
-        }
-      }
-
-      // Request a new token
-      const response = await request.post(config.tokenUrl, {
-        form: {
-          grant_type: 'client_credentials',
-          client_id: config.clientId,
-          client_secret: config.clientSecret,
-          scope: config.scope || ''
-        },
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      })
-
-      const data = await response.json()
-
-      // Calculate expiration
-      const expiresAt = Date.now() + (data.expires_in * 1000 || 3600000) // Default to 1 hour
-
-      // Save token
-      if (!fs.existsSync(storageDir)) {
-        fs.mkdirSync(storageDir, { recursive: true })
-      }
-
-      fs.writeFileSync(
-        tokenPath,
-        JSON.stringify({
-          accessToken: data.access_token,
-          refreshToken: data.refresh_token,
-          tokenType: data.token_type || 'Bearer',
-          expiresAt,
-          scope: data.scope,
-          environment,
-          userRole,
-          timestamp: new Date().toISOString()
-        })
-      )
-
-      return data.access_token
-    },
-
-    async applyToBrowserContext(context, token, options = {}) {
-      // Add token as an authorization header cookie
-      await context.addCookies([
-        {
-          name: 'authorization',
-          value: `Bearer ${token}`,
-          domain:
-            options.environment === 'local' ? 'localhost' : '.example.com',
-          path: '/',
-          httpOnly: true,
-          secure: options.environment !== 'local',
-          sameSite: 'Lax'
-        }
-      ])
-
-      // Alternative: Store token in localStorage
-      await context.addInitScript((token) => {
-        window.localStorage.setItem('oauth_token', token)
-      }, token)
-    },
-
-    clearToken(options = {}) {
-      const environment = options.environment || 'local'
-      const userRole = options.userRole || 'default'
-      const tokenPath = path.resolve(
-        process.cwd(),
-        'pw',
-        '.auth-sessions',
-        environment,
-        userRole,
-        'oauth-token.json'
-      )
-      if (fs.existsSync(tokenPath)) {
-        fs.unlinkSync(tokenPath)
-      }
-    }
-  }
-}
-```
-
-Configuring your OAuth2 provider:
-
-```typescript
-// global-setup.ts
-import {
-  authStorageInit,
-  configureAuthSession,
-  setAuthProvider,
-  authGlobalInit
-} from './auth'
-import { createOAuth2Provider } from './oauth-auth-provider'
-
-async function globalSetup() {
-  // Step 1: Initialize storage (REQUIRED)
-  authStorageInit()
-
-  // Step 2: Configure minimal auth settings (ALL PARAMETERS OPTIONAL)
-  configureAuthSession({
-    // Only debug is needed here - everything else has defaults
-    debug: true
-  })
-
-  // Step 3: Create OAuth2 provider with all necessary config (REQUIRED)
-  const authProvider = createOAuth2Provider({
-    // All OAuth2 specific configuration goes in the provider
-    clientId: process.env.OAUTH_CLIENT_ID || 'client-id',
-    clientSecret: process.env.OAUTH_CLIENT_SECRET || 'client-secret',
-    tokenUrl:
-      process.env.OAUTH_TOKEN_URL || 'http://localhost:3000/oauth/token',
-    scope: 'read write'
-  })
-
-  // Step 4: Set the auth provider (REQUIRED)
-  setAuthProvider(authProvider)
-
-  // Optional: Pre-fetch tokens
-  await authGlobalInit()
-}
-
-export default globalSetup
-```
-
-#### Token Pre-fetching
-
-For improved test performance, pre-fetch tokens during global setup:
-
-```typescript
-// global-setup.ts
-import {
-  authStorageInit,
-  configureAuthSession,
-  setAuthProvider,
-  authGlobalInit
-} from './auth'
-import myCustomProvider from './custom-auth-provider'
-
-async function globalSetup() {
-  // Initialize storage
-  authStorageInit()
-
-  // Configure basic settings
-  configureAuthSession({
-    environment: process.env.TEST_ENV || 'local',
-    userRole: 'default',
-    debug: true
-  })
-
-  // Set the auth provider
-  setAuthProvider(myCustomProvider)
-
-  // Pre-fetch tokens for all configured environments and roles
-  // This happens once before all tests run
-  await authGlobalInit()
-}
-
-export default globalSetup
-```
-
-### Testing Multiple Roles in a Single Test
+#### 3. Testing Interactions Between Multiple Roles in a Single Test
 
 Sometimes you need to test how different user roles interact with each other. Our authentication library makes this easy by allowing you to explicitly request tokens for different roles within the same test:
 
@@ -1395,6 +1154,135 @@ This approach is much simpler than Playwright's built-in solution because:
 4. **Explicit role naming** - Uses semantic role names instead of file paths
 
 You can easily extend this pattern to create Page Object Models with role-specific authentication already applied.
+
+### UI Testing with Browser Context
+
+This functionality is already built in and requires no additional code:
+
+```typescript
+// No special setup needed - auth is automatically applied
+test('authenticated UI test', async ({ page }) => {
+  // The page is already authenticated!
+  await page.goto('/dashboard')
+
+  // Verify authenticated content is visible
+  await expect(page.locator('h1')).toContainText('Welcome Back')
+})
+```
+
+### Custom Authentication Provider
+
+For specialized authentication needs, the custom provider becomes the source of truth for environment and role information.
+
+#### OAuth2 Example
+
+Here's how to implement OAuth2 authentication in your custom auth provider:
+
+```typescript
+// Inside your custom-auth-provider.ts
+const myCustomProvider: AuthProvider = {
+  // Standard methods for environment and role
+  getEnvironment(options = {}) { ... },
+  getUserRole(options = {}) { ... },
+
+  // OAuth2-specific token retrieval
+  async getToken(request, options = {}) {
+    const environment = this.getEnvironment(options)
+    const userRole = this.getUserRole(options)
+
+    // Get token path using utility function
+    const tokenPath = getTokenFilePath({
+      environment,
+      userRole,
+      tokenFileName: 'oauth-token.json'
+    })
+
+    // Check for existing valid token
+    const existingToken = loadTokenFromStorage(tokenPath)
+    if (existingToken && !isTokenExpired(existingToken)) {
+      return existingToken
+    }
+
+    // Initialize storage if needed
+    authStorageInit({ environment, userRole })
+
+    // Get OAuth config from environment or defaults
+    const oauthConfig = {
+      clientId: process.env.OAUTH_CLIENT_ID || 'client-id',
+      clientSecret: process.env.OAUTH_CLIENT_SECRET || 'client-secret',
+      tokenUrl: process.env.OAUTH_TOKEN_URL || 'http://localhost:3000/oauth/token',
+      scope: process.env.OAUTH_SCOPE || 'read write'
+    }
+
+    // Request a new token using client credentials flow
+    const response = await request.post(oauthConfig.tokenUrl, {
+      form: {
+        grant_type: 'client_credentials',
+        client_id: oauthConfig.clientId,
+        client_secret: oauthConfig.clientSecret,
+        scope: oauthConfig.scope
+      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
+
+    const data = await response.json()
+    const token = data.access_token
+
+    // Save token with metadata using core utility
+    saveTokenToStorage(
+      tokenPath,
+      token,
+      {
+        environment,
+        userRole,
+        expiresAt: Date.now() + (data.expires_in * 1000 || 3600000),
+        scope: data.scope
+      },
+      true // Debug mode
+    )
+
+    return token
+  },
+
+  // Rest of the methods...
+}
+```
+
+#### Token Pre-fetching
+
+For improved test performance, pre-fetch tokens during global setup:
+
+```typescript
+// global-setup.ts
+import {
+  authStorageInit,
+  configureAuthSession,
+  setAuthProvider,
+  authGlobalInit
+} from './auth'
+import myCustomProvider from './custom-auth-provider'
+
+async function globalSetup() {
+  // Initialize storage
+  authStorageInit()
+
+  // Configure basic settings
+  configureAuthSession({
+    environment: process.env.TEST_ENV || 'local',
+    userRole: 'default',
+    debug: true
+  })
+
+  // Set the auth provider
+  setAuthProvider(myCustomProvider)
+
+  // Pre-fetch tokens for all configured environments and roles
+  // This happens once before all tests run
+  await authGlobalInit()
+}
+
+export default globalSetup
+```
 
 ### Parallel Testing with Worker-Specific Accounts
 
@@ -1462,22 +1350,42 @@ This implementation is more elegant than Playwright's approach because:
 - The provider architecture handles all the complexity
 - The same approach works in both UI Mode and normal test mode
 
-### Session Storage Support
+### Session Storage Support (Extension Recipe)
+
+> **Note**: This is an extension recipe showing how you could add session storage support to the auth system. The core library doesn't currently implement this functionality.
 
 Playwright explicitly does not provide APIs to persist session storage, requiring custom scripts for applications that use this storage method. From the Playwright documentation:
 
 > "Session storage is specific to a particular domain and is not persisted across page loads. Playwright does not provide API to persist session storage. However, you can use an init script to implement a custom mechanism to persist session storage."
 
-Our authentication library handles session storage automatically through the `AuthSessionManager`. When a browser context is authenticated, we apply both the standard storage state (which includes cookies, localStorage, and IndexedDB) and also initialize session storage with saved values using an initialization script.
+You can extend our authentication library to handle session storage by adding these capabilities to your custom auth provider:
 
 ```typescript
-// How we handle session storage in applyAuthToContext
-async applyAuthToContext(context, options) {
-  // First, apply the standard storage state (cookies, localStorage, IndexedDB)
-  await context.storageState({ path: this.getStorageStatePath(options) });
+// Example extension to custom-auth-provider.ts - NOT CURRENTLY IMPLEMENTED in this repo
+// Add this to your provider to support session storage if needed
 
-  // Then, if we have session storage data, apply it via an initialization script
-  const sessionStoragePath = this.getSessionStoragePath(options);
+
+// In your custom auth provider
+async applyToBrowserContext(context, token, options = {}) {
+  // First apply the token using your preferred method (cookies, localStorage, etc.)
+  await context.addCookies([
+    {
+      name: 'auth-token',
+      value: token,
+      domain: 'localhost',
+      path: '/'
+    }
+  ]);
+
+  // Then, apply session storage if available
+  const environment = this.getEnvironment(options);
+  const userRole = this.getUserRole(options);
+  const sessionStoragePath = getTokenFilePath({
+    environment,
+    userRole,
+    tokenFileName: 'session-storage.json'
+  });
+
   if (fs.existsSync(sessionStoragePath)) {
     try {
       const sessionStorage = JSON.parse(fs.readFileSync(sessionStoragePath, 'utf-8'));
@@ -1490,16 +1398,18 @@ async applyAuthToContext(context, options) {
       }, sessionStorage);
 
     } catch (error) {
-      console.error('Error applying session storage:', error);
+      console.error('[Custom Auth] Error applying session storage:', error);
     }
   }
 }
 
-// We also capture session storage during token acquisition
-async getToken(page) {
-  // ... normal authentication logic ...
+// And in your getToken method, add session storage capture after authentication
+// This assumes you're using a page to authenticate rather than an API request
+async captureSessionStorage(page, options = {}) {
+  const environment = this.getEnvironment(options);
+  const userRole = this.getUserRole(options);
 
-  // Capture and store session storage
+  // Extract session storage data
   const sessionStorage = await page.evaluate(() => {
     const data = {};
     for (let i = 0; i < window.sessionStorage.length; i++) {
@@ -1509,15 +1419,20 @@ async getToken(page) {
     return data;
   });
 
+  // Save it alongside the token
+  const sessionStoragePath = getTokenFilePath({
+    environment,
+    userRole,
+    tokenFileName: 'session-storage.json'
+  });
+
   fs.writeFileSync(
-    this.getSessionStoragePath(options),
+    sessionStoragePath,
     JSON.stringify(sessionStorage),
     'utf-8'
   );
 }
 ```
-
-This approach ensures that all web storage mechanisms are properly persisted and restored, not just the ones that Playwright handles natively.
 
 ### Resetting Authentication State
 
@@ -1571,7 +1486,7 @@ test.describe('unauthenticated browser tests', () => {
 })
 ```
 
-**Advantages over Playwright's approach:**
+**Advantages over Playwright's approach**
 
 1. **Granular control** - Clear specific tokens instead of all storage state
 2. **Environment/role awareness** - Target specific test configurations
@@ -1580,6 +1495,36 @@ test.describe('unauthenticated browser tests', () => {
 5. **Multiple modes** - Test both authenticated and unauthenticated states in the same file
 
 This makes it much easier to test complex authentication scenarios like authenticated session timeouts, partial authentication, or mixed authenticated/unauthenticated user journeys.
+
+### Token Management Utilities
+
+The auth library provides utility functions for handling token storage and retrieval. These functions are available through the core API and can simplify custom auth provider implementations:
+
+```typescript
+import {
+  loadTokenFromStorage,
+  saveTokenToStorage,
+  getTokenFilePath
+} from './auth/core'
+
+// Load a token from storage
+const token = loadTokenFromStorage('/path/to/token.json', true) // Second parameter enables debug logging
+
+// Save a token with metadata
+saveTokenToStorage(
+  '/path/to/token.json',
+  'your-token-string',
+  { environment: 'staging', userRole: 'admin' }, // Optional metadata
+  true // Enable debug logging
+)
+
+// Get standardized token file path
+const tokenPath = getTokenFilePath({
+  environment: 'staging',
+  userRole: 'admin',
+  tokenFileName: 'custom-token.json' // Optional custom filename
+})
+```
 
 ## Implementation Details
 

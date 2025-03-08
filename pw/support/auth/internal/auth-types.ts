@@ -141,6 +141,20 @@ export interface AuthOptions {
    * @default 'default'
    */
   userRole?: string
+
+  /**
+   * Base URL to use for the browser context (the application URL)
+   * If not provided, will be determined based on environment
+   * @default process.env.BASE_URL || environment-specific URL
+   */
+  baseUrl?: string
+
+  /**
+   * Base URL to use for authentication requests (the auth service URL)
+   * This is often different from the application baseUrl
+   * @default process.env.AUTH_BASE_URL || environment-specific auth URL
+   */
+  authBaseUrl?: string
 }
 
 /**
