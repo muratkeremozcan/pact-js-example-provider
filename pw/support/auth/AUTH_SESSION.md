@@ -13,8 +13,7 @@ This library builds on Playwright's authentication capabilities to create a more
       - [Approach 1: Setup Project with Dependencies (Recommended by Playwright)](#approach-1-setup-project-with-dependencies-recommended-by-playwright)
       - [Approach 2: Global Setup Function](#approach-2-global-setup-function)
       - [3. Write tests that use the authenticated state](#3-write-tests-that-use-the-authenticated-state)
-    - [Limitations of Playwright's Approach](#limitations-of-playwrights-approach)
-    - [What This Library Adds](#what-this-library-adds)
+    - [Limitations of Playwright’s Approach vs. What This Library Adds](#limitations-of-playwrights-approach-vs-what-this-library-adds)
   - [Quick Start Guide](#quick-start-guide)
   - [API Overview](#api-overview)
     - [Core Token Management](#core-token-management)
@@ -25,7 +24,8 @@ This library builds on Playwright's authentication capabilities to create a more
   - [Basic Usage](#basic-usage)
     - [Using Authentication in API Tests](#using-authentication-in-api-tests)
     - [Using Authentication in UI Tests](#using-authentication-in-ui-tests)
-    - [Clearing Tokens When Needed](#clearing-tokens-when-needed)
+    - [Token Management and Authentication State](#token-management-and-authentication-state)
+      - [Clearing Tokens When Needed](#clearing-tokens-when-needed)
   - [Advanced Usage](#advanced-usage)
     - [Testing Against Different Deployment Environments](#testing-against-different-deployment-environments)
     - [Separate Auth and Application URLs](#separate-auth-and-application-urls)
@@ -40,9 +40,9 @@ This library builds on Playwright's authentication capabilities to create a more
       - [Token Pre-fetching](#token-pre-fetching)
     - [Parallel Testing with Worker-Specific Accounts](#parallel-testing-with-worker-specific-accounts)
     - [Session Storage Support (Extension Recipe)](#session-storage-support-extension-recipe)
-    - [Token Management and Authentication State](#token-management-and-authentication-state)
-      - [Clearing Tokens When Needed](#clearing-tokens-when-needed)
       - [Testing Unauthenticated States](#testing-unauthenticated-states)
+        - [Playwright's Built-in Approach](#playwrights-built-in-approach)
+        - [Our Enhanced Approach](#our-enhanced-approach)
     - [Token Management Utilities](#token-management-utilities)
   - [Implementation Details](#implementation-details)
     - [Storage Structure](#storage-structure)
@@ -201,19 +201,19 @@ test('access dashboard page', async ({ page }) => {
 
 ### Limitations of Playwright’s Approach vs. What This Library Adds
 
-| **No.** | **Limitation of Playwright’s Approach**                      | **What This Library Adds**                                   |
-| ------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 1       | **Complex setup** – Requires configuration across multiple files and understanding of projects/dependencies. | **Simplified setup** – Single configuration approach with built-in token expiration checking and programmatic refresh capabilities. |
-| 2       | **Manual token management** – No built-in handling of token expiration or refreshing. | **Structured token storage** – Organized acquisition and persistence of tokens with optional validation. |
-| 3       | **No multi-environment support** – No straightforward way to handle different environments (dev/staging/prod). | **Multi-environment support** – First-class support for different environments (dev/staging/prod). |
-| 4       | **No multi-role support** – No built-in system for managing different user roles (admin/user/guest). | **Role-based testing** – Built-in system for managing different user roles (admin/user/guest). |
-| 5       | **Limited programmatic control** – No simple API for clearing or refreshing tokens during test execution. | **Rich programmatic control** – Clear APIs for managing tokens during test execution. |
-| 6       | **Separate implementations** – Different approaches needed for API vs UI authentication. | **Unified implementation** – Same approach works for both API and browser testing. |
-| 7       | **Performance bottleneck** – Relies solely on file storage, requiring disk I/O and JSON parsing for every test run, causing slowdowns. | **Performance optimization** – In-memory caching eliminates repeated file reads and JSON parsing operations that slow down Playwright’s approach. |
+| **No.** | **Limitation of Playwright’s Approach**                                                                                                                                                                          | **What This Library Adds**                                                                                                                                                          |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1       | **Complex setup** – Requires configuration across multiple files and understanding of projects/dependencies.                                                                                                     | **Simplified setup** – Single configuration approach with built-in token expiration checking and programmatic refresh capabilities.                                                 |
+| 2       | **Manual token management** – No built-in handling of token expiration or refreshing.                                                                                                                            | **Structured token storage** – Organized acquisition and persistence of tokens with optional validation.                                                                            |
+| 3       | **No multi-environment support** – No straightforward way to handle different environments (dev/staging/prod).                                                                                                   | **Multi-environment support** – First-class support for different environments (dev/staging/prod).                                                                                  |
+| 4       | **No multi-role support** – No built-in system for managing different user roles (admin/user/guest).                                                                                                             | **Role-based testing** – Built-in system for managing different user roles (admin/user/guest).                                                                                      |
+| 5       | **Limited programmatic control** – No simple API for clearing or refreshing tokens during test execution.                                                                                                        | **Rich programmatic control** – Clear APIs for managing tokens during test execution.                                                                                               |
+| 6       | **Separate implementations** – Different approaches needed for API vs UI authentication.                                                                                                                         | **Unified implementation** – Same approach works for both API and browser testing.                                                                                                  |
+| 7       | **Performance bottleneck** – Relies solely on file storage, requiring disk I/O and JSON parsing for every test run, causing slowdowns.                                                                           | **Performance optimization** – In-memory caching eliminates repeated file reads and JSON parsing operations that slow down Playwright’s approach.                                   |
 | 8       | **UI Mode limitations** – UI mode doesn’t run setup projects by default, requiring manual intervention to re-authenticate when tokens expire (enabling filters, running auth.setup.ts, disabling filters again). | **Seamless UI Mode integration** – Works with Playwright UI Mode without manual intervention; no need to enable filters, run setup projects, or re-authenticate when tokens expire. |
-| 9       | **Between-run API calls** – Authentication request is made at the start of each test run session, even when a previously acquired token is still valid. | **Reduced API calls** – Token is fetched only once and reused across all tests, significantly reducing authentication overhead. |
-| 10      | **Manual parallel worker setup** – Requires custom fixtures and significant boilerplate code to implement worker-specific authentication for parallel testing. | **Automatic parallel worker support** – Handles worker-specific authentication without custom fixtures or boilerplate, automatically managing unique accounts per worker. |
-| 11      | **No session storage support** – Playwright explicitly does not provide APIs to persist session storage, requiring custom scripts for apps that use this storage method. | **Complete storage support** – Automatically handles all storage types including cookies, localStorage, IndexedDB, and sessionStorage without manual scripts. |
+| 9       | **Between-run API calls** – Authentication request is made at the start of each test run session, even when a previously acquired token is still valid.                                                          | **Reduced API calls** – Token is fetched only once and reused across all tests, significantly reducing authentication overhead.                                                     |
+| 10      | **Manual parallel worker setup** – Requires custom fixtures and significant boilerplate code to implement worker-specific authentication for parallel testing.                                                   | **Automatic parallel worker support** – Handles worker-specific authentication without custom fixtures or boilerplate, automatically managing unique accounts per worker.           |
+| 11      | **No session storage support** – Playwright explicitly does not provide APIs to persist session storage, requiring custom scripts for apps that use this storage method.                                         | **Complete storage support** – Automatically handles all storage types including cookies, localStorage, IndexedDB, and sessionStorage without manual scripts.                       |
 
 **Additional Benefits**:
 
@@ -712,7 +712,7 @@ test('after clearing token', async ({ request }) => {
 test('specific environment token clearing', async ({ request }) => {
   // Clear token for a specific configuration
   clearAuthToken({ environment: 'staging', userRole: 'admin' })
-  
+
   // The next request for this environment/role will fetch a new token
   // ...
 })
