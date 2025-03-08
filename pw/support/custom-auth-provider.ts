@@ -9,7 +9,11 @@
 
 import { type AuthProvider } from './auth'
 import * as fs from 'fs'
-import * as path from 'path'
+import {
+  getTokenFilePath,
+  authStorageInit
+} from './auth/internal/auth-storage-utils'
+import { loadTokenFromStorage, saveTokenToStorage } from './auth/core'
 
 // Create a fully custom provider implementation
 const myCustomProvider: AuthProvider = {
@@ -49,31 +53,24 @@ const myCustomProvider: AuthProvider = {
     const environment = this.getEnvironment(options)
     const userRole = this.getUserRole(options)
 
-    // Store tokens in the same directory structure for consistency
-    const storageDir = path.resolve(
-      process.cwd(),
-      'pw',
-      '.auth-sessions',
+    // Use the utility functions to get standardized paths
+    const tokenPath = getTokenFilePath({
       environment,
-      userRole
-    )
-    const tokenPath = path.join(storageDir, 'custom-auth-token.json')
+      userRole,
+      tokenFileName: 'custom-auth-token.json'
+    })
 
-    // Check if we already have a token
-    if (fs.existsSync(tokenPath)) {
+    // Check if we already have a valid token using the core utility
+    // Add custom logging for this provider implementation
+    console.log(`[Custom Auth] Checking for existing token at ${tokenPath}`)
+    const existingToken = loadTokenFromStorage(tokenPath, true)
+    if (existingToken) {
       console.log(`[Custom Auth] Using existing token from ${tokenPath}`)
-      const tokenData = JSON.parse(fs.readFileSync(tokenPath, 'utf8'))
-
-      // You could add token expiration checks here
-      // if (tokenIsExpired(tokenData)) { ... }
-
-      return tokenData.token
+      return existingToken
     }
 
-    // Ensure the storage directory exists
-    if (!fs.existsSync(storageDir)) {
-      fs.mkdirSync(storageDir, { recursive: true })
-    }
+    // Initialize storage directories if needed
+    authStorageInit({ environment, userRole })
 
     // Get a new token using our custom auth flow
     console.log(
@@ -92,19 +89,18 @@ const myCustomProvider: AuthProvider = {
     const data = await response.json()
     const token = data.access_token || data.token || data.accessToken
 
-    // Save token to file system with additional metadata
-    fs.writeFileSync(
+    // Use the core utility to save the token with metadata
+    // We turn on debug mode to get logging
+    console.log(`[Custom Auth] Saving token to ${tokenPath}`)
+    saveTokenToStorage(
       tokenPath,
-      JSON.stringify(
-        {
-          token,
-          timestamp: new Date().toISOString(),
-          environment,
-          userRole
-        },
-        null,
-        2
-      )
+      token,
+      {
+        environment,
+        userRole,
+        source: 'custom-provider'
+      },
+      true
     )
 
     return token
@@ -120,6 +116,11 @@ const myCustomProvider: AuthProvider = {
     // Set domain based on environment
     const domain =
       environment === 'local' ? 'localhost' : `${environment}.example.com`
+
+    // Log what we're doing
+    console.log(
+      `[Custom Auth] Applying token to browser context for ${environment}`
+    )
 
     // Example: Set authentication cookie
     await context.addCookies([
@@ -154,15 +155,14 @@ const myCustomProvider: AuthProvider = {
     const environment = this.getEnvironment(options)
     const userRole = this.getUserRole(options)
 
-    const storageDir = path.resolve(
-      process.cwd(),
-      'pw',
-      '.auth-sessions',
+    // Use the utility function to get the token path - same as in getToken
+    const tokenPath = getTokenFilePath({
       environment,
-      userRole
-    )
-    const tokenPath = path.join(storageDir, 'custom-auth-token.json')
+      userRole,
+      tokenFileName: 'custom-auth-token.json'
+    })
 
+    // Delete the token file if it exists
     if (fs.existsSync(tokenPath)) {
       console.log(`[Custom Auth] Clearing token at ${tokenPath}`)
       fs.unlinkSync(tokenPath)
