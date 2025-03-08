@@ -40,10 +40,10 @@ This library builds on Playwright's authentication capabilities to create a more
       - [Token Pre-fetching](#token-pre-fetching)
     - [Parallel Testing with Worker-Specific Accounts](#parallel-testing-with-worker-specific-accounts)
     - [Session Storage Support (Extension Recipe)](#session-storage-support-extension-recipe)
-      - [Testing Unauthenticated States](#testing-unauthenticated-states)
-        - [Playwright's Built-in Approach](#playwrights-built-in-approach)
-        - [Our Enhanced Approach](#our-enhanced-approach)
-    - [Token Management Utilities](#token-management-utilities)
+    - [Testing Unauthenticated States](#testing-unauthenticated-states)
+      - [Playwright's Built-in Approach](#playwrights-built-in-approach)
+      - [Our Enhanced Approach](#our-enhanced-approach)
+    - [Token Utility Functions](#token-utility-functions)
   - [Implementation Details](#implementation-details)
     - [Storage Structure](#storage-structure)
 
@@ -608,6 +608,8 @@ test('authenticated request', async ({ authToken, request }) => {
 })
 ```
 
+---
+
 ## API Overview
 
 The authentication library exposes the following functions:
@@ -619,6 +621,9 @@ The authentication library exposes the following functions:
 - `applyAuthToBrowserContext`: Applies authentication to a browser context for UI testing.
 - `configureAuthSession`: Configures global authentication settings like environment and debug mode.
 - `defaultTokenFormatter`: Default function for formatting token data for storage.
+- `loadTokenFromStorage`: Loads a token from storage with validation and expiration checking.
+- `saveTokenToStorage`: Saves a token to storage with metadata and creates required directories.
+- `getTokenFilePath`: Returns a standardized path for token storage based on environment and role.
 
 ### Global Setup Utilities
 
@@ -641,6 +646,8 @@ The authentication library exposes the following functions:
 - `getBaseUrl`: Gets the base URL for the current environment.
 - `getAuthBaseUrl`: Gets the authentication base URL for the current environment.
 - `getStorageStatePath`: Gets the path for storing browser storage state.
+
+---
 
 ## Basic Usage
 
@@ -1431,7 +1438,7 @@ async captureSessionStorage(page, options = {}) {
 }
 ```
 
-#### Testing Unauthenticated States
+### Testing Unauthenticated States
 
 There are several approaches to test unauthenticated scenarios:
 
@@ -1499,19 +1506,19 @@ test.describe('unauthenticated browser tests', () => {
 
 This makes it much easier to test complex authentication scenarios like authenticated session timeouts, partial authentication, or mixed authenticated/unauthenticated user journeys.
 
-### Token Management Utilities
+### Token Utility Functions
 
-The auth library provides utility functions for handling token storage and retrieval. These functions are available through the core API and can simplify custom auth provider implementations:
+These token management functions are available through the main API and are particularly useful when implementing custom auth providers or handling complex token scenarios:
 
 ```typescript
 import {
   loadTokenFromStorage,
   saveTokenToStorage,
   getTokenFilePath
-} from './auth/core'
+} from '@/support/auth'
 
-// Load a token from storage
-const token = loadTokenFromStorage('/path/to/token.json', true) // Second parameter enables debug logging
+// Load a token from storage with expiration checking
+const token = loadTokenFromStorage('/path/to/token.json', true) // Enable debug logging
 
 // Save a token with metadata
 saveTokenToStorage(
@@ -1528,6 +1535,8 @@ const tokenPath = getTokenFilePath({
   tokenFileName: 'custom-token.json' // Optional custom filename
 })
 ```
+
+These utility functions ensure consistent token handling across your test suite and properly maintain the storage directory structure.
 
 ## Implementation Details
 

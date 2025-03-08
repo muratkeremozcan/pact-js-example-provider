@@ -19,7 +19,10 @@ export {
   getAuthToken,
   clearAuthToken,
   applyAuthToBrowserContext,
-  defaultTokenFormatter
+  defaultTokenFormatter,
+  // Token utility functions
+  loadTokenFromStorage,
+  saveTokenToStorage
 } from './core'
 
 // Global setup helper (optional)
