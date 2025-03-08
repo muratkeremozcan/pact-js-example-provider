@@ -40,7 +40,9 @@ This library builds on Playwright's authentication capabilities to create a more
       - [Token Pre-fetching](#token-pre-fetching)
     - [Parallel Testing with Worker-Specific Accounts](#parallel-testing-with-worker-specific-accounts)
     - [Session Storage Support (Extension Recipe)](#session-storage-support-extension-recipe)
-    - [Resetting Authentication State](#resetting-authentication-state)
+    - [Token Management and Authentication State](#token-management-and-authentication-state)
+      - [Clearing Tokens When Needed](#clearing-tokens-when-needed)
+      - [Testing Unauthenticated States](#testing-unauthenticated-states)
     - [Token Management Utilities](#token-management-utilities)
   - [Implementation Details](#implementation-details)
     - [Storage Structure](#storage-structure)
@@ -705,7 +707,9 @@ This works because our authentication system automatically handles separate URLs
 1. **Application URL** - Where your app is hosted (used for browser tests)
 2. **Auth Service URL** - Where authentication happens (used for token requests)
 
-### Clearing Tokens When Needed
+### Token Management and Authentication State
+
+#### Clearing Tokens When Needed
 
 In some scenarios, you may want to force a new token to be fetched:
 
@@ -717,6 +721,15 @@ test('after clearing token', async ({ request }) => {
   clearAuthToken()
 
   // Next request will fetch a new token
+  // ...
+})
+
+// Clear token for a specific environment/role
+test('specific environment token clearing', async ({ request }) => {
+  // Clear token for a specific configuration
+  clearAuthToken({ environment: 'staging', userRole: 'admin' })
+  
+  // The next request for this environment/role will fetch a new token
   // ...
 })
 ```
@@ -1434,9 +1447,13 @@ async captureSessionStorage(page, options = {}) {
 }
 ```
 
-### Resetting Authentication State
+#### Testing Unauthenticated States
 
-Playwright's documentation shows this approach for avoiding authentication:
+There are several approaches to test unauthenticated scenarios:
+
+##### Playwright's Built-in Approach
+
+Playwright's documentation shows this approach for testing without authentication:
 
 ```typescript
 // Playwright's approach - Reset storage state for specific tests
@@ -1460,7 +1477,9 @@ test.describe('unauthenticated tests', () => {
 })
 ```
 
-Our library offers more flexibility and control:
+##### Our Enhanced Approach
+
+Our library offers more flexibility and control over authentication states:
 
 ```typescript
 // Our approach - Option 1: Clear specific token
