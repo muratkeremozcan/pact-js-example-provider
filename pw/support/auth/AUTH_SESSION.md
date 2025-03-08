@@ -39,11 +39,10 @@ This library builds on Playwright's authentication capabilities to create a more
       - [OAuth2 Example](#oauth2-example)
       - [Token Pre-fetching](#token-pre-fetching)
     - [Parallel Testing with Worker-Specific Accounts](#parallel-testing-with-worker-specific-accounts)
-    - [Session Storage Support (Extension Recipe)](#session-storage-support-extension-recipe)
     - [Testing Unauthenticated States](#testing-unauthenticated-states)
       - [Playwright's Built-in Approach](#playwrights-built-in-approach)
       - [Our Enhanced Approach](#our-enhanced-approach)
-    - [Token Utility Functions](#token-utility-functions)
+    - [Session Storage Support (Extension Recipe)](#session-storage-support-extension-recipe)
   - [Implementation Details](#implementation-details)
     - [Storage Structure](#storage-structure)
 
@@ -1354,6 +1353,74 @@ This implementation is more elegant than Playwright's approach because:
 - The provider architecture handles all the complexity
 - The same approach works in both UI Mode and normal test mode
 
+### Testing Unauthenticated States
+
+There are several approaches to test unauthenticated scenarios:
+
+##### Playwright's Built-in Approach
+
+Playwright's documentation shows this approach for testing without authentication:
+
+```typescript
+// Playwright's approach - Reset storage state for specific tests
+
+// Method 1: Use empty storage state for a specific test
+test('not signed in test', async ({ browser }) => {
+  // Create a new context with no storage state (i.e., no authentication)
+  const context = await browser.newContext()
+  const page = await context.newPage()
+  // Test runs without any authentication state
+  await context.close()
+})
+
+// Method 2: Use empty storage state for a group of tests
+test.describe('unauthenticated tests', () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
+
+  test('not signed in test', async ({ page }) => {
+    // Test runs without any authentication state
+  })
+})
+```
+
+##### Our Enhanced Approach
+
+Our library offers more flexibility and control over authentication states:
+
+```typescript
+// Our approach - Option 1: Clear specific token
+test('test with cleared token', async ({ request }) => {
+  // Clear just the token for the current environment/role
+  clearAuthToken()
+
+  // OR clear for specific environment/role
+  clearAuthToken({ environment: 'staging', userRole: 'admin' })
+
+  // Now make unauthenticated requests
+  const response = await request.get('/api/public-resource')
+})
+
+// Our approach - Option 2: For browser tests, test-level config
+test.describe('unauthenticated browser tests', () => {
+  // Skip the auth fixture for this group
+  test.useOptions({ auth: false })
+
+  test('unauthenticated test', async ({ page }) => {
+    // Page will load without authentication
+  })
+})
+```
+
+**Advantages over Playwright's approach**
+
+1. **Granular control** - Clear specific tokens instead of all storage state
+2. **Environment/role awareness** - Target specific test configurations
+3. **API + UI flexibility** - Works for both API and browser tests
+4. **Runtime control** - Clear tokens during test execution, not just at setup
+5. **Multiple modes** - Test both authenticated and unauthenticated states in the same file
+
+This makes it much easier to test complex authentication scenarios like authenticated session timeouts, partial authentication, or mixed authenticated/unauthenticated user journeys.
+
 ### Session Storage Support (Extension Recipe)
 
 > **Note**: This is an extension recipe showing how you could add session storage support to the auth system. The core library doesn't currently implement this functionality.
@@ -1437,106 +1504,6 @@ async captureSessionStorage(page, options = {}) {
   );
 }
 ```
-
-### Testing Unauthenticated States
-
-There are several approaches to test unauthenticated scenarios:
-
-##### Playwright's Built-in Approach
-
-Playwright's documentation shows this approach for testing without authentication:
-
-```typescript
-// Playwright's approach - Reset storage state for specific tests
-
-// Method 1: Use empty storage state for a specific test
-test('not signed in test', async ({ browser }) => {
-  // Create a new context with no storage state (i.e., no authentication)
-  const context = await browser.newContext()
-  const page = await context.newPage()
-  // Test runs without any authentication state
-  await context.close()
-})
-
-// Method 2: Use empty storage state for a group of tests
-test.describe('unauthenticated tests', () => {
-  test.use({ storageState: { cookies: [], origins: [] } })
-
-  test('not signed in test', async ({ page }) => {
-    // Test runs without any authentication state
-  })
-})
-```
-
-##### Our Enhanced Approach
-
-Our library offers more flexibility and control over authentication states:
-
-```typescript
-// Our approach - Option 1: Clear specific token
-test('test with cleared token', async ({ request }) => {
-  // Clear just the token for the current environment/role
-  clearAuthToken()
-
-  // OR clear for specific environment/role
-  clearAuthToken({ environment: 'staging', userRole: 'admin' })
-
-  // Now make unauthenticated requests
-  const response = await request.get('/api/public-resource')
-})
-
-// Our approach - Option 2: For browser tests, test-level config
-test.describe('unauthenticated browser tests', () => {
-  // Skip the auth fixture for this group
-  test.useOptions({ auth: false })
-
-  test('unauthenticated test', async ({ page }) => {
-    // Page will load without authentication
-  })
-})
-```
-
-**Advantages over Playwright's approach**
-
-1. **Granular control** - Clear specific tokens instead of all storage state
-2. **Environment/role awareness** - Target specific test configurations
-3. **API + UI flexibility** - Works for both API and browser tests
-4. **Runtime control** - Clear tokens during test execution, not just at setup
-5. **Multiple modes** - Test both authenticated and unauthenticated states in the same file
-
-This makes it much easier to test complex authentication scenarios like authenticated session timeouts, partial authentication, or mixed authenticated/unauthenticated user journeys.
-
-### Token Utility Functions
-
-These token management functions are available through the main API and are particularly useful when implementing custom auth providers or handling complex token scenarios:
-
-```typescript
-import {
-  loadTokenFromStorage,
-  saveTokenToStorage,
-  getTokenFilePath
-} from '@/support/auth'
-
-// Load a token from storage with expiration checking
-const token = loadTokenFromStorage('/path/to/token.json', true) // Enable debug logging
-
-// Save a token with metadata
-saveTokenToStorage(
-  '/path/to/token.json',
-  'your-token-string',
-  { environment: 'staging', userRole: 'admin' }, // Optional metadata
-  true // Enable debug logging
-)
-
-// Get standardized token file path
-const tokenPath = getTokenFilePath({
-  environment: 'staging',
-  userRole: 'admin',
-  tokenFileName: 'custom-token.json' // Optional custom filename
-})
-```
-
-These utility functions ensure consistent token handling across your test suite and properly maintain the storage directory structure.
 
 ## Implementation Details
 
