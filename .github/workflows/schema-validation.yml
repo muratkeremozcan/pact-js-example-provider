@@ -16,7 +16,7 @@ jobs:
   schema-validation:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # needed for Commit and push OpenAPI changes to work
           ref: ${{ github.head_ref }}
