@@ -75,7 +75,7 @@
     "cors": "2.8.5",
     "cross-env": "10.1.0",
     "cy-spok": "1.6.2",
-    "cypress": "14.0.2",
+    "cypress": "15.5.0",
     "cypress-ajv-schema-validator": "2.0.2",
     "cypress-data-session": "2.8.6",
     "cypress-map": "1.43.0",
