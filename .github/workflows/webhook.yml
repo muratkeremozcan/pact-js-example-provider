@@ -88,7 +88,7 @@ jobs:
 
       # Step 4: Checkout code using actions/checkout
       # We use actions/checkout to clone the repository and fetch all branches.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # Fetch all branches and history so we can switch branches
           fetch-depth: 0
