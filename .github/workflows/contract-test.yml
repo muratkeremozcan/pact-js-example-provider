@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           # During a pull_request event, it checks out the PR branch.
           # During a push event, it checks out the branch that was pushed to (e.g., main)
