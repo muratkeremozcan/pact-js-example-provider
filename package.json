@@ -82,7 +82,7 @@
     "cypress-recurse": "1.35.3",
     "cypress-skip-test": "1.0.0",
     "dotenv": "17.2.3",
-    "eslint": "8.57.1",
+    "eslint": "10.0.1",
     "eslint-config-prettier": "10.0.1",
     "eslint-import-resolver-typescript": "4.0.0",
     "eslint-plugin-cypress": "3.6.0",
